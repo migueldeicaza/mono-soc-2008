@@ -1,0 +1,16 @@
+<Combine name="ParallelFX" fileversion="2.0">
+  <Configurations active="Debug">
+    <Configuration name="Debug" ctype="CombineConfiguration">
+      <Entry build="True" name="ParallelFX" configuration="Debug" />
+    </Configuration>
+    <Configuration name="Release" ctype="CombineConfiguration">
+      <Entry build="True" name="ParallelFX" configuration="Release" />
+    </Configuration>
+  </Configurations>
+  <StartMode startupentry="ParallelFX" single="True">
+    <Execute type="None" entry="ParallelFX" />
+  </StartMode>
+  <Entries>
+    <Entry filename="ParallelFX/ParallelFX.mdp" />
+  </Entries>
+</Combine>
