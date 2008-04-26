@@ -1,6 +1,34 @@
-﻿namespace CloverleafShared
+﻿//
+// MonoRunner.Designer.cs: Display form while Cloverleaf runs an app in Mono
+//
+// Authors:
+//  Ed Ropple <ed@edropple.com>
+//
+// Copyright (C) 2008 Edward Ropple III (http://www.edropple.com)
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+
+namespace CloverleafShared.TestInMono
 {
-    partial class frmMonoTestRunning
+    partial class MonoRunner
     {
         /// <summary>
         /// Required designer variable.
@@ -31,18 +59,15 @@
             this.components = new System.ComponentModel.Container();
             this.cmdClose = new System.Windows.Forms.Button();
             this.cmdKill = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.txtStdErr = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.lblProcessStatus = new System.Windows.Forms.Label();
             this.timProcessMonitor = new System.Windows.Forms.Timer(this.components);
-            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // cmdClose
             // 
             this.cmdClose.Enabled = false;
-            this.cmdClose.Location = new System.Drawing.Point(452, 502);
+            this.cmdClose.Location = new System.Drawing.Point(452, 117);
             this.cmdClose.Name = "cmdClose";
             this.cmdClose.Size = new System.Drawing.Size(75, 23);
             this.cmdClose.TabIndex = 1;
@@ -53,7 +78,7 @@
             // cmdKill
             // 
             this.cmdKill.Enabled = false;
-            this.cmdKill.Location = new System.Drawing.Point(371, 502);
+            this.cmdKill.Location = new System.Drawing.Point(371, 117);
             this.cmdKill.Name = "cmdKill";
             this.cmdKill.Size = new System.Drawing.Size(75, 23);
             this.cmdKill.TabIndex = 2;
@@ -61,30 +86,11 @@
             this.cmdKill.UseVisualStyleBackColor = true;
             this.cmdKill.Click += new System.EventHandler(this.cmdKill_Click);
             // 
-            // groupBox1
-            // 
-            this.groupBox1.Controls.Add(this.txtStdErr);
-            this.groupBox1.Location = new System.Drawing.Point(12, 208);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(515, 288);
-            this.groupBox1.TabIndex = 3;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Standard Error";
-            // 
-            // txtStdErr
-            // 
-            this.txtStdErr.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtStdErr.Location = new System.Drawing.Point(6, 19);
-            this.txtStdErr.Multiline = true;
-            this.txtStdErr.Name = "txtStdErr";
-            this.txtStdErr.Size = new System.Drawing.Size(503, 263);
-            this.txtStdErr.TabIndex = 4;
-            // 
             // label1
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(14, 170);
+            this.label1.Location = new System.Drawing.Point(12, 9);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(153, 24);
             this.label1.TabIndex = 4;
@@ -95,7 +101,7 @@
             this.lblProcessStatus.AutoSize = true;
             this.lblProcessStatus.Font = new System.Drawing.Font("Microsoft Sans Serif", 14.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblProcessStatus.ForeColor = System.Drawing.Color.Teal;
-            this.lblProcessStatus.Location = new System.Drawing.Point(173, 170);
+            this.lblProcessStatus.Location = new System.Drawing.Point(171, 9);
             this.lblProcessStatus.Name = "lblProcessStatus";
             this.lblProcessStatus.Size = new System.Drawing.Size(97, 24);
             this.lblProcessStatus.TabIndex = 5;
@@ -109,19 +115,16 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(539, 537);
+            this.ClientSize = new System.Drawing.Size(539, 152);
             this.ControlBox = false;
             this.Controls.Add(this.lblProcessStatus);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.cmdKill);
             this.Controls.Add(this.cmdClose);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "frmMonoTestRunning";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Mono Test Runner";
-            this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -131,8 +134,6 @@
 
         private System.Windows.Forms.Button cmdClose;
         private System.Windows.Forms.Button cmdKill;
-        private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.TextBox txtStdErr;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label lblProcessStatus;
         private System.Windows.Forms.Timer timProcessMonitor;

@@ -1,5 +1,5 @@
 ﻿//
-// BaseTester.cs: Base tester class for use by MonoTester/GendarmeTester
+// MonoTester.cs: Base support for Cloverleaf's "Test In Gendarme" feature
 //
 // Authors:
 //  Ed Ropple <ed@edropple.com>
@@ -28,45 +28,34 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 using System.Text;
 
-namespace CloverleafShared
+namespace CloverleafShared.TestInGendarme
 {
-    public abstract class BaseTester
+    public class GendarmeTester : BaseTester
     {
-        protected readonly String solutionDirectory;
-        protected readonly String solutionFileName;
+        Wizard form;
 
-        public BaseTester(String slnFile, String slnDirectory)
+        public GendarmeTester(String slnFile, String slnDirectory)
+            : base(slnFile, slnDirectory)
         {
-            solutionFileName = slnFile;
-            solutionDirectory = slnDirectory;
+
         }
 
-        public abstract void Go();
-
-
-        protected List<ProjectInfo> FindProjects(String folder, Boolean omitNonExecutables)
+        public override void Go()
         {
-            List<ProjectInfo> projList = new List<ProjectInfo>();
+            List<ProjectInfo> projects = FindProjects(solutionDirectory, false);
 
-            foreach (String s in Directory.GetFiles(folder, "*.*proj", SearchOption.AllDirectories))
+            String foo = "";
+            foreach (ProjectInfo p in projects)
             {
-                ProjectInfo p = new ProjectInfo(s);
-
-                if (omitNonExecutables == false)
-                {
-                    projList.Add(p);
-                }
-                else if (p.Executable == true)
-                {
-                    projList.Add(p);
-                }
+                foo += p.AssemblyName + Environment.NewLine;
             }
+            System.Windows.Forms.MessageBox.Show(foo);
 
-            return projList;
+            form = new Wizard(solutionDirectory, projects);
+
+            System.Windows.Forms.Application.Run(form);
         }
     }
 }

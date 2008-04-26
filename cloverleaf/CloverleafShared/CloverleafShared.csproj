@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CloverleafShared</RootNamespace>
     <AssemblyName>CloverleafShared</AssemblyName>
-    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -31,7 +31,18 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Gendarme.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\Gendarme Libraries\Gendarme.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil, Version=0.6.8.8607, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Libraries\Gendarme Libraries\Mono.Cecil.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -39,29 +50,55 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BaseTester.cs" />
-    <Compile Include="frmMonoTestRunning.cs">
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="TestInGendarme\GendarmeTester.cs" />
+    <Compile Include="TestInGendarme\GuiRunner.cs" />
+    <Compile Include="TestInGendarme\HtmlResultWriter.cs" />
+    <Compile Include="TestInGendarme\ResultWriter.cs" />
+    <Compile Include="TestInGendarme\TextResultWriter.cs" />
+    <Compile Include="TestInGendarme\Wizard.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmMonoTestRunning.Designer.cs">
-      <DependentUpon>frmMonoTestRunning.cs</DependentUpon>
+    <Compile Include="TestInGendarme\Wizard.designer.cs">
+      <DependentUpon>Wizard.cs</DependentUpon>
     </Compile>
-    <Compile Include="frmMonoTestSelector.cs">
+    <Compile Include="TestInGendarme\XmlResultWriter.cs" />
+    <Compile Include="TestInMono\MonoRunner.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="frmMonoTestSelector.Designer.cs">
-      <DependentUpon>frmMonoTestSelector.cs</DependentUpon>
+    <Compile Include="TestInMono\MonoRunner.Designer.cs">
+      <DependentUpon>MonoRunner.cs</DependentUpon>
     </Compile>
-    <Compile Include="MonoTester.cs" />
+    <Compile Include="TestInMono\MonoSelector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TestInMono\MonoSelector.Designer.cs">
+      <DependentUpon>MonoSelector.cs</DependentUpon>
+    </Compile>
+    <Compile Include="TestInMono\MonoTester.cs" />
     <Compile Include="ProjectInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="frmMonoTestRunning.resx">
-      <DependentUpon>frmMonoTestRunning.cs</DependentUpon>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="frmMonoTestSelector.resx">
-      <DependentUpon>frmMonoTestSelector.cs</DependentUpon>
+    <EmbeddedResource Include="TestInGendarme\Wizard.resx">
+      <DependentUpon>Wizard.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestInMono\MonoRunner.resx">
+      <DependentUpon>MonoRunner.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TestInMono\MonoSelector.resx">
+      <DependentUpon>MonoSelector.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

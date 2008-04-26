@@ -1,5 +1,5 @@
 ﻿//
-// BaseTester.cs: Base tester class for use by MonoTester/GendarmeTester
+// MonoTester.cs: Base support for Cloverleaf's "Test In Mono" feature
 //
 // Authors:
 //  Ed Ropple <ed@edropple.com>
@@ -28,45 +28,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml;
 using System.Text;
 
-namespace CloverleafShared
+namespace CloverleafShared.TestInMono
 {
-    public abstract class BaseTester
+    public class MonoTester : BaseTester
     {
-        protected readonly String solutionDirectory;
-        protected readonly String solutionFileName;
-
-        public BaseTester(String slnFile, String slnDirectory)
+        public MonoTester(String slnFile, String slnDirectory)
+            : base(slnFile, slnDirectory)
         {
-            solutionFileName = slnFile;
-            solutionDirectory = slnDirectory;
+
         }
 
-        public abstract void Go();
-
-
-        protected List<ProjectInfo> FindProjects(String folder, Boolean omitNonExecutables)
+        public override void Go()
         {
-            List<ProjectInfo> projList = new List<ProjectInfo>();
+            List<ProjectInfo> projects = FindProjects(solutionDirectory, true);
 
-            foreach (String s in Directory.GetFiles(folder, "*.*proj", SearchOption.AllDirectories))
-            {
-                ProjectInfo p = new ProjectInfo(s);
-
-                if (omitNonExecutables == false)
-                {
-                    projList.Add(p);
-                }
-                else if (p.Executable == true)
-                {
-                    projList.Add(p);
-                }
-            }
-
-            return projList;
+            System.Windows.Forms.Application.Run(new MonoSelector(solutionDirectory, projects));
         }
     }
 }

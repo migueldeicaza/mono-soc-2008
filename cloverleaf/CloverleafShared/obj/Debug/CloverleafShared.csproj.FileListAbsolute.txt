@@ -3,6 +3,10 @@ C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\Clover
 C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\ResolveAssemblyReference.cache
 C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.dll
 C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.pdb
-C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.frmMonoTestSelector.resources
 C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.csproj.GenerateResource.Cache
-C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.frmMonoTestRunning.resources
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.TestInMono.MonoRunner.resources
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.TestInMono.MonoSelector.resources
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.Properties.Resources.resources
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\obj\Debug\CloverleafShared.TestInGendarme.Wizard.resources
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\bin\Debug\Gendarme.Framework.dll
+C:\Documents and Settings\Ed\My Documents\Projects\NET\Add-ins\Cloverleaf\CloverleafShared\bin\Debug\Mono.Cecil.dll
