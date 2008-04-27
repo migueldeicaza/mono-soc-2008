@@ -46,15 +46,16 @@ namespace CloverleafET
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            try
-            {
+//            try
+//            {
                 ProcessCmdArgs();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.ToString());
-                Application.Exit();
-            }
+                
+//            }
+//            catch (Exception e)
+//            {
+//                MessageBox.Show(e.ToString());
+//                Application.Exit();
+//            }
         }
 
         /// <summary>

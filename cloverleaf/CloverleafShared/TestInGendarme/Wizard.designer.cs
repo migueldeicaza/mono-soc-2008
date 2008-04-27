@@ -30,15 +30,17 @@ namespace CloverleafShared.TestInGendarme
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Wizard));
             this.wizard_tab_control = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.projects_select_all_button = new System.Windows.Forms.Button();
-            this.projects_clear_all_button = new System.Windows.Forms.Button();
-            this.projects_list_box = new System.Windows.Forms.CheckedListBox();
             this.welcome_title_label = new System.Windows.Forms.Label();
             this.label10 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
             this.addfiles_tab_page = new System.Windows.Forms.TabPage();
             this.add_files_count_label = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
+            this.add_files_button = new System.Windows.Forms.Button();
+            this.remove_file_button = new System.Windows.Forms.Button();
+            this.file_list_box = new System.Windows.Forms.ListBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.browse_documentation_button = new System.Windows.Forms.Button();
             this.rules_count_label = new System.Windows.Forms.Label();
@@ -56,15 +58,15 @@ namespace CloverleafShared.TestInGendarme
             this.save_report_button = new System.Windows.Forms.Button();
             this.results_title_label = new System.Windows.Forms.Label();
             this.report_subtitle_label = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.help_button = new System.Windows.Forms.Button();
             this.cancel_button = new System.Windows.Forms.Button();
             this.next_button = new System.Windows.Forms.Button();
             this.back_button = new System.Windows.Forms.Button();
             this.open_file_dialog = new System.Windows.Forms.OpenFileDialog();
             this.save_file_dialog = new System.Windows.Forms.SaveFileDialog();
-            this.file_list_box = new System.Windows.Forms.CheckedListBox();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.project_list_box = new System.Windows.Forms.CheckedListBox();
             this.wizard_tab_control.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.addfiles_tab_page.SuspendLayout();
@@ -81,52 +83,27 @@ namespace CloverleafShared.TestInGendarme
             this.wizard_tab_control.Controls.Add(this.tabPage3);
             this.wizard_tab_control.Controls.Add(this.analyze_tab_tage);
             this.wizard_tab_control.Controls.Add(this.results_tab_Page);
-            this.wizard_tab_control.Location = new System.Drawing.Point(133, 22);
+            this.wizard_tab_control.Location = new System.Drawing.Point(12, 22);
             this.wizard_tab_control.Name = "wizard_tab_control";
             this.wizard_tab_control.SelectedIndex = 0;
-            this.wizard_tab_control.Size = new System.Drawing.Size(501, 415);
+            this.wizard_tab_control.Size = new System.Drawing.Size(622, 415);
             this.wizard_tab_control.TabIndex = 0;
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.projects_select_all_button);
-            this.tabPage1.Controls.Add(this.projects_clear_all_button);
-            this.tabPage1.Controls.Add(this.projects_list_box);
+            this.tabPage1.Controls.Add(this.project_list_box);
+            this.tabPage1.Controls.Add(this.label3);
+            this.tabPage1.Controls.Add(this.label4);
             this.tabPage1.Controls.Add(this.welcome_title_label);
             this.tabPage1.Controls.Add(this.label10);
+            this.tabPage1.Controls.Add(this.label2);
+            this.tabPage1.Controls.Add(this.label1);
             this.tabPage1.Location = new System.Drawing.Point(4, 25);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(493, 386);
+            this.tabPage1.Size = new System.Drawing.Size(614, 386);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Welcome";
-            // 
-            // projects_select_all_button
-            // 
-            this.projects_select_all_button.Location = new System.Drawing.Point(227, 357);
-            this.projects_select_all_button.Name = "projects_select_all_button";
-            this.projects_select_all_button.Size = new System.Drawing.Size(125, 23);
-            this.projects_select_all_button.TabIndex = 11;
-            this.projects_select_all_button.Text = "Select All";
-            this.projects_select_all_button.UseVisualStyleBackColor = true;
-            // 
-            // projects_clear_all_button
-            // 
-            this.projects_clear_all_button.Location = new System.Drawing.Point(358, 357);
-            this.projects_clear_all_button.Name = "projects_clear_all_button";
-            this.projects_clear_all_button.Size = new System.Drawing.Size(125, 23);
-            this.projects_clear_all_button.TabIndex = 10;
-            this.projects_clear_all_button.Text = "Clear All";
-            this.projects_clear_all_button.UseVisualStyleBackColor = true;
-            // 
-            // projects_list_box
-            // 
-            this.projects_list_box.CheckOnClick = true;
-            this.projects_list_box.FormattingEnabled = true;
-            this.projects_list_box.Location = new System.Drawing.Point(18, 192);
-            this.projects_list_box.Name = "projects_list_box";
-            this.projects_list_box.Size = new System.Drawing.Size(465, 154);
-            this.projects_list_box.TabIndex = 9;
             // 
             // welcome_title_label
             // 
@@ -140,17 +117,38 @@ namespace CloverleafShared.TestInGendarme
             // 
             // label10
             // 
-            this.label10.Location = new System.Drawing.Point(15, 33);
+            this.label10.Location = new System.Drawing.Point(15, 27);
             this.label10.Name = "label10";
-            this.label10.Size = new System.Drawing.Size(477, 77);
+            this.label10.Size = new System.Drawing.Size(589, 81);
             this.label10.TabIndex = 5;
+            this.label10.Text = resources.GetString("label10.Text");
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(15, 117);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(56, 13);
+            this.label2.TabIndex = 2;
+            this.label2.Text = "Gendarme";
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(15, 130);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(253, 13);
+            this.label1.TabIndex = 1;
+            this.label1.Text = "Copyright © 2005-2008 Novell, Inc. and contributors";
             // 
             // addfiles_tab_page
             // 
-            this.addfiles_tab_page.Controls.Add(this.file_list_box);
             this.addfiles_tab_page.Controls.Add(this.add_files_count_label);
             this.addfiles_tab_page.Controls.Add(this.label6);
             this.addfiles_tab_page.Controls.Add(this.label5);
+            this.addfiles_tab_page.Controls.Add(this.add_files_button);
+            this.addfiles_tab_page.Controls.Add(this.remove_file_button);
+            this.addfiles_tab_page.Controls.Add(this.file_list_box);
             this.addfiles_tab_page.Location = new System.Drawing.Point(4, 25);
             this.addfiles_tab_page.Name = "addfiles_tab_page";
             this.addfiles_tab_page.Padding = new System.Windows.Forms.Padding(3);
@@ -183,9 +181,40 @@ namespace CloverleafShared.TestInGendarme
             this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label5.Location = new System.Drawing.Point(15, 12);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(129, 13);
+            this.label5.Size = new System.Drawing.Size(115, 13);
             this.label5.TabIndex = 7;
-            this.label5.Text = "Select Assembly Files";
+            this.label5.Text = "Add Assembly Files";
+            // 
+            // add_files_button
+            // 
+            this.add_files_button.Location = new System.Drawing.Point(327, 352);
+            this.add_files_button.Name = "add_files_button";
+            this.add_files_button.Size = new System.Drawing.Size(75, 23);
+            this.add_files_button.TabIndex = 6;
+            this.add_files_button.Text = "Add files...";
+            this.add_files_button.UseVisualStyleBackColor = true;
+            this.add_files_button.Click += new System.EventHandler(this.AddFilesButtonClick);
+            // 
+            // remove_file_button
+            // 
+            this.remove_file_button.Location = new System.Drawing.Point(408, 352);
+            this.remove_file_button.Name = "remove_file_button";
+            this.remove_file_button.Size = new System.Drawing.Size(75, 23);
+            this.remove_file_button.TabIndex = 5;
+            this.remove_file_button.Text = "Remove file";
+            this.remove_file_button.UseVisualStyleBackColor = true;
+            this.remove_file_button.Click += new System.EventHandler(this.RemoveFileButtonClick);
+            // 
+            // file_list_box
+            // 
+            this.file_list_box.FormattingEnabled = true;
+            this.file_list_box.HorizontalScrollbar = true;
+            this.file_list_box.IntegralHeight = false;
+            this.file_list_box.Location = new System.Drawing.Point(15, 48);
+            this.file_list_box.Name = "file_list_box";
+            this.file_list_box.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.file_list_box.Size = new System.Drawing.Size(468, 301);
+            this.file_list_box.TabIndex = 0;
             // 
             // tabPage3
             // 
@@ -361,24 +390,6 @@ namespace CloverleafShared.TestInGendarme
             this.report_subtitle_label.TabIndex = 0;
             this.report_subtitle_label.Text = "Gendarme has found {0} defects during analysis.";
             // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 424);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(56, 13);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Gendarme";
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 437);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(253, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Copyright © 2005-2008 Novell, Inc. and contributors";
-            // 
             // help_button
             // 
             this.help_button.Location = new System.Drawing.Point(545, 411);
@@ -411,7 +422,6 @@ namespace CloverleafShared.TestInGendarme
             // 
             // back_button
             // 
-            this.back_button.Enabled = false;
             this.back_button.Location = new System.Drawing.Point(302, 411);
             this.back_button.Name = "back_button";
             this.back_button.Size = new System.Drawing.Size(75, 23);
@@ -432,14 +442,31 @@ namespace CloverleafShared.TestInGendarme
             this.save_file_dialog.Filter = "HTML report (*.html)|*.html|XML report (*.xml)|*.xml|Text report (*.txt)|*.txt";
             this.save_file_dialog.Title = "Save Report To...";
             // 
-            // file_list_box
+            // label3
             // 
-            this.file_list_box.CheckOnClick = true;
-            this.file_list_box.FormattingEnabled = true;
-            this.file_list_box.Location = new System.Drawing.Point(18, 42);
-            this.file_list_box.Name = "file_list_box";
-            this.file_list_box.Size = new System.Drawing.Size(465, 304);
-            this.file_list_box.TabIndex = 10;
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(307, 117);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(54, 13);
+            this.label3.TabIndex = 10;
+            this.label3.Text = "Cloverleaf";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(307, 130);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(245, 13);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Copyright © 2008 Edward Ropple and contributors";
+            // 
+            // project_list_box
+            // 
+            this.project_list_box.FormattingEnabled = true;
+            this.project_list_box.Location = new System.Drawing.Point(18, 146);
+            this.project_list_box.Name = "project_list_box";
+            this.project_list_box.Size = new System.Drawing.Size(586, 199);
+            this.project_list_box.TabIndex = 11;
             // 
             // Wizard
             // 
@@ -453,8 +480,6 @@ namespace CloverleafShared.TestInGendarme
             this.Controls.Add(this.next_button);
             this.Controls.Add(this.cancel_button);
             this.Controls.Add(this.help_button);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
@@ -475,7 +500,6 @@ namespace CloverleafShared.TestInGendarme
             this.results_tab_Page.ResumeLayout(false);
             this.results_tab_Page.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
 		}
 
@@ -494,6 +518,9 @@ namespace CloverleafShared.TestInGendarme
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button next_button;
         private System.Windows.Forms.Button back_button;
+		private System.Windows.Forms.Button add_files_button;
+		private System.Windows.Forms.Button remove_file_button;
+		private System.Windows.Forms.ListBox file_list_box;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.OpenFileDialog open_file_dialog;
@@ -514,10 +541,9 @@ namespace CloverleafShared.TestInGendarme
 		private System.Windows.Forms.ProgressBar progress_bar;
 		private System.Windows.Forms.Label analyze_status_label;
 		private System.Windows.Forms.Label analyze_defect_label;
-        private System.Windows.Forms.CheckedListBox projects_list_box;
-        private System.Windows.Forms.Button projects_clear_all_button;
-        private System.Windows.Forms.Button projects_select_all_button;
-        private System.Windows.Forms.CheckedListBox file_list_box;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.CheckedListBox project_list_box;
 	}
 }
 

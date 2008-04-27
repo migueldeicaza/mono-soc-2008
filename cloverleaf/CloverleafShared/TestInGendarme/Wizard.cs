@@ -1,10 +1,8 @@
 //
-// Wizard.cs: Cloverleaf Gendarme Runner
-//            Based heavily on swf-wizard-runner
+// Gendarme.cs: A SWF-based Wizard Runner for Gendarme
 //
 // Authors:
 //	Sebastien Pouliot <sebastien@ximian.com>
-//  Ed Ropple <ed@edropple.com>
 //
 // Copyright (C) 2008 Novell, Inc (http://www.novell.com)
 //
@@ -31,7 +29,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using System.IO;
 using System.Windows.Forms;
 
@@ -48,7 +45,7 @@ namespace CloverleafShared.TestInGendarme
 		delegate void MethodInvoker ();
 
 		public enum Page {
-			Projects,
+			Welcome,
 			AddFiles,
 			SelectRules,
 			Analyze,
@@ -83,8 +80,9 @@ namespace CloverleafShared.TestInGendarme
 		private string xml_report_filename;
 		private string text_report_filename;
 
-        private String solution_directory;
+        private string solution_directory;
         private List<ProjectInfo> project_list;
+
 
 		public Wizard (String sln_directory, List<ProjectInfo> proj_list)
 		{
@@ -93,12 +91,16 @@ namespace CloverleafShared.TestInGendarme
 			// to implement this wizard
 			wizard_tab_control.Top = -22;
 
+			welcome_link_label.Text = DefaultUrl;
+			welcome_wizard_label.Text = String.Format ("Gendarme Wizard Runner Version {0}",
+				GetVersion (GetType ()));
+			welcome_framework_label.Text = String.Format ("Gendarme Framework Version {0}",
+				GetVersion (typeof (IRule)));
+
             solution_directory = sln_directory;
             project_list = proj_list;
 
 			assembly_loader = UpdateAssemblies;
-
-            PopulateList();
 
 			UpdatePageUI ();
 		}
@@ -149,11 +151,10 @@ namespace CloverleafShared.TestInGendarme
 		private void BackButtonClick (object sender, EventArgs e)
 		{
 			switch (Current) {
-			case Page.Projects:
-                // should not happen
+			case Page.Welcome:
 				return;
 			case Page.AddFiles:
-				Current = Page.Projects;
+				Current = Page.Welcome;
 				break;
 			case Page.SelectRules:
 				Current = Page.AddFiles;
@@ -174,8 +175,7 @@ namespace CloverleafShared.TestInGendarme
 		private void NextButtonClick (object sender, EventArgs e)
 		{
 			switch (Current) {
-			case Page.Projects:
-                PopulateFileList();
+			case Page.Welcome:
 				Current = Page.AddFiles;
 				break;
 			case Page.AddFiles:
@@ -205,7 +205,7 @@ namespace CloverleafShared.TestInGendarme
 		private void HelpButtonClick (object sender, EventArgs e)
 		{
 			// open web browser to http://www.mono-project.com/Gendarme
-//			Open (DefaultUrl);
+			Open (DefaultUrl);
 		}
 
 		private void UpdatePageUI ()
@@ -215,8 +215,8 @@ namespace CloverleafShared.TestInGendarme
 			cancel_button.Text = "Cancel";
 
 			switch (Current) {
-			case Page.Projects:
-				UpdateProjectsUI ();
+			case Page.Welcome:
+				UpdateWelcomeUI ();
 				break;
 			case Page.AddFiles:
 				UpdateAddFilesUI ();
@@ -235,9 +235,9 @@ namespace CloverleafShared.TestInGendarme
 
 		#endregion
 
-		#region Projects
+		#region Welcome
 
-		private void UpdateProjectsUI ()
+		private void UpdateWelcomeUI ()
 		{
 			back_button.Enabled = false;
 			if (rule_loader == null) {
@@ -246,29 +246,7 @@ namespace CloverleafShared.TestInGendarme
 			}
 		}
 
-        void PopulateList()
-        {
-            projects_list_box.Items.Clear();
-
-            foreach (ProjectInfo p in project_list)
-            {
-                // first one from this project in the list
-                Boolean first_in_list = true;
-                foreach (String s in p.OutputPaths)
-                {
-                    String foo = Path.Combine(p.Directory, s);
-                    if (Directory.Exists(foo))
-                    {
-                        foo = foo.Remove(0, solution_directory.Length + 1);
-                        foo = foo.Remove(foo.Length - 1);
-                        projects_list_box.Items.Add(foo, first_in_list);
-                        first_in_list = false;
-                    }
-                }
-            }
-        }
-
-        private void GendarmeLinkClick(object sender, LinkLabelLinkClickedEventArgs e)
+		private void GendarmeLinkClick (object sender, LinkLabelLinkClickedEventArgs e)
 		{
 			Open (DefaultUrl);
 		}
@@ -279,89 +257,56 @@ namespace CloverleafShared.TestInGendarme
 
 		private void UpdateAddFilesUI ()
 		{
-            // currently empty; holdover from swf-wizard-runner
+			if (assemblies == null)
+				assemblies = new Dictionary<string, AssemblyInfo> ();
+
+			int files_count = file_list_box.Items.Count;
+			bool has_files = (files_count > 0);
+			next_button.Enabled = has_files;
+			remove_file_button.Enabled = has_files;
+			if (has_files) {
+				add_files_count_label.Text = String.Format ("{0} assembl{1} selected",
+					files_count, files_count == 1 ? "y" : "ies");
+			} else {
+				add_files_count_label.Text = "No assembly selected.";
+			}
 		}
 
-        private void PopulateFileList()
-        {
-            List<String> proj_search_list = new List<String>();
+		private void AddFilesButtonClick (object sender, EventArgs e)
+		{
+			if (open_file_dialog.ShowDialog (this) == DialogResult.OK) {
+				foreach (string filename in open_file_dialog.FileNames) {
+					// don't add duplicates
+					if (!file_list_box.Items.Contains (filename)) {
+						file_list_box.Items.Add (filename);
+						assemblies.Add (filename, new AssemblyInfo ());
+					}
+				}
+			}
+			UpdatePageUI ();
+		}
 
-            // add the projects that the user wants to run Gendarme on
-            foreach (Object o in projects_list_box.CheckedItems)
-            {
-                // they'll always be strings, so nothing to worry about here
-                proj_search_list.Add(Path.Combine(solution_directory,
-                                    (String) o));
-            }
+		private void RemoveFileButtonClick (object sender, EventArgs e)
+		{
+			// remove from the last one to the first one 
+			// so the indices are still valid during the removal operation
+			for (int i = file_list_box.SelectedIndices.Count - 1; i >= 0; i--) {
+				int remove = file_list_box.SelectedIndices [i];
 
-            // find assemblies in these directories, save as list
-            foreach (String s in proj_search_list)
-            {
-                foreach (String f in Directory.GetFiles(s, "*.exe",
-                         SearchOption.AllDirectories))
-                {
-                    if (File.Exists(f) && !f.Contains("vshost") && IsAssembly(f))
-                    {
-                        file_list_box.Items.Add(f.Remove(0,
-                                                solution_directory.Length + 1),
-                                                true);
-                    }
-                }
-                foreach (String f in Directory.GetFiles(s, "*.dll",
-                         SearchOption.AllDirectories))
-                {
-                    if (File.Exists(f) && IsAssembly(f))
-                    {
-                        file_list_box.Items.Add(f.Remove(0,
-                                                solution_directory.Length + 1),
-                                                true);
-                    }
-                }
-            }
-
-            UpdateAddFilesUI();
-        }
-
-        // Determines whether a file is a CLR assembly or not.
-        // This current method is really quite horribly slow and
-        // I am well aware that using exceptions in normal program
-        // flow is worthy of fifty lashes, but right now I just
-        // want it WORKING.
-        //
-        // A better way to do it can be found at the following URL,
-        // I just haven't looked into it extensively yet:
-        //
-        // http://geekswithblogs.net/rupreet/archive/2005/11/02/58873.aspx
-        private Boolean IsAssembly(String filename)
-        {
-            try
-            {
-                Assembly.LoadFile(filename);
-            }
-            catch (BadImageFormatException e)
-            {
-                return false;
-            }
-            return true;
-        }
+				// if some AssemblyDefinition are already loaded...
+				if (assemblies != null) {
+					// then look if we need to remove them too!
+					assemblies.Remove ((string) file_list_box.Items [remove]);
+				}
+				file_list_box.Items.RemoveAt (remove);
+			}
+			UpdatePageUI ();
+		}
 
 		public void UpdateAssemblies ()
 		{
-            if (assemblies == null)
-            {
-                assemblies = new Dictionary<String, AssemblyInfo>();
-
-                foreach (Object o in file_list_box.CheckedItems)
-                {
-                    String foo = Path.Combine(solution_directory, (String)o);
-                    if (assemblies.ContainsKey(foo) == false)
-                        assemblies.Add(foo, new AssemblyInfo());
-                }
-            }
-
 			foreach (KeyValuePair<string,AssemblyInfo> kvp in assemblies) {
-                DateTime last_write = File.GetLastWriteTimeUtc(kvp.Key);
-                Debug.Print(kvp.Key + " " + File.Exists(kvp.Key).ToString());
+				DateTime last_write = File.GetLastWriteTimeUtc (kvp.Key);
 				if ((kvp.Value.Definition == null) || (kvp.Value.Timestamp < last_write)) {
 					AssemblyInfo a = kvp.Value;
 					a.Timestamp = last_write;
@@ -497,7 +442,7 @@ namespace CloverleafShared.TestInGendarme
 		{
 			counter = 0;
 			Runner.Initialize ();
-            Runner.Run();
+			Runner.Run ();
 
 			BeginInvoke ((Action) (() => Current = Page.Report));
 		}

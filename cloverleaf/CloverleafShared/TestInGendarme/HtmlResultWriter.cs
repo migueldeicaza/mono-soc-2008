@@ -29,12 +29,14 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Xsl;
 
 using Gendarme.Framework;
 
-namespace CloverleafShared.TestInGendarme {
+namespace CloverleafShared.TestInGendarme
+{
 
 	public class HtmlResultWriter : ResultWriter {
 
@@ -55,26 +57,15 @@ namespace CloverleafShared.TestInGendarme {
 
 		protected override void Finish ()
 		{
-			// load XSL file from embedded resource
+			// load XSL file from local file
 			Assembly a = Assembly.GetExecutingAssembly ();
 			string xsl = null;
 
-			foreach (string resource in a.GetManifestResourceNames ()) {
-				if (resource.EndsWith ("gendarme.xsl")) {
-					xsl = resource;
-					break;
-				}
-			}
-
-			if (xsl == null)
-				throw new InvalidDataException ("Could not locate XSL style sheet");
-
-			using (Stream s = a.GetManifestResourceStream (xsl)) {
-				// process the XML result with the XSL file
-				XslCompiledTransform xslt = new XslCompiledTransform ();
-				xslt.Load (new XmlTextReader (s));
-				xslt.Transform (temp_filename, FileName);
-			}
+			// process the XML result with the XSL file
+			XslCompiledTransform xslt = new XslCompiledTransform ();
+			xslt.Load (new XmlTextReader(Path.Combine(Path.GetDirectoryName(Application.ExecutablePath),
+                                    "gendarme.xsl")));
+			xslt.Transform (temp_filename, FileName);
 		}
 
 		protected override void Dispose (bool disposing)

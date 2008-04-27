@@ -36,7 +36,7 @@ using Gendarme.Framework;
 
 using Mono.Cecil;
 
-namespace CloverleafShared.TestInGendarme 
+namespace CloverleafShared.TestInGendarme
 {
 
 	public class GuiRunner : Runner, IIgnoreList {
@@ -70,8 +70,7 @@ namespace CloverleafShared.TestInGendarme
 		public void LoadRules ()
 		{
 			// load every dll to check for rules...
-            string dir = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath),
-                                        "GendarmeRules");
+            string dir = Path.GetDirectoryName(Application.ExecutablePath);
 			FileInfo [] files = new DirectoryInfo (dir).GetFiles ("*.dll");
 			foreach (FileInfo info in files) {
 				// except for a few, well known, ones
