@@ -91,12 +91,6 @@ namespace CloverleafShared.TestInGendarme
 			// to implement this wizard
 			wizard_tab_control.Top = -22;
 
-			welcome_link_label.Text = DefaultUrl;
-			welcome_wizard_label.Text = String.Format ("Gendarme Wizard Runner Version {0}",
-				GetVersion (GetType ()));
-			welcome_framework_label.Text = String.Format ("Gendarme Framework Version {0}",
-				GetVersion (typeof (IRule)));
-
             solution_directory = sln_directory;
             project_list = proj_list;
 
@@ -235,7 +229,7 @@ namespace CloverleafShared.TestInGendarme
 
 		#endregion
 
-		#region Welcome
+		#region Projects
 
 		private void UpdateWelcomeUI ()
 		{
@@ -244,67 +238,72 @@ namespace CloverleafShared.TestInGendarme
 				rule_loader = Runner.LoadRules;
 				rules_loading = rule_loader.BeginInvoke (EndCallback, rule_loader);
 			}
+            PopulateProjectListBox();
 		}
 
-		private void GendarmeLinkClick (object sender, LinkLabelLinkClickedEventArgs e)
+        private void PopulateProjectListBox()
+        {
+            if (project_list_box.Items.Count > 0)
+                return;
+
+            project_list_box.Items.Clear();
+
+            foreach (ProjectInfo p in project_list) 
+            {
+                foreach (String s in p.OutputPaths)
+                {
+                    String foo = Path.Combine(p.Directory, s);
+                    if (Directory.Exists(foo))
+                    {
+                        foo = foo.Remove(0, solution_directory.Length + 1);
+                        project_list_box.Items.Add(foo);
+                    }
+                }
+            }
+        }
+
+        private void ProjectsSelectAllClick(object sender, EventArgs e)
+        {
+            for (Int32 i = 0; i < project_list_box.Items.Count; i++)
+            {
+                project_list_box.SetItemChecked(i, true);
+            }
+        }
+
+        private void ProjectsClearAllClick(object sender, EventArgs e)
+        {
+            for (Int32 i = 0; i < project_list_box.Items.Count; i++)
+            {
+                project_list_box.SetItemChecked(i, false);
+            }
+        }
+
+        #endregion
+
+        #region Add Files
+
+        private void UpdateAddFilesUI()
 		{
-			Open (DefaultUrl);
+			
 		}
 
-		#endregion
+        private void PopulateAssemblyList()
+        {
 
-		#region Add Files
+        }
 
-		private void UpdateAddFilesUI ()
-		{
-			if (assemblies == null)
-				assemblies = new Dictionary<string, AssemblyInfo> ();
+        private Boolean IsAssembly(String filename)
+        {
 
-			int files_count = file_list_box.Items.Count;
-			bool has_files = (files_count > 0);
-			next_button.Enabled = has_files;
-			remove_file_button.Enabled = has_files;
-			if (has_files) {
-				add_files_count_label.Text = String.Format ("{0} assembl{1} selected",
-					files_count, files_count == 1 ? "y" : "ies");
-			} else {
-				add_files_count_label.Text = "No assembly selected.";
-			}
-		}
-
-		private void AddFilesButtonClick (object sender, EventArgs e)
-		{
-			if (open_file_dialog.ShowDialog (this) == DialogResult.OK) {
-				foreach (string filename in open_file_dialog.FileNames) {
-					// don't add duplicates
-					if (!file_list_box.Items.Contains (filename)) {
-						file_list_box.Items.Add (filename);
-						assemblies.Add (filename, new AssemblyInfo ());
-					}
-				}
-			}
-			UpdatePageUI ();
-		}
-
-		private void RemoveFileButtonClick (object sender, EventArgs e)
-		{
-			// remove from the last one to the first one 
-			// so the indices are still valid during the removal operation
-			for (int i = file_list_box.SelectedIndices.Count - 1; i >= 0; i--) {
-				int remove = file_list_box.SelectedIndices [i];
-
-				// if some AssemblyDefinition are already loaded...
-				if (assemblies != null) {
-					// then look if we need to remove them too!
-					assemblies.Remove ((string) file_list_box.Items [remove]);
-				}
-				file_list_box.Items.RemoveAt (remove);
-			}
-			UpdatePageUI ();
-		}
+        }
 
 		public void UpdateAssemblies ()
 		{
+            if (assemblies == null)
+            {
+                assemblies = new Dictionary<string, AssemblyInfo>();
+            }
+
 			foreach (KeyValuePair<string,AssemblyInfo> kvp in assemblies) {
 				DateTime last_write = File.GetLastWriteTimeUtc (kvp.Key);
 				if ((kvp.Value.Definition == null) || (kvp.Value.Timestamp < last_write)) {
@@ -551,5 +550,7 @@ namespace CloverleafShared.TestInGendarme
 		}
 
 		#endregion
+
+        
 	}
 }
