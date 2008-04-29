@@ -1,6 +1,0 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <StartArguments>--gendarmetest C:\Documents and Settings\Ed\My Documents\Projects\NET\General\Windows Package Manager\Windows Package Manager.sln</StartArguments>
-    <StartWorkingDirectory>C:\Documents and Settings\Ed\My Documents\Projects\NET\General\Windows Package Manager</StartWorkingDirectory>
-  </PropertyGroup>
-</Project>
