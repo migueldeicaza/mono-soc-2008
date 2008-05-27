@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<Template	originator="Andreas Louca"
+			created="2008/05/27"
+			lastModified="2007/05/27">
+	
+	<!-- Template Header -->
+	<TemplateConfiguration>
+		<_Name>Empty CSS File</_Name>
+		<_Category>CSS</_Category>
+		<Icon>md-project-web</Icon>
+		<LanguageName>*</LanguageName>
+		<_Description>Creates an empty CSS file.</_Description>
+	</TemplateConfiguration>
+	
+	<!-- Actions -->
+	<Actions>
+	</Actions>
+	
+	<!-- Template Content -->
+	<Combine name = "${ProjectName}" directory = ".">
+		<Options>
+			<StartupProject>${ProjectName}</StartupProject>
+		</Options>
+		
+		<Project name = "${ProjectName}" directory = "." type = "CssFile">
+			<Options />
+			<References>
+			</References>
+			<Files>
+			</Files>
+		</Project>
+	</Combine>
+</Template>
