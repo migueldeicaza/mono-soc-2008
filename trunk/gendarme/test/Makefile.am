@@ -1,2 +1,2 @@
 SUBDIRS = applyTo 
-EXTRA_DIST = Makefile.in 
+DISTCLEANFILES = Makefile.in 
