@@ -1,0 +1,48 @@
+<Addin id          = "CssEditor"
+       namespace   = "MonoDevelop"
+       name        = "CSS Project Support"
+       author      = "Andreas Louca"
+       copyright   = "MIT X11"
+       url         = "http://www.monodevelop.com/"
+       description = "Support for editing CSS files, including syntax highlihting, validation and previewing"
+	   category    = "Web Development"
+       version     = "0.0.1">
+	
+	<Dependencies>
+	    <Addin id="Core" version="1.0.0"/>
+	    <Addin id="Core.Gui" version="1.0.0"/>
+    	<Addin id="Projects" version="1.0.0"/>
+		<Addin id="Projects.Gui" version="1.0.0"/>
+		<Addin id="Ide" version="1.0.0"/>
+		<Addin id="SourceEditor" version="1.0.0"/>
+		<Addin id="DesignerSupport" version="1.0.0"/>
+		<Addin id="Deployment" version="1.0.0"/>
+		<Addin id="Prj2Make" version="1.0.0" />
+	</Dependencies>
+
+	<Extension path = "/MonoDevelop/Ide/FileTemplates">
+		<FileTemplate id       = "CssFile-Empty"
+		              resource = "CssFile-Empty.xft.xml"/>
+	</Extension>
+	
+	<Extension path = "/MonoDevelop/Ide/FileTemplateTypes">
+		<FileTemplateType name = "CssFile" class = "CssEditorAddIn.CssFileDescriptionTemplate"/>
+	</Extension>
+
+	<Extension path = "/MonoDevelop/Ide/ProjectTemplates">
+		<ProjectTemplate id = "WebApplication" resource = "WebApplication.xpt.xml"/>
+		<ProjectTemplate id = "WebApplication-Empty" resource = "WebApplication-Empty.xpt.xml"/>
+	</Extension>
+	
+	<Extension path = "/MonoDevelop/Ide/FileFilters">
+		<FileFilter	id = "CssFiles"
+				insertbefore = "AllFiles"
+				_label = "Css Files"
+				extensions = "*.css" />
+	</Extension>
+
+	<Extension path = "/MonoDevelop/ProjectModel/Gui/Icons">
+		<Icon extensions = ".css" icon = "md-html-file-icon"/>
+	</Extension>
+
+</Addin>
