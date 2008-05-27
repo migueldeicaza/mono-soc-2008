@@ -11,6 +11,7 @@ applyTo_sources =  \
 	ApplyToDefault.cs \
 	ApplyToNonVisible.cs \
 	ApplyToVisible.cs \
+	ApplyToMixed.cs \
 	FakeRules.cs \
 	TestHelpers.cs
 

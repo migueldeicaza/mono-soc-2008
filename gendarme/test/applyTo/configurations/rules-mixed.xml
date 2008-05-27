@@ -1,0 +1,11 @@
+<gendarme>
+	<ruleset name="default">
+		<rules include="FakeAssemblyRule" from="/home/nestor/devel/mono-soc-2008/gendarme/test/applyTo/Test.ApplyTo.dll"/>
+		<rules include="FakeTypeRule"
+		from="/home/nestor/devel/mono-soc-2008/gendarme/test/applyTo/Test.ApplyTo.dll"
+		applyTo="visible"/>
+		<rules include="FakeMethodRule"
+		from="/home/nestor/devel/mono-soc-2008/gendarme/test/applyTo/Test.ApplyTo.dll"
+		applyTo="nonvisible"/>
+	</ruleset>
+</gendarme>
