@@ -9,6 +9,8 @@ applyTo_sources =  \
 	ApplyToTest.cs \
 	ApplyToAll.cs \
 	ApplyToDefault.cs \
+	ApplyToNonVisible.cs \
+	ApplyToVisible.cs \
 	FakeRules.cs \
 	TestHelpers.cs
 
