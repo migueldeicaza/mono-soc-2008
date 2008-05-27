@@ -1,0 +1,7 @@
+<gendarme>
+	<ruleset name="default">
+		<rules include="*"
+		from="/home/nestor/devel/mono-soc-2008/gendarme/test/applyTo/Test.ApplyTo.dll"
+		applyTo="visible"/>
+	</ruleset>
+</gendarme>
