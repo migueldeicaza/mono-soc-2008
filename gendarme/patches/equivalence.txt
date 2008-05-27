@@ -1,0 +1,14 @@
+This document intends to be an equivalence between patches I will write and
+revisions commited to mono subversion.
+
+It's only for informative purposes.  And it will contain a reference to a patch
+file and other for the revision, by example:
+
+use_correct_stuff.patch -> r453212
+
+The first operand shows the patch, and the second shows the revision where the
+patch has been checked in.
+
+--------------------------------------------
+
+
