@@ -55,5 +55,12 @@ namespace Gendarme.Test {
 			CheckApplicationMode ("FakeTypeRule", ApplicationMode.Visible);
 			CheckApplicationMode ("FakeMethodRule", ApplicationMode.NonVisible);
 		}
+
+		[Test]
+		public override void TestTypeRules ()
+		{
+			base.TestTypeRules ();
+			Assert.AreEqual (1, runner.Defects.Count);
+		}
 	}
 }
