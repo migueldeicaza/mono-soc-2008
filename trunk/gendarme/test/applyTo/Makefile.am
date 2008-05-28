@@ -12,8 +12,7 @@ applyTo_sources =  \
 	ApplyToNonVisible.cs \
 	ApplyToVisible.cs \
 	ApplyToMixed.cs \
-	FakeRules.cs \
-	TestHelpers.cs
+	FakeRules.cs 
 
 applyTo_build_sources = $(addprefix $(srcdir)/, $(applyTo_sources))
 
