@@ -1,5 +1,5 @@
 //
-// Gendarme.Test.ApplyTo class
+// Fake scenarios for testing the stuff.
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -26,22 +26,48 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using NUnit.Framework;
-using Gendarme; 
-
-namespace Gendarme.Test {
-	[TestFixture]
-	public abstract class ApplyTo {
-		protected Settings settings;
-		protected ConsoleRunner runner;
-		protected string ConfigurationFile = "";
-		static readonly string DefaultRuleset = "default";
-		
-		[SetUp]
-		public void SetUp ()
+namespace FakeAssembly {
+	public class PublicClass {
+		public void PublicMethod ()
 		{
-			runner = new ConsoleRunner ();
-			settings = new Settings (runner, ConfigurationFile, DefaultRuleset); 
+		}
+		
+		internal void InternalMethod ()
+		{
+		}
+
+		protected void ProtectedMethod ()
+		{
+		}
+
+		private void PrivateMethod ()
+		{
+		}
+
+		protected internal void ProtectedInternalMethod ()
+		{
+		}
+	}
+
+	internal class InternalClass {
+		public void PublicMethod ()
+		{
+		}
+		
+		internal void InternalMethod ()
+		{
+		}
+
+		protected void ProtectedMethod ()
+		{
+		}
+
+		private void PrivateMethod ()
+		{
+		}
+
+		protected internal void ProtectedInternalMethod ()
+		{
 		}
 	}
 }

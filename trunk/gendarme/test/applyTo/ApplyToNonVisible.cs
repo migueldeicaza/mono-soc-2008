@@ -42,9 +42,15 @@ namespace Gendarme.Test {
 		[Test]
 		public void TestApplyToNonVisible ()
 		{
-			settings.Load ();
 			Assert.AreEqual (3, runner.Rules.Count);
 			TestHelpers.CheckVisibilityFor (runner.Rules, ApplicationMode.NonVisible);
+		}
+
+		[Test]
+		public override void TestTypeRules ()
+		{
+			base.TestTypeRules ();
+			Assert.AreEqual (1, runner.Defects.Count);
 		}
 	}
 }

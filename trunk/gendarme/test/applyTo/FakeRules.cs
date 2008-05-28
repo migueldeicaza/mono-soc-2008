@@ -27,27 +27,34 @@
 //
 
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace FakeRules {
 	public class FakeAssemblyRule : Rule, IAssemblyRule {
 		public RuleResult CheckAssembly (AssemblyDefinition assembly)
 		{
-			return RuleResult.Success;
+			Runner.Report (assembly, Severity.High, Confidence.High);
+			return RuleResult.Failure;
 		}
 	}
 
 	public class FakeMethodRule : Rule, IMethodRule {
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
-			return RuleResult.Success;
+			Runner.Report (method, Severity.High, Confidence.High);
+			return RuleResult.Failure;
 		}
 	}
 
 	public class FakeTypeRule : Rule, ITypeRule {
 		public RuleResult CheckType (TypeDefinition type) 
 		{
-			return RuleResult.Success;
+			//Skip the <Module> type declaration.
+			if (type.IsGeneratedCode ())
+				return RuleResult.DoesNotApply;
+			Runner.Report (type, Severity.High, Confidence.High);
+			return RuleResult.Failure;
 		}
 	}
 }

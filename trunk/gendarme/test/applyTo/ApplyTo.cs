@@ -1,5 +1,5 @@
 //
-// Gendarme.Test.ApplyToDefault class
+// Gendarme.Test.ApplyTo class
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -26,31 +26,51 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using NUnit.Framework;
-using Gendarme;
+using Gendarme; 
 using Gendarme.Framework;
-using System.Collections.Generic;
+using Mono.Cecil;
 
 namespace Gendarme.Test {
-	public class ApplyToDefault : ApplyTo {
-		[TestFixtureSetUp]
-		public void FixtureSetUp ()
+	[TestFixture]
+	public abstract class ApplyTo {
+		protected Settings settings;
+		protected ConsoleRunner runner;
+		protected string ConfigurationFile = "";
+		static readonly string DefaultRuleset = "default";
+		static readonly AssemblyDefinition FakeAssembly = AssemblyFactory.GetAssembly ("FakeAssembly.dll");
+		
+		[SetUp]
+		public void SetUp ()
 		{
-			ConfigurationFile = "configurations/rules-default.xml";
+			runner = new ConsoleRunner ();
+			settings = new Settings (runner, ConfigurationFile, DefaultRuleset); 
+			settings.Load ();
 		}
 
-		[Test]
-		public void TestApplyToDefault ()
+		protected void RunGendarme ()
 		{
-			Assert.AreEqual (3, runner.Rules.Count);
-			TestHelpers.CheckVisibilityFor (runner.Rules, ApplicationMode.All);
+			runner.Assemblies.Add (FakeAssembly);
+			runner.Initialize ();
+			runner.Run ();
 		}
 
-		[Test]
-		public override void TestTypeRules ()
+		protected IRule GetRule (string name)
 		{
-			base.TestTypeRules ();
-			Assert.AreEqual (2, runner.Defects.Count);
+			foreach (IRule rule in runner.Rules) {
+				if (String.Compare (rule.Name, name) == 0)
+					return rule;
+			}
+			return null;
+		}
+
+		public virtual void TestTypeRules ()
+		{
+			runner.Rules.Remove (GetRule ("FakeAssemblyRule"));
+			runner.Rules.Remove (GetRule ("FakeMethodRule"));
+			Assert.AreEqual (1, runner.Rules.Count);
+			RunGendarme ();
 		}
 	}
 }

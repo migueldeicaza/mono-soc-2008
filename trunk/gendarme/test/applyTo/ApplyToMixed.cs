@@ -50,7 +50,6 @@ namespace Gendarme.Test {
 		[Test]
 		public void TestApplyToMixed ()
 		{
-			settings.Load ();
 			Assert.AreEqual (3, runner.Rules.Count);
 			CheckApplicationMode ("FakeAssemblyRule", ApplicationMode.All);
 			CheckApplicationMode ("FakeTypeRule", ApplicationMode.Visible);
