@@ -28,6 +28,10 @@
 
 namespace FakeAssembly {
 	public class PublicClass {
+		public PublicClass () 
+		{
+		}
+
 		public void PublicMethod ()
 		{
 		}
@@ -50,6 +54,10 @@ namespace FakeAssembly {
 	}
 
 	internal class InternalClass {
+		public InternalClass () 
+		{
+		}
+
 		public void PublicMethod ()
 		{
 		}

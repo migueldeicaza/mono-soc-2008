@@ -79,5 +79,14 @@ namespace Gendarme.Test {
 			Assert.AreEqual (1, runner.Rules.Count);
 			RunGendarme ();
 		}
+
+		//Remember that test methods + constructors
+		public virtual void TestMethodRules ()
+		{
+			runner.Rules.Remove (GetRule ("FakeAssemblyRule"));
+			runner.Rules.Remove (GetRule ("FakeTypeRule"));
+			Assert.AreEqual (1, runner.Rules.Count);
+			RunGendarme ();
+		}
 	}
 }
