@@ -35,7 +35,15 @@ namespace CssEditor.Parser.Internal
 			try 
 			{
 				cssfileReader = new StreamReader(filename);
-				Console.WriteLine("From {0} - {1}", cssfileReader.GetType().Name, cssfileReader.ReadToEnd());
+				CssTokenizer testParser = new CssTokenizer(cssfileReader);
+				
+				CssToken t;
+				
+				while((t = testParser.GetNextToken()) != null)
+				{
+					Console.WriteLine("Tigki: {0}", t.GetValue());
+				}
+				
 			} 
 			catch(FileNotFoundException e)
 			{

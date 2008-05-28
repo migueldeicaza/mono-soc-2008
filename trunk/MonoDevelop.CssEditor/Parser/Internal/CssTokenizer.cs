@@ -10,14 +10,16 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CssEditor.Parser.Internal {
 
 	class CssTokenizer {
 		
-		int CurrentLine = 0;
+		int CurrentLineNumber = 0;
 		int CurrentOffset = 0;
 		char CurrentCharacter;
+		string CurrentLine;
 		
 		StringBuilder buffer;
 		
@@ -26,60 +28,112 @@ namespace CssEditor.Parser.Internal {
 		public CssTokenizer(TextReader file) 
 		{
 			input = file;
+			
+			CurrentLine = input.ReadLine();
 		}
 		
-		private int GetChar()
+		private char GetChar()
 		{
-			int c = input.Read();
-			
-			// Handle new lines
-			if ( c == '\r' )
-				c = input.Read(); // Consume carrier-return
-				
-			if ( c == '\n' )
+			if (CurrentLine == null)
+	            return (char)26;
+	        else if (CurrentOffset >= CurrentLine.Length)
 			{
-				CurrentLine++;
-				CurrentOffset = -1;
-				c = input.Read();
-			}
-			
-			if ( c != -1 )
-			{
-				CurrentOffset++;
-			}
-			
-			return c;
+	            CurrentLine = input.ReadLine() ;
+	            CurrentOffset = 0 ;
+	            return '\n';
+	        }
+	        else
+	            return CurrentLine[CurrentOffset++];
 		}
 		
+		private void ConsumeWhitespace()
+		{
+			// Handle White Space
+			while ((char.IsWhiteSpace(CurrentCharacter)) || (CurrentCharacter == '\t') )
+			{
+	            CurrentCharacter = GetChar();
+			}
+		}
+		
+		private string ReadString()
+		{
+			StringBuilder str = new StringBuilder();
+			
+			// String patterns as specified
+			//Regex StrPattern1 = new Regex("\"([\t !#$%&(-~]|\n|\r\n|\r|\f|\'|[^\0-\177]|\\[ -~\200-\4177777]|\\[0-9a-f]{1,6}[ \n\r\t\f]?)*\"");
+			//Regex StrPattern2 = new Regex("\'([\t !#$%&(-~]|\n|\r\n|\r|\f|\"|[^\0-\177]|\\[ -~\200-\4177777]|\\[0-9a-f]{1,6}[ \n\r\t\f]?)*\'");
+			
+			if (CurrentCharacter == '\'' || CurrentCharacter == '\"')
+			{
+				// String must end with the opening delimeter
+				int BeginChar = CurrentCharacter;
+				
+				do
+				{
+					// Escape char?
+					if ( CurrentCharacter == '\\' )
+					{
+						str.Append(CurrentCharacter);
+						CurrentCharacter = GetChar();
+						str.Append(CurrentCharacter);
+					}
+					else
+					{
+						str.Append(CurrentCharacter);
+						CurrentCharacter = GetChar();
+					}
+					
+				} while(CurrentCharacter != BeginChar );
+				
+				str.Append(CurrentCharacter);
+			}
+			
+			return str.ToString();
+			
+		}
 		
 		public CssToken GetNextToken() 
 		{
 			CurrentCharacter = GetChar();
 			
-			// Handle White Space
-			while ((CurrentCharacter == CurrentCharacter.IsWhiteSpace()) || (CurrentCharacter == '\t') )
+			ConsumeWhitespace();
+			
+			if ( CurrentCharacter == '\r' )
+				CurrentCharacter = GetChar();
+			
+			if ( CurrentCharacter == '\n' )
 			{
-	            CurrentCharacter = GetChar();
+				CurrentLineNumber++;
 			}
 			
 			// Handle IDENT (start with letters) or uri
-			if (CurrentCharacter.IsLetter())
+			if (Char.IsLetter(CurrentCharacter))
 			{
 				buffer = new StringBuilder();
-								
+
 				do
 				{
 					buffer.Append(CurrentCharacter);
 					CurrentCharacter = GetChar();
-				} while (CurrentCharacter.IsLetter() || CurrentCharacter.IsDigit());
+				} while (Char.IsLetter(CurrentCharacter) || Char.IsDigit(CurrentCharacter));
 				
 				// We have a URI
-				if ( String.Compare(new String(buffer).ToLower()), "url" )
+				if ( String.Compare(buffer.ToString().ToLower(), "url" ) == 0 )
 				{
+					ConsumeWhitespace();
+					if (CurrentCharacter == '\'' || CurrentCharacter == '\"')
+					{
+						buffer.Append(ReadString());
+						return new CssToken(buffer.ToString(), CssToken.URI, CurrentLineNumber, CurrentOffset);
+					}
+					else
+					{
+						return new CssToken(buffer.ToString(), CssToken.ERROR, CurrentLineNumber, CurrentOffset);
+					}
 					
 				}
 				else
-					return new CssToken(new String(buffer), CssToken.IDENT, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.IDENT, CurrentLineNumber, CurrentOffset);
 			}
 			
 			// Handle ATKEYWORD
@@ -87,97 +141,141 @@ namespace CssEditor.Parser.Internal {
 			{
 				buffer = new StringBuilder();
 				
+				CurrentCharacter = GetChar();
+				
 				// then IDENT follows (Start with letters)
-				if ( input.Peek().IsLetter())
+				if ( Char.IsLetter(CurrentCharacter))
 				{
 					do
 					{
 						buffer.Append(CurrentCharacter);
 						CurrentCharacter = GetChar();
-					} while (CurrentCharacter.IsLetter() || CurrentCharacter.IsDigit());
+					} while (Char.IsLetter(CurrentCharacter)|| Char.IsDigit(CurrentCharacter));
 					
-					return new CssToken(new String(buffer), CssToken.ATKEYWORD, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.ATKEYWORD, CurrentLineNumber, CurrentOffset);
 				}
 				else
 				{
 					// In case where we have a lexical error
-					return new CssToken(new String(buffer), CssToken.ERROR, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.ERROR, CurrentLineNumber, CurrentOffset);
 				}
 			}
 			
 			// Handle STRING
-			if (CurrentCharacter == '\"' || CurrentCharacter == '\'') )
+			if (CurrentCharacter == '\"' || CurrentCharacter == '\'' )
 			{
-				char EndChar = CurrentCharacter; // End with the same start
+				return new CssToken(ReadString(), CssToken.STRING, CurrentLineNumber, CurrentOffset);
+			}
+			
+			// Handle HASH
+			if (CurrentCharacter == '#')
+			{
+				buffer = new StringBuilder();
+				buffer.Append(CurrentCharacter);
+				CurrentCharacter = GetChar();
+				
+				if ( Char.IsLetter(CurrentCharacter) || Char.IsDigit(CurrentCharacter) )
+				{
+					do
+					{
+						buffer.Append(CurrentCharacter);
+						CurrentCharacter = GetChar();
+					} while(Char.IsLetter(CurrentCharacter) || Char.IsDigit(CurrentCharacter));
+					
+					return new CssToken(buffer.ToString(), CssToken.HASH, CurrentLineNumber, CurrentOffset);
+				}
+				else
+				{
+					// In case where we have a lexical error
+					return new CssToken(buffer.ToString(), CssToken.ERROR, CurrentLineNumber, CurrentOffset);
+				}
+			}
+			
+			// Handle NUM, PERCENTAGE, DIMENSION
+			if (Char.IsDigit(CurrentCharacter))
+			{
 				buffer = new StringBuilder();
 				
 				do
 				{
 					buffer.Append(CurrentCharacter);
 					CurrentCharacter = GetChar();
-				} while(CurrentCharacter != EndChar);
-				
-				buffer.Append(CurrentCharacter);
-				
-				return new CssToken(new String(buffer), CssToken.STRING, CurrentLine, CurrentOffset);
-			}
-			
-			// Handle HASH
-			if (CurrentCharacter == '#')
-			{
-				buffer = new StringBuffer();
-				
-				if ( input.Peek().IsLetter() || input.Peek().IsDigit() )
-				{
-					do
-					{
-						buffer.Append(CurrentCharacter);
-						CurrentCharacter = GetChar();
-					} while(CurrentCharacter.IsLetter() || CurrentCharacter.IsDigit());
-					
-					return new CssToken(new String(buffer), CssToken.HASH, CurrentLine, CurrentOffset);
-				}
-				else
-				{
-					// In case where we have a lexical error
-					return new CssToken(new String(buffer), CssToken.ERROR, CurrentLine, CurrentOffset);
-				}
-			}
-			
-			// Handle NUM, PERCENTAGE, DIMENSION
-			if (CurrentCharacter.IsDigit())
-			{
-				buffer = new StringBuffer();
-				
-				do
-				{
-					buffer.Append(CurrentCharacter);
-					CurrentCharacter = GetChar();
-				} while( CurrentCharacter.IsDigit() );
+				} while( Char.IsDigit(CurrentCharacter) );
 				
 				// if % follows then its Percentage
 				if ( CurrentCharacter == '%' )
 				{
 					buffer.Append(CurrentCharacter);
 					CurrentCharacter = GetChar();
-					return new CssToken(new String(buffer), CssToken.PERCENTAGE, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.PERCENTAGE, CurrentLineNumber, CurrentOffset);
 				}
 				// If its a letter, then its a DIMENSION
-				else if ( CurrentCharacter.IsLetter() )
+				else if ( Char.IsLetter(CurrentCharacter) )
 				{
 					do
 					{
 						buffer.Append(CurrentCharacter);
 						CurrentCharacter = GetChar();
-					} while (CurrentCharacter.IsLetter() || CurrentCharacter.IsDigit());
+					} while (Char.IsLetter(CurrentCharacter) || Char.IsDigit(CurrentCharacter));
 					
-					return new CssToken(new String(buffer), CssToken.DIMENSION, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.DIMENSION, CurrentLineNumber, CurrentOffset);
 				}
 				// NUM
 				else
 				{
-					return new CssToken(new String(buffer), CssToken.NUM, CurrentLine, CurrentOffset);
+					return new CssToken(buffer.ToString(), CssToken.NUM, CurrentLineNumber, CurrentOffset);
 				}
+			}
+			
+			// CDO
+			if (CurrentCharacter == '<')
+			{
+				buffer = new StringBuilder();
+				buffer.Append(CurrentCharacter);
+				for ( int i = 0; i < 3; i++)
+					buffer.Append(GetChar());
+				
+				if (String.Compare(buffer.ToString(), "<!--") == 0)
+					return new CssToken(buffer.ToString(), CssToken.CDO, CurrentLineNumber, CurrentOffset);
+				else
+					return new CssToken(buffer.ToString(), CssToken.ERROR, CurrentLineNumber, CurrentOffset);
+			}
+			
+			// CDC
+			if (CurrentCharacter == '-')
+			{
+				buffer = new StringBuilder();
+				buffer.Append(CurrentCharacter);
+				for ( int i = 0; i < 2; i++)
+					buffer.Append(GetChar());
+					
+				if (String.Compare(buffer.ToString(), "-->") == 0)
+					return new CssToken(buffer.ToString(), CssToken.CDC, CurrentLineNumber, CurrentOffset);
+				else
+					return new CssToken(buffer.ToString(), CssToken.ERROR, CurrentLineNumber, CurrentOffset);		
+			}
+			
+			// Comment
+			
+			
+			// Single chars
+			switch(CurrentCharacter)
+			{
+				case ';':
+					return new CssToken(";", CssToken.SEMICOLON, CurrentLineNumber, CurrentOffset);
+				case '{':
+					return new CssToken("{", CssToken.LEFTCURLY, CurrentLineNumber, CurrentOffset);
+				case '}':
+					return new CssToken("}", CssToken.RIGHTCURLY, CurrentLineNumber, CurrentOffset);
+				case '(':
+					return new CssToken("(", CssToken.LEFTPARA, CurrentLineNumber, CurrentOffset);
+				case ')':
+					return new CssToken(")", CssToken.RIGHTPARA, CurrentLineNumber, CurrentOffset);
+				case '[':
+					return new CssToken("[", CssToken.LEFTSQUARE, CurrentLineNumber, CurrentOffset);
+				case ']':
+					return new CssToken("]", CssToken.RIGHTSQUARE, CurrentLineNumber, CurrentOffset);
+						
 			}
 			return null;
 		}
