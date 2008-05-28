@@ -17,7 +17,7 @@ namespace CssEditor.Parser.Internal {
 		public static int ATKEYWORD = 2;
 		public static int STRING = 3;
 		public static int HASH = 4;
-		public static int NUMBER = 5;
+		public static int NUM = 5;
 		public static int PERCENTAGE = 6;
 		public static int DIMENSION = 7;
 		public static int URI = 8;
@@ -51,7 +51,7 @@ namespace CssEditor.Parser.Internal {
 			this.line = line;
 		}
 		
-		public int GetType()
+		public int GetTokenType()
 		{
 			return type;
 		}
