@@ -52,5 +52,12 @@ namespace Gendarme.Test {
 			base.TestTypeRules ();
 			Assert.AreEqual (2, runner.Defects.Count);
 		}
+
+		[Test]
+		public override void TestMethodRules ()
+		{
+			base.TestMethodRules ();
+			Assert.AreEqual (12, runner.Defects.Count);
+		}
 	}
 }
