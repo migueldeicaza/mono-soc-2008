@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using Gendarme; 
 using Gendarme.Framework;
@@ -63,6 +64,12 @@ namespace Gendarme.Test {
 					return rule;
 			}
 			return null;
+		}
+
+		public static void CheckVisibilityFor (IEnumerable<IRule> rules, ApplicationMode mode)
+		{
+			foreach (IRule rule in rules) 
+				Assert.AreEqual (mode, rule.ApplicationMode);
 		}
 
 		public virtual void TestTypeRules ()
