@@ -42,9 +42,15 @@ namespace Gendarme.Test {
 		[Test]
 		public void TestApplyToAll ()
 		{
-			settings.Load ();
 			Assert.AreEqual (3, runner.Rules.Count);
 			TestHelpers.CheckVisibilityFor (runner.Rules, ApplicationMode.All);
+		}
+
+		[Test]
+		public override void TestTypeRules ()
+		{
+			base.TestTypeRules ();
+			Assert.AreEqual (2, runner.Defects.Count);
 		}
 	}
 }
