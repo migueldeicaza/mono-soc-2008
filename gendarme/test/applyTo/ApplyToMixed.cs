@@ -40,10 +40,10 @@ namespace Gendarme.Test {
 			ConfigurationFile = "configurations/rules-mixed.xml";
 		}
 
-		private void CheckApplicationMode (string ruleName, ApplicationMode mode) {
+		private void CheckApplicabilityScope (string ruleName, ApplicabilityScope applicabilityScope) {
 			foreach (IRule rule in runner.Rules) {
 				if (String.Compare (ruleName, rule.Name) == 0) 
-					Assert.AreEqual (rule.ApplicationMode, mode);
+					Assert.AreEqual (rule.ApplicabilityScope, applicabilityScope);
 			}
 		}
 
@@ -51,9 +51,9 @@ namespace Gendarme.Test {
 		public void TestApplyToMixed ()
 		{
 			Assert.AreEqual (3, runner.Rules.Count);
-			CheckApplicationMode ("FakeAssemblyRule", ApplicationMode.All);
-			CheckApplicationMode ("FakeTypeRule", ApplicationMode.Visible);
-			CheckApplicationMode ("FakeMethodRule", ApplicationMode.NonVisible);
+			CheckApplicabilityScope ("FakeAssemblyRule", ApplicabilityScope.All);
+			CheckApplicabilityScope ("FakeTypeRule", ApplicabilityScope.Visible);
+			CheckApplicabilityScope ("FakeMethodRule", ApplicabilityScope.NonVisible);
 		}
 
 		[Test]

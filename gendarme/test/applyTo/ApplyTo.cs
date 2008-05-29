@@ -66,10 +66,10 @@ namespace Gendarme.Test {
 			return null;
 		}
 
-		public static void CheckVisibilityFor (IEnumerable<IRule> rules, ApplicationMode mode)
+		public static void CheckApplicabilityScopeFor (IEnumerable<IRule> rules, ApplicabilityScope applicabilityScope)
 		{
 			foreach (IRule rule in rules) 
-				Assert.AreEqual (mode, rule.ApplicationMode);
+				Assert.AreEqual (applicabilityScope, rule.ApplicabilityScope);
 		}
 
 		public virtual void TestTypeRules ()
