@@ -37,7 +37,7 @@ namespace Gendarme.Test {
 	[TestFixture]
 	public abstract class ApplyTo {
 		protected Settings settings;
-		protected ConsoleRunner runner;
+		protected TestableRunner runner;
 		protected string ConfigurationFile = "";
 		static readonly string DefaultRuleset = "default";
 		static readonly AssemblyDefinition FakeAssembly = AssemblyFactory.GetAssembly ("FakeAssembly.dll");
@@ -45,7 +45,7 @@ namespace Gendarme.Test {
 		[SetUp]
 		public void SetUp ()
 		{
-			runner = new ConsoleRunner ();
+			runner = new TestableRunner ();
 			settings = new Settings (runner, ConfigurationFile, DefaultRuleset); 
 			settings.Load ();
 		}
