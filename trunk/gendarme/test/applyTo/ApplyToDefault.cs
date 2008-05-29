@@ -43,7 +43,7 @@ namespace Gendarme.Test {
 		public void TestApplyToDefault ()
 		{
 			Assert.AreEqual (3, runner.Rules.Count);
-			CheckVisibilityFor (runner.Rules, ApplicationMode.All);
+			CheckApplicabilityScopeFor (runner.Rules, ApplicabilityScope.All);
 		}
 
 		[Test]
