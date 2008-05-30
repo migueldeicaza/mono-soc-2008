@@ -21,35 +21,28 @@ namespace CssEditor.Parser.Internal
 			string filename = null;
 			
 			
-			if ( args.Length < 1)
-			{
+			if (args.Length < 1) {
 				Console.WriteLine("CssEditor Parser Tester\n\nSyntax: tester.exe <cssfile.css>");
 				return;
 			}
-			else 
-			{
+			else {
 				filename = args[0];
 				Console.WriteLine("CssEditor Parser tester: parsing {0}", args[0]);
 			}
 			
-			try 
-			{
+		//	try {
 				cssfileReader = new StreamReader(filename);
-				CssTokenizer testParser = new CssTokenizer(cssfileReader);
+							
+				CssTokenizer testTokenizer = new CssTokenizer ();
+				CssParser testParser = new CssParser (testTokenizer);
 				
-				CssToken t;
-				
-				while((t = testParser.GetNextToken()) != null)
-				{
-					Console.WriteLine("Tigki: {0}", t.GetValue());
-				}
-				
-			} 
-			catch(FileNotFoundException e)
-			{
-				Console.WriteLine("The file specified ({0}) could not be found!", filename);
-				return;
-			}
+				testTokenizer.ParseDocument (cssfileReader);				
+		//	} 
+		//	catch (Exception e)
+		//	{
+		//		Console.WriteLine("Boing: ", e.ToString ());
+		//		return;
+		//	}
 		}
 	}
 }
