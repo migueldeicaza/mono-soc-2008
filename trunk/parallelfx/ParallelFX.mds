@@ -1,16 +1,16 @@
 <Combine name="ParallelFX" fileversion="2.0">
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="CombineConfiguration">
-      <Entry build="True" name="ParallelFX" configuration="Debug" />
+      <Entry build="True" name="System.Threading" configuration="Debug" />
     </Configuration>
     <Configuration name="Release" ctype="CombineConfiguration">
-      <Entry build="True" name="ParallelFX" configuration="Release" />
+      <Entry build="True" name="System.Threading" configuration="Release" />
     </Configuration>
   </Configurations>
   <StartMode startupentry="ParallelFX" single="True">
-    <Execute type="None" entry="ParallelFX" />
+    <Execute type="None" entry="System.Threading" />
   </StartMode>
   <Entries>
-    <Entry filename="ParallelFX/ParallelFX.mdp" />
+    <Entry filename="System.Threading/System.mdp" />
   </Entries>
 </Combine>

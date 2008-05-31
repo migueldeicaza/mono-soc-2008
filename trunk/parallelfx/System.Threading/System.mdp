@@ -1,0 +1,37 @@
+<Project name="System.Threading" fileversion="2.0" language="C#" clr-version="Net_2_0" ctype="DotNetProject">
+  <Configurations active="Debug">
+    <Configuration name="Debug" ctype="DotNetProjectConfiguration">
+      <Output directory="bin/Debug" assembly="System.Threading" />
+      <Build debugmode="True" target="Library" />
+      <Execution runwithwarnings="True" consolepause="False" runtime="MsNet" clr-version="Net_2_0" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="False" unsafecodeallowed="False" generateoverflowchecks="False" definesymbols="DEBUG" generatexmldocumentation="False" additionalargs="-langversion:linq" ctype="CSharpCompilerParameters" />
+    </Configuration>
+    <Configuration name="Release" ctype="DotNetProjectConfiguration">
+      <Output directory="bin/Release" assembly="System.Threading" />
+      <Build debugmode="False" target="Library" />
+      <Execution runwithwarnings="True" consolepause="False" runtime="MsNet" clr-version="Net_2_0" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="False" unsafecodeallowed="False" generateoverflowchecks="False" generatexmldocumentation="False" additionalargs="-langversion:linq" ctype="CSharpCompilerParameters" />
+    </Configuration>
+  </Configurations>
+  <Contents>
+    <File name="AssemblyInfo.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading" subtype="Directory" buildaction="Compile" />
+    <File name="System.Linq" subtype="Directory" buildaction="Compile" />
+    <File name="System.Linq.Parallel" subtype="Directory" buildaction="Compile" />
+    <File name="System.Threading.Tasks" subtype="Directory" buildaction="Compile" />
+    <File name="System.Threading/AggregateException.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/Parallel.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/ParallelState.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/Future.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/Task.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskCanceledException.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskCoordinator.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskCreationOptions.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskManager.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskManagerPolicy.cs" subtype="Code" buildaction="Compile" />
+  </Contents>
+  <References>
+    <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Gac" localcopy="True" refto="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  </References>
+</Project>
