@@ -1,5 +1,5 @@
 // AssemblyInfo.cs created with MonoDevelop
-// User: jeremie at 22:10 24/04/2008
+// User: jeremie at 14:44 31/05/2008
 //
 // To change standard headers go to Edit->Preferences->Coding->Standard Headers
 //
@@ -9,12 +9,12 @@ using System.Runtime.CompilerServices;
 // Information about this assembly is defined by the following attributes. 
 // Change them to the values specific to your project.
 
-[assembly: AssemblyTitle("ParallelFX")]
+[assembly: AssemblyTitle("System.Threading")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
-[assembly: AssemblyCopyright("(c) 2008 Jérémie Laval")]
+[assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
