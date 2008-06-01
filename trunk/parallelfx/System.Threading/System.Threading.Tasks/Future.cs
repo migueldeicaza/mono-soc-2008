@@ -28,55 +28,108 @@ namespace System.Threading
 {
 	public static class Future
 	{
+		public static Future<T> Create<T>()
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function, string name)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm,
+		                             TaskCreationOptions options, string name)
+		{
+			throw new NotImplementedException();
+		}
 	}
 	
 	public class Future<T>: Task
 	{
+		T value;
+		bool alreadySet;
+		bool alreadyComputed;
+		Func<T> function;
 		
-		public Future()
+		public T Value {
+			get {
+				// TODO: Check the return of the get when there is no Func provided
+				Wait();
+				if (!alreadyComputed) {
+					value = function();
+					alreadyComputed = true;
+				}
+				return value;
+			}
+			set {
+				if (alreadySet)
+					throw new Exception("Value has already been set for this Future");
+				this.value = value;
+				alreadySet = true;
+			}
+		}
+		
+		private Future()
 		{
 		}
 		
-		public static Future<T> Create(Func<T> function)
+		public static Future<T> Create<T>()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, object state)
+		public static Future<T> Create<T>(Func<T> function)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, TaskManager tm)
+		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, TaskCreationOptions options)
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, string name)
+		public static Future<T> Create<T>(Func<T> function, string name)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, TaskManager tm, TaskCreatingOptions options)
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, TaskManager tm, TaskCreatingOptions options,
-		                          string name)
+		public static Future<T> Create<T>(Func<T> function, TaskManager tm,
+		                             TaskCreationOptions options, string name)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Func<T> function, object state , TaskManager tm,
-		                          TaskCreatingOptions options, string name)
-		{
-			
-		}
+		
 	}
 }

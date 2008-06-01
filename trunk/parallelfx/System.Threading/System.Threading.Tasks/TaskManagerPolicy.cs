@@ -30,9 +30,9 @@ namespace System.Threading
 	
 	public class TaskManagerPolicy
 	{
-		const int defaultMinThreads = 0;
-		const int defaultIdealThreads = Environment.ProcessorCount;
-		const int defaultMaxThread = defaultIdealThreads;
+		readonly int defaultMinThreads = 0;
+		readonly int defaultIdealThreads = Environment.ProcessorCount;
+		readonly int defaultMaxThread = Environment.ProcessorCount;
 		
 		int minThreads;
 		int idealThreads;
@@ -102,7 +102,7 @@ namespace System.Threading
 		}
 		
 		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads, int maxStackSize, bool suppressExecutionContextFlow)
-			: this(minThreads, idealThreads, maxThreads, maxStackSize, suppresExecutionContextFlow, false)
+			: this(minThreads, idealThreads, maxThreads, maxStackSize, suppressExecutionContextFlow, false)
 		{	
 		}
 		

@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace System.Threading
 {
@@ -31,102 +32,102 @@ namespace System.Threading
 	{
 		public static void For(int from, int to, Action<int> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For(int from, int to, int step, Action<int, ParallelState> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
 		                               TaskManager manager, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, ParallelState> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int, ParallelState> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector,
 		                                            Action<TSource, int, ParallelState<TLocal>> body)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
 		                                            Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
 		                                            Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
 		                                            TaskManager manager, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void Do(params Action[] actions)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static void Do(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
-			
+			throw new NotImplementedException();
 		}
 	}
 }

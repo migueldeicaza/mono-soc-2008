@@ -48,44 +48,44 @@ namespace System.Threading
 		
 		public static Task Create(Action<object> action)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Create(Action<object> action, object state)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Create(Action<object> action, TaskManager tm)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Create(Action<object> action, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Create(Action<object> action, string name)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Action<object> action, TaskManager tm, TaskCreatingOptions options)
+		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Action<object> action, TaskManager tm, TaskCreatingOptions options,
+		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options,
 		                          string name)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Create(Action<object> action, object state , TaskManager tm,
-		                          TaskCreatingOptions options, string name)
+		                          TaskCreationOptions options, string name)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public static Task Current {
@@ -96,42 +96,42 @@ namespace System.Threading
 		
 		public override void Cancel()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override void CancelAndWait()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override bool CancelAndWait(TimeSpan ts)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override bool CancelAndWait(int millisecondsTimeout)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override void Wait()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override bool Wait(TimeSpan ts)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public override bool Wait(int millisecondsTimeout)
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public void Dispose()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		public Exception Exception {
@@ -187,12 +187,12 @@ namespace System.Threading
 		
 		protected void Finish()
 		{
-			
+			throw new NotImplementedException();
 		}
 		
 		protected virtual void Invoke()
 		{
-			
+			throw new NotImplementedException();
 		}
 	}
 }
