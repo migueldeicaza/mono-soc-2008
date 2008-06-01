@@ -41,7 +41,7 @@ namespace System.Threading
 		public abstract bool Wait(int millisecondsTimeout);
 		
 		// TODO: for each [] style method provide an equivalent IEnumerable<T> 
-		public static WaitAll(params TaskCoordinator[] tasks)
+		public static void WaitAll(params TaskCoordinator[] tasks)
 		{
 			foreach (var t in tasks)
 				t.Wait();

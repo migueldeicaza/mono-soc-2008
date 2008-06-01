@@ -1,4 +1,4 @@
-// TaskManager.cs
+// Test.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,57 +23,17 @@
 //
 
 using System;
+using NUnit.Framework;
 
-namespace System.Threading
+namespace ParallelFxTests
 {
-	
-	
-	public class TaskManager
+	[TestFixture()]
+	public class Test
 	{
-		static TaskManager tdefault;
-		static TaskManager tcurrent;
 		
-		TaskManagerPolicy policy;
-		
-		public TaskManager(): this(new TaskManagerPolicy())
+		[Test()]
+		public void TestCase()
 		{
 		}
-		
-		public TaskManager(TaskManagerPolicy policy)
-		{
-			this.policy = policy;
-		}
-		
-		public static void RunBlocking(Action action)
-		{
-			throw new NotImplementedException();
-		}
-		
-		public static void RunBlocking<T>(Func<T> f)
-		{
-			throw new NotImplementedException();
-		}
-		
-		public TaskManagerPolicy Policy {
-			get {
-				return policy;
-			}
-			set {
-				policy = value;
-			}
-		}
-
-		public static TaskManager Default {
-			get {
-				return tdefault;
-			}
-		}
-
-		public static TaskManager Current {
-			get {
-				return tcurrent;
-			}
-		}
-		
 	}
 }
