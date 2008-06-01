@@ -7,23 +7,16 @@
 //
 
 using System;
-using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace CssEditor.Parser.Internal {
+namespace CssEditor.Parser.Internal 
+{
 
-	class CssTokenizer {
-		
-		// Delegates used by the parser
-		public delegate void CssDocumentStartHandler ();
-		public delegate void NewCssTokenHandler (CssToken token);
-		public delegate void CssDocumentEndHandler ();
-		
-		public event CssDocumentStartHandler CssDocumentStart;
-		public event NewCssTokenHandler NewCssToken;
-		public event CssDocumentEndHandler CssDocumentEnd;
-		
+	class CssTokenizer 
+	{
+				
 		int CurrentLineNumber = 0;
 		int CurrentOffset = 0;
 		char CurrentCharacter;
@@ -35,41 +28,22 @@ namespace CssEditor.Parser.Internal {
 	
 		int putChar = 0;
 	
-		protected void OnCssDocumentStart ()
+		public CssTokenizer (TextReader input) 
 		{
-			if (CssDocumentStart != null)
-				CssDocumentStart ();
+			this.input = input;
 		}
 		
-		protected void OnNewCssToken (CssToken token)
+		public static IEnumerable<CssToken> Tokenize (TextReader input)
 		{
-			if (NewCssToken != null)
-				NewCssToken (token);
-		}
-		
-		protected void OnCssDocumentEnd ()
-		{
-			if (CssDocumentEnd != null)
-				CssDocumentEnd ();
-		}
-	
-		public CssTokenizer () 
-		{
-			
-		}
-		
-		public void ParseDocument(TextReader file)
-		{
+			CssTokenizer ct = new CssTokenizer(input);
 			CssToken t;
-			input = file;
 			
-			OnCssDocumentStart ();
-			
-			while((t = GetNextToken()).GetTokenType() != CssTokenType.EOF) {
-				OnNewCssToken (t);
+			while((t = ct.GetNextToken()).GetTokenType() != CssTokenType.EOF) {
+				if (t.GetTokenType () == CssTokenType.COMMENT)
+					continue;
+				else
+					yield return t;
 			}
-			
-			OnCssDocumentEnd ();
 		}
 		
 		private void putBackChar (char c)
@@ -161,16 +135,29 @@ namespace CssEditor.Parser.Internal {
 					buffer.Append (CurrentCharacter);
 					CurrentCharacter = GetChar();
 				} while ((Char.IsLetter (CurrentCharacter) || Char.IsDigit (CurrentCharacter) || CurrentCharacter == '-') && CurrentCharacter != (char)26);
+				//putBackChar(CurrentCharacter);
 				
 				// We have a URI
 				if ( String.Compare(buffer.ToString().ToLower(), "url" ) == 0 ) {
+					if (CurrentCharacter == '(') {
+						buffer.Append (CurrentCharacter);
+						ConsumeWhitespace ();
+						CurrentCharacter = GetChar ();
 					
-					ConsumeWhitespace ();
-					CurrentCharacter = GetChar ();
 					
-					if (CurrentCharacter == '\'' || CurrentCharacter == '\"') {
-						buffer.Append (ReadString ());
-						return new CssToken (buffer.ToString (), CssTokenType.URI, CurrentLineNumber, CurrentOffset);
+						if (CurrentCharacter == '\'' || CurrentCharacter == '\"') {
+							buffer.Append (ReadString ());
+							CurrentCharacter = GetChar ();
+							if (CurrentCharacter == ')') {
+								buffer.Append (CurrentCharacter);
+								return new CssToken (buffer.ToString (), CssTokenType.URI, CurrentLineNumber, CurrentOffset);
+							} else {
+								return new CssToken (buffer.ToString (), CssTokenType.ERROR, CurrentLineNumber, CurrentOffset);
+							}
+						}
+						else {
+							return new CssToken (buffer.ToString (), CssTokenType.ERROR, CurrentLineNumber, CurrentOffset);
+						}
 					}
 					else {
 						return new CssToken (buffer.ToString (), CssTokenType.ERROR, CurrentLineNumber, CurrentOffset);
@@ -210,8 +197,18 @@ namespace CssEditor.Parser.Internal {
 				return new CssToken (ReadString (), CssTokenType.STRING, CurrentLineNumber, CurrentOffset);
 			}
 			
+			// Handle HEXCOLOR
+			if (CurrentCharacter == '#' && Char.IsNumber ((char)input.Peek ())) {
+				buffer.Length = 0;
+				do {
+					buffer.Append (CurrentCharacter);
+					CurrentCharacter = GetChar ();
+				} while(Char.IsNumber(CurrentCharacter) && CurrentCharacter != (char)26);
+				return new CssToken (buffer.ToString (), CssTokenType.HEXCOLOR, CurrentLineNumber, CurrentOffset);
+			}
+			
 			// Handle HASH
-			if (CurrentCharacter == '#') {
+			if (CurrentCharacter == '#' && Char.IsLetter ((char)input.Peek ())) {
 				buffer.Length = 0;
 				buffer.Append (CurrentCharacter);
 				CurrentCharacter = GetChar ();
@@ -232,8 +229,30 @@ namespace CssEditor.Parser.Internal {
 				}
 			}
 			
+			// Handle CLASS
+			if (CurrentCharacter == '.' && Char.IsLetter ((char)input.Peek ())) {
+				buffer.Length = 0;
+				buffer.Append (CurrentCharacter);
+				CurrentCharacter = GetChar ();
+				
+				if ( Char.IsLetter (CurrentCharacter) || Char.IsDigit (CurrentCharacter) ) {
+					do {
+						buffer.Append (CurrentCharacter);
+						CurrentCharacter = GetChar ();
+					} while ((Char.IsLetter (CurrentCharacter) || Char.IsDigit (CurrentCharacter)) && CurrentCharacter != (char)26);
+					
+					putBackChar (CurrentCharacter);
+					
+					return new CssToken (buffer.ToString (), CssTokenType.HASH, CurrentLineNumber, CurrentOffset);
+				}
+				else {
+					// In case where we have a lexical error
+					return new CssToken (buffer.ToString (), CssTokenType.ERROR, CurrentLineNumber, CurrentOffset);
+				}
+			}			
+			
 			// Handle NUM, PERCENTAGE, DIMENSION
-			if (Char.IsDigit (CurrentCharacter)) {
+			if (Char.IsDigit (CurrentCharacter) || (CurrentCharacter == '-' && Char.IsDigit((char)input.Peek ()))) {
 				buffer.Length = 0;
 				
 				do {
@@ -291,7 +310,7 @@ namespace CssEditor.Parser.Internal {
 			}
 			
 			// CDC
-			if (CurrentCharacter == '-') {
+			if (CurrentCharacter == '-' && input.Peek () == '-') {
 				buffer.Length = 0;
 				buffer.Append(CurrentCharacter);
 				for ( int i = 0; i < 2; i++)
@@ -326,7 +345,9 @@ namespace CssEditor.Parser.Internal {
 			switch(CurrentCharacter) {
 				case ';':
 				return new CssToken(";", CssTokenType.SEMICOLON, CurrentLineNumber, CurrentOffset);
-				case '.':
+				case '-':
+				return new CssToken("-", CssTokenType.DASH, CurrentLineNumber, CurrentOffset);
+			case '.':
 				return new CssToken(".", CssTokenType.DOT, CurrentLineNumber, CurrentOffset);
 				case ':':
 				return new CssToken(":", CssTokenType.COLON, CurrentLineNumber, CurrentOffset);
@@ -344,6 +365,10 @@ namespace CssEditor.Parser.Internal {
 				return new CssToken("[", CssTokenType.LEFTSQUARE, CurrentLineNumber, CurrentOffset);
 				case ']':
 				return new CssToken("]", CssTokenType.RIGHTSQUARE, CurrentLineNumber, CurrentOffset);		
+				case '+':
+				return new CssToken("+", CssTokenType.PLUS, CurrentLineNumber, CurrentOffset);
+				case '>':
+				return new CssToken(">", CssTokenType.GREATER, CurrentLineNumber, CurrentOffset);
 			}
 			return null;
 		}

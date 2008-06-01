@@ -19,11 +19,14 @@ namespace CssEditor.Parser.Internal {
 		ATKEYWORD,
 		STRING,
 		HASH,
+		HEXCOLOR,
 		COLON,
 		COMMA,
+		CLASS,
 		NUM,
 		PERCENTAGE,
 		DIMENSION,
+		DASH,
 		URI,
 		UNICODE,
 		CDO,
@@ -41,7 +44,9 @@ namespace CssEditor.Parser.Internal {
 		FUNCTION,
 		INCLUDES,
 		DASHMATCH,
-		DELIM
+		DELIM,
+		PLUS,
+		GREATER
 	}
 
 	class CssToken {
