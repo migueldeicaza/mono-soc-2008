@@ -123,7 +123,7 @@
 With the "Gendarme.Rules.Portability" and "Gendarme.Rules.Interoperability", you can check the Mono compatibility of your code. Other Gendarme rule sets provide insight into how to better your code.</value>
   </data>
   <data name="label6.Text" xml:space="preserve">
-    <value>Gendarme has searched the selected project directories for assemblies. Please select the assemblies for Gendarme to test from the list below. Gendarme makes no attempt to discern for duplicate assemblies and if multiple copies of the same assembly are selected they will all be tested by Gendarme. This includes Debug and Release builds of your assemblies; except in advanced cases you are advised to select only one configuration of a project for testing.</value>
+    <value>Cloverleaf has searched the selected project directories for assemblies. Please select the assemblies for Cloverleaf to test from the list below. Cloverleaf makes no attempt to discern for duplicate assemblies and if multiple copies of the same assembly are selected they will all be tested by Gendarme. This includes Debug and Release builds of your assemblies; except in advanced cases you are advised to select only one configuration of a project for testing.</value>
   </data>
   <metadata name="open_file_dialog.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>20, 17</value>

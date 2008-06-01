@@ -39,10 +39,28 @@ namespace CloverleafShared
         protected readonly String solutionDirectory;
         protected readonly String solutionFileName;
 
+        protected const String monoRegKey = "HKEY_LOCAL_MACHINE\\SOFTWARE\\Novell\\Mono";
+        private static String monoRootPath;
+
         public BaseTester(String slnFile, String slnDirectory)
         {
             solutionFileName = slnFile;
             solutionDirectory = slnDirectory;
+
+            String clrKey = (String) Microsoft.Win32.Registry.GetValue(monoRegKey,
+                    "DefaultCLR", "NONE");
+            if (clrKey == "NONE")
+                throw new Exception("No Mono CLR found in the registry.");
+
+            monoRootPath = (String) Microsoft.Win32.Registry.GetValue(monoRegKey + "\\" + clrKey,
+                    "SdkInstallRoot", "NONE");
+            if (monoRootPath == "NONE")
+                throw new Exception("No default path for the Mono SDK found.");
+        }
+
+        public static String MonoRootPath
+        {
+            get { return monoRootPath; }
         }
 
         public abstract void Go();

@@ -51,7 +51,6 @@ namespace CloverleafShared.TestInGendarme
             {
                 foo += p.AssemblyName + Environment.NewLine;
             }
-            System.Windows.Forms.MessageBox.Show(foo);
 
             form = new Wizard(solutionDirectory, projects);
 

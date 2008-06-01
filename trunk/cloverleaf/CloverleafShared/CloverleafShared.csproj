@@ -33,11 +33,71 @@
   <ItemGroup>
     <Reference Include="Gendarme.Framework, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Misc (Not Mine)\mono\mono-tools\gendarme\framework\bin\Debug\Gendarme.Framework.dll</HintPath>
+      <HintPath>..\Gendarme.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.BadPractice, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.BadPractice.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Concurrency, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Concurrency.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Correctness, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Correctness.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Design, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Exceptions, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Exceptions.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Interoperability, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Interoperability.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Maintainability, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Maintainability.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Naming, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Naming.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Performance, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Performance.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Portability, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Portability.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Security, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Security.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Serialization, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Serialization.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Smells, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Smells.dll</HintPath>
+    </Reference>
+    <Reference Include="Gendarme.Rules.Ui, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Gendarme.Rules.Ui.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Cecil, Version=0.6.8.8607, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Misc (Not Mine)\mono\mono-tools\gendarme\framework\bin\Debug\Mono.Cecil.dll</HintPath>
+      <HintPath>..\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb, Version=0.2.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
