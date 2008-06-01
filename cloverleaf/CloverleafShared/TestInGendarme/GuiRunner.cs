@@ -71,6 +71,7 @@ namespace CloverleafShared.TestInGendarme
 		{
 			// load every dll to check for rules...
             string dir = Path.GetDirectoryName(Application.ExecutablePath);
+            MessageBox.Show(dir);
 			FileInfo [] files = new DirectoryInfo (dir).GetFiles ("*.dll");
 			foreach (FileInfo info in files) {
 				// except for a few, well known, ones
@@ -79,7 +80,6 @@ namespace CloverleafShared.TestInGendarme
 				case "Mono.Cecil.Pdb.dll":
 				case "Mono.Cecil.Mdb.dll":
                 case "CloverleafShared.dll":
-				case "Gendarme.Framework.dll":
 					continue;
 				}
 

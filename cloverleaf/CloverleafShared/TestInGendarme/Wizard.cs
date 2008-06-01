@@ -27,17 +27,19 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using System.Reflection;
 
 using Gendarme.Framework;
 
 using Mono.Cecil;
 
 namespace CloverleafShared.TestInGendarme
-{
+{ 
 
 	public partial class Wizard : Form {
 
@@ -45,11 +47,11 @@ namespace CloverleafShared.TestInGendarme
 		delegate void MethodInvoker ();
 
 		public enum Page {
-			Welcome,
-			AddFiles,
-			SelectRules,
-			Analyze,
-			Report
+			Welcome = 0,
+			AddFiles = 1,
+			SelectRules = 2,
+			Analyze = 3,
+			Report = 4
 		}
 
 		class AssemblyInfo {
@@ -82,6 +84,10 @@ namespace CloverleafShared.TestInGendarme
 
         private string solution_directory;
         private List<ProjectInfo> project_list;
+        private List<String> selected_project_directories;
+        private List<String> assemblies_to_list;
+        private List<String> test_assemblies;
+        private object bigLock; // lock for assembly loader
 
 
 		public Wizard (String sln_directory, List<ProjectInfo> proj_list)
@@ -95,6 +101,8 @@ namespace CloverleafShared.TestInGendarme
             project_list = proj_list;
 
 			assembly_loader = UpdateAssemblies;
+
+            bigLock = new object();
 
 			UpdatePageUI ();
 		}
@@ -170,9 +178,11 @@ namespace CloverleafShared.TestInGendarme
 		{
 			switch (Current) {
 			case Page.Welcome:
+                PopulateAssemblyList();
 				Current = Page.AddFiles;
 				break;
 			case Page.AddFiles:
+                PrepAssemblyList();
 				Current = Page.SelectRules;
 				break;
 			case Page.SelectRules:
@@ -289,12 +299,94 @@ namespace CloverleafShared.TestInGendarme
 
         private void PopulateAssemblyList()
         {
+            selected_project_directories = new List<String>();
 
+            // this is an ugly hack, but I can't seem to get the text
+            // caption any other way; project_list_box.Items doesn't
+            // have a Get() method.
+            for (Int32 i = 0; i < project_list_box.Items.Count; i++)
+            {
+                if (project_list_box.GetItemChecked(i) == true)
+                {
+                    // should never BE selected, but just to be safe...
+                    project_list_box.ClearSelected();
+                    project_list_box.SelectedIndex = i;
+                    selected_project_directories.Add(project_list_box.SelectedItem.ToString());
+                    project_list_box.ClearSelected();
+                }
+            }
+
+            assemblies_to_list = new List<String>();
+
+            foreach (String s in selected_project_directories)
+            {
+                String tempDirectory = Path.Combine(solution_directory, s);
+                
+                // find all assemblies in the given directory
+                String[] foo = Directory.GetFiles(tempDirectory, "*.exe", SearchOption.TopDirectoryOnly);
+                String[] bar = Directory.GetFiles(tempDirectory, "*.dll", SearchOption.TopDirectoryOnly);
+
+                String[] files = new String[foo.Length + bar.Length];
+                foo.CopyTo(files, 0);
+                bar.CopyTo(files, foo.Length);
+                Array.Sort<String>(files);
+
+                foreach (String t in files)
+                {
+                    // don't need to be running gendarme on the visual studio
+                    // hosting process...
+                    if (t.Contains(".vshost.exe") == true)
+                        continue;
+
+                    if (isClrImage(t))
+                    {
+                        assemblies_to_list.Add(Path.Combine(s, Path.GetFileName(t)));
+                    }
+                }
+            }
+
+            file_list_box.Items.Clear();
+            foreach (String s in assemblies_to_list)
+                file_list_box.Items.Add(s);
         }
 
-        private Boolean IsAssembly(String filename)
+        private void PrepAssemblyList()
         {
+            lock (bigLock)
+            {
+                test_assemblies = new List<String>();
 
+                for (Int32 i = 0; i < file_list_box.Items.Count; i++)
+                {
+                    if (file_list_box.GetItemChecked(i) == true)
+                    {
+                        // should never BE selected, but just to be safe...
+                        file_list_box.ClearSelected();
+                        file_list_box.SelectedIndex = i;
+                        String key = Path.Combine(solution_directory,
+                                    file_list_box.SelectedItem.ToString());
+
+                        test_assemblies.Add(key);
+                        file_list_box.ClearSelected();
+                    }
+                }
+            }
+        }
+
+        private void AssembliesSelectAllClick(object sender, EventArgs e)
+        {
+            for (Int32 i = 0; i < file_list_box.Items.Count; i++)
+            {
+                file_list_box.SetItemChecked(i, true);
+            }
+        }
+
+        private void AssembliesClearAllClick(object sender, EventArgs e)
+        {
+            for (Int32 i = 0; i < file_list_box.Items.Count; i++)
+            {
+                file_list_box.SetItemChecked(i, false);
+            }
         }
 
 		public void UpdateAssemblies ()
@@ -302,6 +394,15 @@ namespace CloverleafShared.TestInGendarme
             if (assemblies == null)
             {
                 assemblies = new Dictionary<string, AssemblyInfo>();
+            }
+
+            lock (bigLock)
+            {
+                foreach (String s in test_assemblies)
+                {
+                    if (assemblies.ContainsKey(s) == false)
+                        assemblies.Add(s, new AssemblyInfo());
+                }
             }
 
 			foreach (KeyValuePair<string,AssemblyInfo> kvp in assemblies) {
@@ -551,6 +652,43 @@ namespace CloverleafShared.TestInGendarme
 
 		#endregion
 
-        
+
+
+        // probably shouldn't be here, but it can set here 'till
+        // the code gets refactored. 
+        static bool isClrImage(string fileName)
+        {
+            FileStream file = null;
+            try
+            {
+                file = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read);
+                byte[] fileData = new byte[300];
+                file.Read(fileData, 0, 128);
+                if ((fileData[0] != 0x4d) || (fileData[1] != 0x5a)) // DOS header (MZ)
+                    return false;
+
+                int lfa = BitConverter.ToInt32(fileData, 0x3c);
+                file.Seek(lfa, SeekOrigin.Begin);
+                file.Read(fileData, 0, 24); // read signature + PE header
+                if ((fileData[0] != 0x50) || (fileData[1] != 0x45)) // signature (PE)
+                    return false;
+
+                file.Read(fileData, 0, 96 + 128); // PE optional header
+                if ((fileData[0] != 0x0b) || (fileData[1] != 0x01))
+                    return false;
+
+                int imgCorHeader = BitConverter.ToInt32(fileData, 208); // IMAGE_COR20_HEADER rva
+                return imgCorHeader != 0;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            finally
+            {
+                if (file != null)
+                    file.Close();
+            }
+        } 
 	}
 }

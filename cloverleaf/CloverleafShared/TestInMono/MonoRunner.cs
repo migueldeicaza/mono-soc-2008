@@ -40,6 +40,7 @@ namespace CloverleafShared.TestInMono
 {
     public partial class MonoRunner : Form
     {
+
         StreamReader stdErrReader;
         Process monoProc = null;
         
@@ -48,8 +49,7 @@ namespace CloverleafShared.TestInMono
             InitializeComponent();
 
             monoProc = new Process();
-            monoProc.StartInfo.FileName = Path.Combine(
-                Path.Combine(Environment.GetEnvironmentVariable("MonoDir", EnvironmentVariableTarget.User),
+            monoProc.StartInfo.FileName = Path.Combine(Path.Combine(BaseTester.MonoRootPath,
                                 "bin"), "mono.exe");
             monoProc.StartInfo.Arguments = "\"" + appToRun + "\"";
             monoProc.StartInfo.UseShellExecute = true;
