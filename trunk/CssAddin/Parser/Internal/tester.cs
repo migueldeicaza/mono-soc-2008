@@ -33,10 +33,11 @@ namespace CssEditor.Parser.Internal
 		//	try {
 				cssfileReader = new StreamReader(filename);
 							
-				CssTokenizer testTokenizer = new CssTokenizer ();
-				CssParser testParser = new CssParser (testTokenizer);
-				
-				testTokenizer.ParseDocument (cssfileReader);				
+				//CssTokenizer testTokenizer = new CssTokenizer ();
+				CssRecursiveParser testParser = new CssRecursiveParser (cssfileReader);
+			testParser.Parse ();
+			
+				//testTokenizer.ParseDocument (cssfileReader);				
 		//	} 
 		//	catch (Exception e)
 		//	{
