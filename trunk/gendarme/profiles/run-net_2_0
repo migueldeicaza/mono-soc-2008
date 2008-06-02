@@ -1,0 +1,20 @@
+#!/bin/sh
+
+#The base for parallel mono installations.
+MONO_PREFIX=/home/nestor/opt/mono
+GNOME_PREFIX=/home/nestor/opt/gnome
+export LD_LIBRARY_PATH=$MONO_PREFIX/lib:$LD_LIBRARY_PATH
+export C_INCLUDE_PATH=$MONO_PREFIX/include:$GNOME_PREFIX/include
+export ACLOCAL_PATH=$MONO_PREFIX/share/aclocal
+export PKG_CONFIG_PATH=$MONO_PREFIX/lib/pkgconfig:$GNOME_PREFIX/lib/pkgconfig
+PATH=$MONO_PREFIX/bin:$PATH
+PS1="[mono-development]"$PS1
+
+MONO_HEAD=$MONO_PREFIX/lib/mono/2.0
+
+for assembly in $MONO_HEAD/*.dll
+do
+	gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --html $assembly.html
+done
+
+mv $MONO_HEAD/*.html ./2.0-reports

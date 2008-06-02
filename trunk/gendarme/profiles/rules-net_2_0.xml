@@ -1,0 +1,26 @@
+<gendarme>
+	<ruleset name="net_2_0">
+		<!-- ALL -->	
+		<rules include="*" from="Gendarme.Rules.BadPractice.dll"/>
+
+		<rules include="BadRecursiveInvocationRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="DoNotCompareWithNaNRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="UseValueInPropertySetterRule" from="Gendarme.Rules.Correctness.dll"/>
+		
+		<rules include="DoNotLockOnThisOrTypesRule" from="Gendarme.Rules.Concurrency.dll"/>
+		<rules include="DoNotLockOnWeakIdentityObjectsRule" from="Gendarme.Rules.Concurrency.dll"/>
+		<rules include="WriteStaticFieldFromInstanceMehtodRule" from="Gendarme.Rules.Concurrency.dll"/>
+
+		<rules include="RemoveUnusedLocalVariablesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="MathMinMaxCandidateRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="UseTypeEmptyTypesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="CompareWithStringEmptyEfficientlyRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="UseStringEmptyRule" from="Gendarme.Rules.Performance.dll"/>
+
+		<rules include="NewLineLiteralRule" from="Gendarme.Rules.Portability.dll"/>
+
+		<!-- ONLY VISIBLES -->
+
+		<!-- ONLY PRIVATES -->
+	</ruleset>
+</gendarme>
