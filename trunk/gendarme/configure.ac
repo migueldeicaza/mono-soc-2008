@@ -54,4 +54,5 @@ AC_OUTPUT([
 Makefile
 test/Makefile
 test/applyTo/Makefile
+reporter/Makefile
 ])
