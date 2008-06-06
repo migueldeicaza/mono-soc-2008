@@ -1,4 +1,4 @@
-SUBDIRS = . test
+SUBDIRS = . test reporter
 EXTRA_DIST = AssemblyInfo.cs.in MIT.X11 
 
 REWRITE = \
