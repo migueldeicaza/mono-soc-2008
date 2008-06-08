@@ -66,17 +66,17 @@ namespace System.Threading.Collections
 			Interlocked.Increment(ref count);
 		}
 		
-		public T GetDebugFirstValue()
-		{
-			return head.Value;
-		}
-		
 		/// <summary>
 		/// </summary>
 		/// <returns></returns>
 		// The doc seems to say that we should remove the do ... while. Stupid ?
 		public bool TryPop(out T value)
 		{
+			if (IsEmpty) {
+				value = default(T);
+				return false;
+			}	
+			
 			Node temp;// = Interlocked.Exchange(ref head, head.Next);
 			do {
 				temp = head;
@@ -93,14 +93,19 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryPeek(out T value)
 		{
+			if (IsEmpty) {
+				value = default(T);
+				return false;
+			}
+			
 			value = head.Value;
 			return true;
 		}
 		
 		public void Clear()
 		{
-			head = null;
 			count = 0;
+			head = null;
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator ()
@@ -116,14 +121,30 @@ namespace System.Threading.Collections
 		IEnumerator<T> InternalGetEnumerator()
 		{
 			Node my_head = head;
-			do {
-				yield return my_head.Value;
-			} while ((my_head = my_head.Next) != null);
+			if (my_head == null) {
+				yield break;
+			} else {
+				do {
+					yield return my_head.Value;
+				} while ((my_head = my_head.Next) != null);
+			}
 		}
 		
 		public void CopyTo (Array array, int index)
 		{
-			throw new NotImplementedException ();
+			T[] dest = array as T[];
+			if (dest == null)
+				return;
+			CopyTo(dest, index);
+		}
+		
+		void CopyTo(T[] dest, int index)
+		{
+			IEnumerator<T> e = InternalGetEnumerator();
+			int i = index;
+			while (e.MoveNext()) {
+				dest[i++] = e.Current;
+			}
 		}
 		
 		public void GetObjectData (SerializationInfo info, StreamingContext context)
@@ -152,10 +173,10 @@ namespace System.Threading.Collections
 		
 		public T[] ToArray ()
 		{
-			throw new NotImplementedException ();
+			T[] dest = new T[count];
+			CopyTo(dest, 0);
+			return dest;
 		}
-
-
 		
 		/// <value>
 		/// </value>
