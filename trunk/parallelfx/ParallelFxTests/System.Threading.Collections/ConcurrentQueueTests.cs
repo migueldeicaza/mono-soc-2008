@@ -1,4 +1,4 @@
-// ConcurrentStackRe.cs
+// ConcurrentQueueTest.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,36 +24,39 @@
 
 using System;
 using System.Threading.Collections;
+
 using NUnit.Framework;
 
 namespace ParallelFxTests
 {
+	
+	
 	[TestFixture()]
-	public class ConcurrentStackTests
+	public class ConcurrentQueueTests
 	{
-		ConcurrentStack<int> stack;
+		ConcurrentQueue<int> queue;
 		
 		[SetUpAttribute]
 		public void Setup()
 		{
-			stack = new ConcurrentStack<int>();
+			queue = new ConcurrentQueue<int>();
 			for (int i = 0; i < 10; i++) {
-				stack.Push(i);
+				queue.Enqueue(i);
 			}
 		}
 		
 		[Test]
 		public void CountTestCase()
 		{
-			Assert.IsTrue(stack.Count == 10, "#1");
+			Assert.IsTrue(queue.Count == 10, "#1");
 			int value;
-			stack.TryPeek(out value);
-			stack.TryPop(out value);
-			stack.TryPop(out value);
-			Assert.IsTrue(stack.Count == 8, "#2");
-			stack.Clear();
-			Assert.IsTrue(stack.Count == 0, "#3");
-			Assert.IsTrue(stack.IsEmpty, "#4");
+			queue.TryPeek(out value);
+			queue.TryDequeue(out value);
+			queue.TryDequeue(out value);
+			Assert.IsTrue(queue.Count == 8, "#2");
+			queue.Clear();
+			Assert.IsTrue(queue.Count == 0, "#3");
+			Assert.IsTrue(queue.IsEmpty, "#4");
 		}
 		
 		//[Ignore]
@@ -61,37 +64,37 @@ namespace ParallelFxTests
 		public void EnumerateTestCase()
 		{
 			string s = string.Empty;
-			foreach (int i in stack) {
+			foreach (int i in queue) {
 				s += i;
 			}
-			Assert.IsTrue(s == "9876543210", "#1 : " + s);
+			Assert.IsTrue(s == "0123456789", "#1 : " + s);
 		}
 		
 		[Test()]
 		public void TryPeekTestCase()
 		{
 			int value;
-			stack.TryPeek(out value);
-			Assert.IsTrue(value == 9, "#1 : " + value + ", " + stack.GetDebugFirstValue());
-			stack.TryPop(out value);
-			Assert.IsTrue(value == 9, "#2 : " + value + ", " + stack.GetDebugFirstValue());
-			stack.TryPop(out value);
-			Assert.IsTrue(value == 8, "#3 : " + value + ", " + stack.GetDebugFirstValue());
-			stack.TryPeek(out value);
-			Assert.IsTrue(value == 7, "#4 : " + value + ", " + stack.GetDebugFirstValue());
-			stack.TryPeek(out value);
-			Assert.IsTrue(value == 7, "#5 : " + value);
+			queue.TryPeek(out value);
+			Assert.IsTrue(value == 0, "#1 : " + value);
+			queue.TryDequeue(out value);
+			Assert.IsTrue(value == 0, "#2 : " + value);
+			queue.TryDequeue(out value);
+			Assert.IsTrue(value == 1, "#3 : " + value);
+			queue.TryPeek(out value);
+			Assert.IsTrue(value == 2, "#4 : " + value);
+			queue.TryPeek(out value);
+			Assert.IsTrue(value == 2, "#5 : " + value);
 		}
 		
 		[Test()]
-		public void TryPopTestCase()
+		public void TryDequeueTestCase()
 		{
 			int value;
-			stack.TryPeek(out value);
-			Assert.IsTrue(value == 9, "#1");
-			stack.TryPop(out value);
-			stack.TryPop(out value);
-			Assert.IsTrue(value == 8, "#2 : " + value);
+			queue.TryPeek(out value);
+			Assert.IsTrue(value == 0, "#1");
+			queue.TryDequeue(out value);
+			queue.TryDequeue(out value);
+			Assert.IsTrue(value == 1, "#2 : " + value);
 		}
 	}
 }

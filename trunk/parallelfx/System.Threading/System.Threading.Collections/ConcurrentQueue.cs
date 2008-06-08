@@ -55,11 +55,17 @@ namespace System.Threading.Collections
 		/// <param name="item"></param>
 		public void Enqueue(T item)
 		{
-			Node temp = new Node();
+			Node temp  = new Node();
 			temp.Value = item;
 			
-			Node oldTail = Interlocked.Exchange<Node>(ref tail, temp);
-			oldTail.Next = temp;
+			Node oldTail;
+			do {
+				oldTail = tail;
+				oldTail.Next = temp;
+			} while (Interlocked.CompareExchange(ref tail, temp, oldTail) != oldTail);
+			
+			/*Node oldTail = Interlocked.Exchange<Node>(ref tail, temp);
+			oldTail.Next = temp;*/
 			
 			Interlocked.Increment(ref count);
 		}
@@ -92,8 +98,15 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryPeek(out T value)
 		{
-			value = tail.Value;
+			Node first = head.Next;
+			value = first.Value;
 			return true;
+		}
+		
+		public void Clear()
+		{
+			count = 0;
+			tail  = head;
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator ()
