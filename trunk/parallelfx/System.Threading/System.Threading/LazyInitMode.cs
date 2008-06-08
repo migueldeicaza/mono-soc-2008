@@ -1,4 +1,4 @@
-// TaskManager.cs
+// LazyInitMode.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,56 +24,12 @@
 
 using System;
 
-namespace System.Threading.Tasks
+namespace System.Threading
 {
-	
-	
-	public class TaskManager
+	public enum LazyInitMode
 	{
-		static TaskManager tdefault;
-		static TaskManager tcurrent;
-		
-		TaskManagerPolicy policy;
-		
-		public TaskManager(): this(new TaskManagerPolicy())
-		{
-		}
-		
-		public TaskManager(TaskManagerPolicy policy)
-		{
-			this.policy = policy;
-		}
-		
-		public static void RunBlocking(Action action)
-		{
-			throw new NotImplementedException();
-		}
-		
-		public static void RunBlocking<T>(Func<T> f)
-		{
-			throw new NotImplementedException();
-		}
-		
-		public TaskManagerPolicy Policy {
-			get {
-				return policy;
-			}
-			set {
-				policy = value;
-			}
-		}
-
-		public static TaskManager Default {
-			get {
-				return tdefault;
-			}
-		}
-
-		public static TaskManager Current {
-			get {
-				return tcurrent;
-			}
-		}
-		
+		AllowMultipleExecution,
+		EnsureSingleExecution,
+		ThreadLocal
 	}
 }

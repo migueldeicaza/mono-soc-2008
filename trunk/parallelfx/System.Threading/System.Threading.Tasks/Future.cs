@@ -24,7 +24,7 @@
 
 using System;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
 	public static class Future
 	{

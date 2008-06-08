@@ -9,7 +9,7 @@
       <Entry build="True" name="ParallelFxTests" configuration="Release" />
     </Configuration>
   </Configurations>
-  <StartMode startupentry="ParallelFX" single="True">
+  <StartMode startupentry="System.Threading" single="True">
     <Execute type="None" entry="System.Threading" />
     <Execute type="None" entry="ParallelFxTests" />
   </StartMode>
