@@ -46,16 +46,19 @@ namespace CloverleafET
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-//            try
-//            {
+#if RELEASE
+            try
+            {
+#endif
                 ProcessCmdArgs();
-                
-//            }
-//            catch (Exception e)
-//            {
-//                MessageBox.Show(e.ToString());
-//                Application.Exit();
-//            }
+#if RELEASE                
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.ToString());
+                Application.Exit();
+            }
+#endif
         }
 
         /// <summary>
@@ -68,7 +71,7 @@ namespace CloverleafET
             Int32 folderSearchDepth = -1;
             String[] cmdArgs = Environment.GetCommandLineArgs();
 
-            if (cmdArgs.Length < 3)
+            if (cmdArgs.Length < 3 && cmdArgs[1] != "--xsptest")
                 throw new Exception("Invalid number of arguments passed to Cloverleaf. Terminating.");
 
             if (cmdArgs.Length > 3)
@@ -100,6 +103,20 @@ namespace CloverleafET
                                 Environment.CurrentDirectory)).Go();
                         break;
                     }
+                case "--xsptest":
+                    {
+                        // this is a bit of a special case. this is the only invocation
+                        // of CloverleafET that should use the *project directory* as
+                        // its working directory and the *project file* as its its
+                        // command argument. this is because parsing solution files
+                        // really sucks and the external tool is second fiddle anyway;
+                        // the addin will be able to leverage VS's libraries for
+                        // this crap, so I don't feel it's a big deal.
+
+                        (new CloverleafShared.TestInXSP.XSPTester(Environment.CurrentDirectory)).Go();
+                    
+                        break;
+                    }
                 case "--gendarmetest":
                     {
                         (new CloverleafShared.TestInGendarme.GendarmeTester(cmdArgs[2],
@@ -108,6 +125,16 @@ namespace CloverleafET
                     }
                 case "--remotetest":
                     {
+                        break;
+                    }
+                default:
+                    {
+                        String foo = "";
+                        foreach (String f in cmdArgs)
+                        {
+                            foo += f + Environment.NewLine;
+                        }
+                        MessageBox.Show(foo);
                         break;
                     }
             }
