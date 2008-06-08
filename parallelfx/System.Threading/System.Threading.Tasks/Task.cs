@@ -25,9 +25,10 @@
 using System;
 using System.Threading;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
-	public class Task: TaskCoordinator, IDisposable, IAsyncResult
+	//FIXME: Task normally implements IAsyncResult but it seems strange in the context
+	public class Task: TaskCoordinator, IDisposable
 	{
 		static Task current;
 		
