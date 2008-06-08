@@ -49,7 +49,7 @@ namespace CloverleafShared.TestInMono
             InitializeComponent();
 
             monoProc = new Process();
-            monoProc.StartInfo.FileName = Path.Combine(Path.Combine(BaseTester.MonoRootPath,
+            monoProc.StartInfo.FileName = Path.Combine(Path.Combine(CloverleafEnvironment.MonoRootPath,
                                 "bin"), "mono.exe");
             monoProc.StartInfo.Arguments = "\"" + appToRun + "\"";
             monoProc.StartInfo.UseShellExecute = true;
