@@ -75,12 +75,16 @@ namespace DbLinq.Linq.Clause
                 vars.ProjectionData = ProjectionData.FromDbType(t);
             }
 
-            ColumnAttribute[] colAttribs2 = vars.ProjectionData.fields
-                .Select(f => f.columnAttribute)
+            var columnInfoSet = vars.ProjectionData.fields
+                .Select(f => new { ColumnAttribute=f.columnAttribute , AlternativeName=f.MemberInfo.Name})
                 .ToArray();
 
-            foreach (ColumnAttribute colAtt in colAttribs2)
+            foreach (var columnInfoTuple in columnInfoSet)
             {
+                if (columnInfoTuple.ColumnAttribute.Name == null)
+                    columnInfoTuple.ColumnAttribute.Name = columnInfoTuple.AlternativeName;
+
+                ColumnAttribute colAtt = columnInfoTuple.ColumnAttribute;
                 string safeColumnName = vars.Context.Vendor.GetSqlFieldSafeName(colAtt.Name);
                 string part = nick + "." + safeColumnName; //eg. '$o.OrderID'
                 selectParts.AddSelect(part);
