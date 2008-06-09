@@ -488,7 +488,7 @@ namespace DbLinq.Linq.Clause
             //TODO: this appends "Alltypes.int_" whereas it should append "Alltypes.`int`"
             ColumnAttribute columnAttrib = expr.Member.GetCustomAttributes(false).OfType<ColumnAttribute>().FirstOrDefault();
             string sqlColumnName = expr.Member.Name;
-            if (columnAttrib != null)
+            if (columnAttrib != null && columnAttrib.Name!=null)
                 sqlColumnName = _parent._vars.Context.Vendor.GetSqlFieldSafeName(columnAttrib.Name);
             _result.AppendString(sqlColumnName);
 

@@ -29,7 +29,6 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Xml;
 using DbLinq.Util;
-using System.Linq;
 
 namespace DbLinq.Factory.Implementation
 {
@@ -61,7 +60,7 @@ namespace DbLinq.Factory.Implementation
                            typeof(Uri).Assembly,            // System
                            typeof(Action).Assembly,         // System.Core
                            typeof(IDbConnection).Assembly,  // System.Data
-                         
+                           typeof(ITable).Assembly,         // System.Data.Linq
                            typeof(XmlDocument).Assembly     // System.Xml
                        };
         }
@@ -114,16 +113,32 @@ namespace DbLinq.Factory.Implementation
             return r;
         }
 
+        private object GetSingleton(Type t, object suggestedIstance)
+        {
+            object r;
+            if (!Singletons.TryGetValue(t, out r))
+            {
+                Singletons[t] = r = suggestedIstance;
+            }
+            return r;
+        }
+
+
         private object GetNewInstance(Type t)
         {
+            //warning - the Activator.CreateInstance below was throwing unerported exceptions (as of 2008June).
+            //So - let's add two future rules:
+            //1) for know types from DbLinq, don't load via Activator.
+            //2) surround all Activator calls with try/catch block.
             if (t.IsInterface)
             {
                 IList<Type> types;
                 if (!Implementations.TryGetValue(t, out types))
                     throw new ArgumentException(string.Format("Type '{0}' has no implementation", t));
+
                 //if (types.Count > 1)
                 //    throw new ArgumentException(string.Format("Type '{0}' has too many implementations", t));
-                return Activator.CreateInstance(types.Cast<Type>().First(typ=>typ.GetConstructors().Any(c=>c.GetParameters().Length==0)));
+                return Activator.CreateInstance(types[0]);
             }
             else
             {
@@ -136,6 +151,11 @@ namespace DbLinq.Factory.Implementation
             if (newInstanceRequired)
                 return GetNewInstance(t);
             return GetSingleton(t);
+        }
+
+        public override T GetInstance<T>(T suggestedInstance)
+        {
+            return (T)GetSingleton(typeof(T), suggestedInstance);
         }
 
         public override IEnumerable<Type> GetImplementations(Type interfaceType)

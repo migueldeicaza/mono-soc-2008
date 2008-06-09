@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;DBLINQ_DEP</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -33,15 +33,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Core, Version=2.0.5.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Mono-1.9.1\lib\mono\2.1\System.Core.dll</HintPath>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\Mono-1.9.1\lib\mono\2.0\System.Data.dll</HintPath>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.XML" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\DbLinq.ProductInfo.cs">
@@ -79,7 +78,6 @@
     <Compile Include="Linq\Mapping\AttributedMetaTable.cs" />
     <Compile Include="Linq\Mapping\AttributedMetaType.cs" />
     <Compile Include="Linq\Mapping\AttributeMappingSource.cs" />
-    <Compile Include="MonoToDoAttribute.cs" />
     <Compile Include="Schema\Case.cs" />
     <Compile Include="Schema\WordsExtraction.cs" />
     <Compile Include="Schema\NameFormat.cs" />
@@ -118,61 +116,6 @@
     <Compile Include="Schema\Name.cs" />
     <Compile Include="Schema\SchemaName.cs" />
     <Compile Include="Schema\TableName.cs" />
-    <Compile Include="System.Data.Linq.Mapping\AssociationAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\AttributeMappingSource.cs" />
-    <Compile Include="System.Data.Linq.Mapping\AutoSync.cs" />
-    <Compile Include="System.Data.Linq.Mapping\ColumnAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\DataAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\DatabaseAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\FunctionAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\InheritanceMappingAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MappingSource.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaAccessor.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaAccessor_2.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaAssociation.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaDataMember.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaFunction.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaModel.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaParameter.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaTable.cs" />
-    <Compile Include="System.Data.Linq.Mapping\MetaType.cs" />
-    <Compile Include="System.Data.Linq.Mapping\ParameterAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\ProviderAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\ResultTypeAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\TableAttribute.cs" />
-    <Compile Include="System.Data.Linq.Mapping\UpdateCheck.cs" />
-    <Compile Include="System.Data.Linq.Mapping\XmlMappingSource.cs" />
-    <Compile Include="System.Data.Linq.SqlClient.Implementation\ObjectMaterializer.cs" />
-    <Compile Include="System.Data.Linq.SqlClient\Sql2000Provider.cs" />
-    <Compile Include="System.Data.Linq.SqlClient\Sql2005Provider.cs" />
-    <Compile Include="System.Data.Linq.SqlClient\SqlHelpers.cs" />
-    <Compile Include="System.Data.Linq.SqlClient\SqlMethods.cs" />
-    <Compile Include="System.Data.Linq.SqlClient\SqlProvider.cs" />
-    <Compile Include="System.Data.Linq\Binary.cs" />
-    <Compile Include="System.Data.Linq\ChangeAction.cs" />
-    <Compile Include="System.Data.Linq\ChangeConflictCollection.cs" />
-    <Compile Include="System.Data.Linq\ChangeConflictException.cs" />
-    <Compile Include="System.Data.Linq\ChangeSet.cs" />
-    <Compile Include="System.Data.Linq\CompiledQuery.cs" />
-    <Compile Include="System.Data.Linq\ConflictMode.cs" />
-    <Compile Include="System.Data.Linq\DataContext.cs" />
-    <Compile Include="System.Data.Linq\DataLoadOptions.cs" />
-    <Compile Include="System.Data.Linq\DBConvert.cs" />
-    <Compile Include="System.Data.Linq\DuplicateKeyException.cs" />
-    <Compile Include="System.Data.Linq\EntityRef.cs" />
-    <Compile Include="System.Data.Linq\EntitySet.cs" />
-    <Compile Include="System.Data.Linq\ForeignKeyReferenceAlreadyHasValueException.cs" />
-    <Compile Include="System.Data.Linq\IExecuteResult.cs" />
-    <Compile Include="System.Data.Linq\IFunctionResult.cs" />
-    <Compile Include="System.Data.Linq\IMultipleResults.cs" />
-    <Compile Include="System.Data.Linq\ISingleResult.cs" />
-    <Compile Include="System.Data.Linq\ITable.cs" />
-    <Compile Include="System.Data.Linq\Link.cs" />
-    <Compile Include="System.Data.Linq\MemberChangeConflict.cs" />
-    <Compile Include="System.Data.Linq\ModifiedMemberInfo.cs" />
-    <Compile Include="System.Data.Linq\ObjectChangeConflict.cs" />
-    <Compile Include="System.Data.Linq\RefreshMode.cs" />
-    <Compile Include="System.Data.Linq\Table.cs" />
     <Compile Include="Util\CacheChecker.cs" />
     <Compile Include="Util\ExprVisitor\CountExpressionModifier.cs" />
     <Compile Include="Util\ExprVisitor\ExpressionRegex.cs" />
@@ -251,10 +194,7 @@
     <None Include="..\DbLinq.snk">
       <Link>Properties\DbLinq.snk</Link>
     </None>
-    <None Include="System.Data.Linq.Mapping\ChangeLog" />
-    <None Include="System.Data.Linq.SqlClient.Implementation\ChangeLog" />
-    <None Include="System.Data.Linq.SqlClient\ChangeLog" />
-    <None Include="System.Data.Linq\ChangeLog" />
+    <None Include="Schema\Dbml\DbmlSchema.bat" />
     <EmbeddedResource Include="Schema\Dbml\DbmlSchema.xsd">
     </EmbeddedResource>
   </ItemGroup>
