@@ -5,11 +5,6 @@ PATH=$MONO_PREFIX/bin:$PATH
 REPORT_PATH=./2.0-reports
 
 MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
+FAST_MONO_ASSEMBLIES=$MONO_ASSEMBLIES/mscorlib.dll
 
-for assembly in $MONO_ASSEMBLIES/*.dll
-do
-	gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --html $assembly.html
-done
-
-mkdir $REPORT_PATH/`date +%m-%d-%Y`
-mv $MONO_ASSEMBLIES/*.html $REPORT_PATH/`date +%m-%d-%Y`
+gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --master=$REPORT_PATH/`date +%m-%d-%Y` $FAST_MONO_ASSEMBLIES
