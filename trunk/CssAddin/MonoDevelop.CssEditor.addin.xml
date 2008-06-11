@@ -41,6 +41,12 @@
 				extensions = "*.css" />
 	</Extension>
 
+	<Extension path = "/MonoDevelop/ProjectModel/LanguageBindings">
+		<LanguageBinding id    = "CSS"
+		                 supportedextensions = ".css"
+		                 class = "CssAddin.CssLanguageBinding" />
+	</Extension>
+
 	<Extension path = "/MonoDevelop/ProjectModel/Gui/Icons">
 		<Icon extensions = ".css" icon = "md-html-file-icon"/>
 	</Extension>

@@ -10,15 +10,25 @@ using System.IO;
 using System.Text;
 using System.Diagnostics;
 
-namespace CssEditor.Parser.Internal
+using CssAddin.Parser.Dom;
+
+namespace CssAddin.Parser.Internal
 {
 	
-	
 	public class CssRecursiveParser
-	{
+	{		
+		// Parser events and delegates
+		public delegate void ParseErrorHandler (string message);
+		public delegate void TokenParsedHandler (CssToken token);
 
+		public event ParseErrorHandler Error;
+		public event TokenParsedHandler TokenParsed;
+		
 		IEnumerator<CssToken> tokenizer;
 		CssToken currentToken;
+		
+		CssNode rootNode;
+		CssNode currentNode;
 		
 		public CssRecursiveParser(TextReader input)
 		{
@@ -26,9 +36,13 @@ namespace CssEditor.Parser.Internal
 			tokenizer.MoveNext ();
 		}
 		
-		public void Parse()
+		public CssNode Parse()
 		{
+			rootNode = new CssNode (new CssToken("stylesheet", CssTokenType.STYLESHEET, 0, 0));
+			currentNode = rootNode;
 			stylesheet();
+			
+			return rootNode;
 		}
 		
 		private void stylesheet ()
@@ -55,7 +69,6 @@ namespace CssEditor.Parser.Internal
 			}
 			
 			
-			
 			if (tokenizer.Current.GetTokenType () == CssTokenType.EOF) {
 				acceptElement(CssTokenType.EOF);
 			} else {
@@ -67,13 +80,19 @@ namespace CssEditor.Parser.Internal
 		private void AtKeyword ()
 		{
 			acceptElement (CssTokenType.ATKEYWORD);
+			currentNode = rootNode.GetLatest ();
 			acceptElement (CssTokenType.STRING);
 			acceptElement (CssTokenType.SEMICOLON);
+			
+			currentNode = rootNode;
 			return;
 		}
 		
 		private void RuleSet ()
 		{
+			CssNode ruleSetNode = new CssNode(new CssToken("ruleset", CssTokenType.RULESET, 0, 0));
+			rootNode.AddChild(ruleSetNode);
+			currentNode = ruleSetNode;
 			while (tokenizer.Current.GetTokenType () == CssTokenType.IDENT 
 			       || tokenizer.Current.GetTokenType () == CssTokenType.HASH
 			       || tokenizer.Current.GetTokenType () == CssTokenType.CLASS)
@@ -86,6 +105,7 @@ namespace CssEditor.Parser.Internal
 			acceptElement (CssTokenType.LEFTCURLY);
 			declaration ();
 			acceptElement (CssTokenType.RIGHTCURLY);
+			currentNode = rootNode;
 		}
 		
 		private void declaration () 
@@ -208,9 +228,22 @@ namespace CssEditor.Parser.Internal
 				Console.WriteLine("Parser: Rejected Terminal: {0} {1} - Expected {2}", ct.GetValue (), ct.GetTokenType ().ToString (), t.ToString ());
 				throw new Exception("I made a boo!");
 			} else {
+				currentNode.AddChild(new CssNode(tokenizer.Current));
 				Console.WriteLine("Parser: Accepted Terminal: {0} {1}", tokenizer.Current.GetValue (), tokenizer.Current.GetTokenType ().ToString ());
 			}
 			tokenizer.MoveNext ();
+		}
+		
+		void OnError (string msg)
+		{
+			if (Error != null)
+				Error (msg);
+		}
+		
+		void OnTokenParsed (CssToken token)
+		{
+			if (TokenParsed != null)
+				TokenParsed (token);
 		}
 	}
 }
