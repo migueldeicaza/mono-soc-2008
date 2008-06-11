@@ -11,16 +11,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace CssEditor.Parser.Internal 
+namespace CssAddin.Parser.Internal 
 {
 
 	class CssTokenizer 
 	{
-				
+		// Tokenizer position
 		int CurrentLineNumber = 0;
 		int CurrentOffset = 0;
 		char CurrentCharacter;
 		//string CurrentLine;
+		
+		int tokenLine;
+		int tokenColumn;
 		
 		StringBuilder buffer = new StringBuilder ();
 		
@@ -121,14 +124,17 @@ namespace CssEditor.Parser.Internal
 			
 			ConsumeWhitespace ();
 			
-			if ( CurrentCharacter == '\r' )
+			if (CurrentCharacter == '\r')
 				CurrentCharacter = GetChar();
 			
-			else if ( CurrentCharacter == '\n' )
+			else if (CurrentCharacter == '\n')
 				CurrentLineNumber++;
 			
+			tokenLine = CurrentLineNumber;
+			tokenColumn = CurrentOffset;
+			
 			// Handle IDENT (start with letters) or uri
-			else if (Char.IsLetter (CurrentCharacter)) {
+			if (Char.IsLetter (CurrentCharacter)) {
 				buffer.Length = 0;
 
 				do {

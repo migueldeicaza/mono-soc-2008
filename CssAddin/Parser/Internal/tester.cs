@@ -11,7 +11,7 @@ using System.Collections;
 using System.IO;
 using System.Text;
 
-namespace CssEditor.Parser.Internal 
+namespace CssAddin.Parser.Internal 
 {
 	class tester 
 	{

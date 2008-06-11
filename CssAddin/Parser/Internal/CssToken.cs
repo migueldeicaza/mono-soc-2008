@@ -6,7 +6,7 @@
 // Copyright (C) 2008 Andreas Louca
 //
 
-namespace CssEditor.Parser.Internal {
+namespace CssAddin.Parser.Internal {
 
 	public enum CssTokenType
 	{
@@ -40,6 +40,8 @@ namespace CssEditor.Parser.Internal {
 		LEFTSQUARE,
 		RIGHTSQUARE,
 		SPACE,
+		STYLESHEET,
+		RULESET,
 		COMMENT,
 		FUNCTION,
 		INCLUDES,
