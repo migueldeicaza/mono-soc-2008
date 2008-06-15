@@ -37,6 +37,8 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using System.Net;
 
+using Tamir.SharpSsh;
+
 using ICSharpCode.SharpZipLib.Zip;
 
 namespace CloverleafShared.Remote.AppTest
@@ -113,68 +115,52 @@ namespace CloverleafShared.Remote.AppTest
             xProcess.StartInfo = xInfo;
             xProcess.Start();
 
-            ProcessStartInfo scpInfo = new ProcessStartInfo();
-            scpInfo.FileName = CloverleafEnvironment.SCPPath;
-            scpInfo.CreateNoWindow = false;
-            scpInfo.Arguments = "-batch -pw " + password + " \"" +
-                        zipPath + "\" " + user + "@" + host + ":/tmp/" + zipFileName;
-            Process scpProcess = new Process();
-            scpProcess.StartInfo = scpInfo;
-            scpProcess.Start();
-
-            while (scpProcess.HasExited == false)
+            Scp scp = new Scp(host, user, password);
+            scp.Connect();
+            if (scp.Connected == false)
             {
-                Application.DoEvents();
+                throw new SshTransferException("Couldn't connect to host with SCP.");
             }
+            scp.Mkdir("/home/" + user + "/.cloverleaf");
+            scp.Put(zipPath, "/home/" + user + "/.cloverleaf/" + zipFileName);
             File.Delete(zipPath);
-
+            
             String ssh1ArgumentData = "#! /bin/bash" + "\n" +
                 "export DISPLAY=" + cboLocalIPs.SelectedItem.ToString() + ":0.0" + "\n" +
-                "cd /tmp" + "\n" +
+                "cd /home/" + user + "/.cloverleaf" + "\n" +
                 "mkdir " + remoteDirectory + "\n" +
                 "cp " + zipFileName + " " + remoteDirectory + "\n" +
                 "cd " + remoteDirectory + "\n" +
-                "unzip " + zipFileName + "\n" +
-                "clear" + "\n" + 
-                "echo Starting Mono application..." + "\n" +
+                "unzip " + zipFileName + " > /dev/null \n" +
                 "mono " + remoteExecutable + "\n" +
-                "cd /tmp" + "\n" +
+                "cd /home/" + user + "/.cloverleaf" + "\n" +
                 "rm " + zipFileName + "\n" +
-                "rm -rf " + remoteDirectory;
+                "rm -rf " + remoteDirectory + "\n" +
+                "rm /home/" + user + "/.cloverleaf/" + Path.GetFileName(scriptPath);
             File.WriteAllText(scriptPath, ssh1ArgumentData);
 
-            scpInfo = new ProcessStartInfo();
-            scpInfo.FileName = CloverleafEnvironment.SCPPath;
-            scpInfo.CreateNoWindow = false;
-            scpInfo.Arguments = "-batch -pw " + password + " \"" +
-                        scriptPath + "\" " + user + "@" + host + ":/tmp/" + 
-                        Path.GetFileName(scriptPath);
-            scpProcess = new Process();
-            scpProcess.StartInfo = scpInfo;
-            scpProcess.Start();
-
-            ProcessStartInfo sshInfo = new ProcessStartInfo();
-            sshInfo.FileName = CloverleafEnvironment.SSHPath;
-            sshInfo.UseShellExecute = true;
-            sshInfo.CreateNoWindow = false;
-            sshInfo.Arguments = "-batch -pw " + password + " " + user + "@" +
-                        host + " /bin/bash /tmp/" + Path.GetFileName(scriptPath);
-            Process ssh1Process = new Process();
-            ssh1Process.StartInfo = sshInfo;
-
-            
-            ssh1Process.Start();
-
-            while (ssh1Process.HasExited == false)
+            if (scp.Connected == false)
             {
-                Application.DoEvents();
+                throw new SshTransferException("Couldn't connect to host with SCP.");
             }
-            Application.Exit();
+            scp.Put(scriptPath, "/home/" + user + "/.cloverleaf/" + Path.GetFileName(scriptPath));
+
+            String stdOut = "";
+            String stdErr = "";
+
+            SshExec ssh = new SshExec(host, user, password);
+            ssh.Connect();
+            ssh.RunCommand("/bin/bash /home/" + user + "/.cloverleaf/" + Path.GetFileName(scriptPath),
+                    ref stdOut, ref stdErr);
+
+            (new RemoteStdOutDisplay(stdOut, stdErr)).Show();
         }
 
         private void cmdCancel_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            // because for some reason the application remains
+            // running in the background and shouldn't... so I *KILL IT WITH FIRE!*
+            Process.GetCurrentProcess().Kill();
         }
 
         private void lstLaunchItems_SelectedIndexChanged(object sender, EventArgs e)

@@ -66,14 +66,6 @@ namespace CloverleafShared
         {
             get { return Path.Combine(CloverleafPath, "tools"); }
         }
-        public static String SCPPath
-        {
-            get { return Path.Combine(CloverleafEnvironment.CloverleafToolsPath, "pscp.exe"); }
-        }
-        public static String SSHPath
-        {
-            get { return Path.Combine(CloverleafEnvironment.CloverleafToolsPath, "plink.exe"); }
-        }
         public static String XPath
         {
             get

@@ -45,20 +45,15 @@ namespace CloverleafET
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
-#if !RELEASE
             try
             {
-#endif
                 ProcessCmdArgs();
-#if !RELEASE                
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.ToString());
                 Application.Exit();
             }
-#endif
         }
 
         /// <summary>
