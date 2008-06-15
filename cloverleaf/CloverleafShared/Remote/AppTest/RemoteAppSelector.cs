@@ -159,7 +159,6 @@ namespace CloverleafShared.Remote.AppTest
             sshInfo.CreateNoWindow = false;
             sshInfo.Arguments = "-batch -pw " + password + " " + user + "@" +
                         host + " /bin/bash /tmp/" + Path.GetFileName(scriptPath);
-            MessageBox.Show(sshInfo.Arguments);
             Process ssh1Process = new Process();
             ssh1Process.StartInfo = sshInfo;
 
