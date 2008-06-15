@@ -17,26 +17,27 @@ namespace CloverleafShared.TestInXSP
 
         public XSPOptions(String projDir)
         {
-            projectDirectory = projDir;
 
             InitializeComponent();
+            projectDirectory = projDir;
+
             lblProjectName.Text = projectDirectory.Substring(1 +
                     projectDirectory.LastIndexOf(System.IO.Path.DirectorySeparatorChar));
-            nudXSPPort.Value = CloverleafEnvironment.DefaultXSPPort;
-            chkHTTPS.Checked = CloverleafEnvironment.XSPUsesHTTPS;
+            nudXSPPort.Value = CloverleafEnvironment.DefaultLocalXSPPort;
+            chkHTTPS.Checked = CloverleafEnvironment.LocalXSPUsesHTTPS;
             chkBrowserAutostart.Checked = CloverleafEnvironment.XSPBrowserAutostart;
         }
 
         private void cmdGo_Click(object sender, EventArgs e)
         {
-            CloverleafEnvironment.DefaultXSPPort = (Int32) nudXSPPort.Value;
-            CloverleafEnvironment.XSPUsesHTTPS = chkHTTPS.Checked;
+            CloverleafEnvironment.DefaultLocalXSPPort = (Int32) nudXSPPort.Value;
+            CloverleafEnvironment.LocalXSPUsesHTTPS = chkHTTPS.Checked;
             CloverleafEnvironment.XSPBrowserAutostart = chkBrowserAutostart.Checked;
 
             ProcessStartInfo ps = new ProcessStartInfo();
             ps.FileName = Path.Combine(CloverleafEnvironment.MonoBinPath, "xsp2.bat");
-            ps.Arguments = "--port " + CloverleafEnvironment.DefaultXSPPort.ToString();
-            if (CloverleafEnvironment.XSPUsesHTTPS == true)
+            ps.Arguments = "--port " + CloverleafEnvironment.DefaultLocalXSPPort.ToString();
+            if (CloverleafEnvironment.LocalXSPUsesHTTPS == true)
             {
                 ps.Arguments += " --https";
             }
@@ -50,7 +51,7 @@ namespace CloverleafShared.TestInXSP
             if (CloverleafEnvironment.XSPBrowserAutostart == true)
             {
                 ps = new ProcessStartInfo();
-                ps.FileName = "http://127.0.0.1:" + CloverleafEnvironment.DefaultXSPPort.ToString();
+                ps.FileName = "http://127.0.0.1:" + CloverleafEnvironment.DefaultLocalXSPPort.ToString();
                 ps.UseShellExecute = true;
                 p = new Process();
                 p.StartInfo = ps;

@@ -87,5 +87,10 @@ namespace CloverleafShared.TestInMono
         {
             cmdOK.Enabled = true;
         }
+
+        private void MonoSelector_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 }

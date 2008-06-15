@@ -6,19 +6,13 @@ using System.Text;
 
 namespace CloverleafShared.TestInXSP
 {
-    public class XSPTester
+    public class XSPTester : BaseWebTester
     {
-        private String projectDirectory;
 
         public XSPTester(String projDir)
+            : base(projDir)
         {
-            CloverleafEnvironment.Initialize();
-            projectDirectory = projDir;
 
-            if (File.Exists(Path.Combine(projectDirectory, "web.config")) == false)
-            {
-                throw new Exception("The selected project is not an ASP.NET Web Site.");
-            }
         }
 
         public void Go()

@@ -5,6 +5,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloverleafET", "CloverleafE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloverleafShared", "CloverleafShared\CloverleafShared.csproj", "{FA33D91E-E5AB-4BAC-8C4D-FA28D08F73C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloverleafService", "CloverleafService\CloverleafService.csproj", "{3461CA0F-B18B-408D-AD5A-2E24E9C89A94}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RemoteTestApplication", "RemoteTestApplication\RemoteTestApplication.csproj", "{43D4BC58-A54B-4B98-951D-B137C27D36CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,14 @@ Global
 		{FA33D91E-E5AB-4BAC-8C4D-FA28D08F73C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA33D91E-E5AB-4BAC-8C4D-FA28D08F73C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA33D91E-E5AB-4BAC-8C4D-FA28D08F73C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3461CA0F-B18B-408D-AD5A-2E24E9C89A94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3461CA0F-B18B-408D-AD5A-2E24E9C89A94}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3461CA0F-B18B-408D-AD5A-2E24E9C89A94}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3461CA0F-B18B-408D-AD5A-2E24E9C89A94}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43D4BC58-A54B-4B98-951D-B137C27D36CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43D4BC58-A54B-4B98-951D-B137C27D36CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43D4BC58-A54B-4B98-951D-B137C27D36CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43D4BC58-A54B-4B98-951D-B137C27D36CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

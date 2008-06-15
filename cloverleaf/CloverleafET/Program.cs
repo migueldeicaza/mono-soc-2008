@@ -46,12 +46,12 @@ namespace CloverleafET
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-#if RELEASE
+#if !RELEASE
             try
             {
 #endif
                 ProcessCmdArgs();
-#if RELEASE                
+#if !RELEASE                
             }
             catch (Exception e)
             {
@@ -123,7 +123,13 @@ namespace CloverleafET
                                 Environment.CurrentDirectory)).Go();
                         break;
                     }
-                case "--remotetest":
+                case "--appremote":
+                    {
+                        (new CloverleafShared.Remote.AppTest.RemoteAppTester(cmdArgs[2],
+                                Environment.CurrentDirectory)).Go();
+                        break;
+                    }
+                case "--wwwremote":
                     {
                         break;
                     }
