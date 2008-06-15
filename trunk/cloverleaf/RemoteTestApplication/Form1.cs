@@ -18,6 +18,7 @@ namespace RemoteTestApplication
         private void button1_Click(object sender, EventArgs e)
         {
             label1.Text = "Goodbye, World!";
+            Console.WriteLine("Button1 clicked.");
         }
 
         private void Form1_Load(object sender, EventArgs e)
