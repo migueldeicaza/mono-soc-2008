@@ -135,6 +135,8 @@ namespace CloverleafShared.Remote.AppTest
                 "cp " + zipFileName + " " + remoteDirectory + "\n" +
                 "cd " + remoteDirectory + "\n" +
                 "unzip " + zipFileName + "\n" +
+                "clear" + "\n" + 
+                "echo Starting Mono application..." + "\n" +
                 "mono " + remoteExecutable + "\n" +
                 "cd /tmp" + "\n" +
                 "rm " + zipFileName + "\n" +
