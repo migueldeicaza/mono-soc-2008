@@ -26,5 +26,11 @@ namespace RemoteTestApplication
             lblSystem.Text = Environment.OSVersion.ToString();
             lblOS.Text = Environment.OSVersion.Platform.ToString();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Console.WriteLine("What's your name?");
+            button2.Text = "Your name is " + Console.ReadLine();
+        }
     }
 }
