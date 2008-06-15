@@ -32,7 +32,7 @@ using System.Text;
 
 namespace CloverleafShared.TestInGendarme
 {
-    public class GendarmeTester : BaseTester
+    public class GendarmeTester : BaseAppTester
     {
         Wizard form;
 

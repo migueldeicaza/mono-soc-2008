@@ -32,7 +32,7 @@ using System.Text;
 
 namespace CloverleafShared.TestInMono
 {
-    public class MonoTester : BaseTester
+    public class MonoTester : BaseAppTester
     {
         public MonoTester(String slnFile, String slnDirectory)
             : base(slnFile, slnDirectory)

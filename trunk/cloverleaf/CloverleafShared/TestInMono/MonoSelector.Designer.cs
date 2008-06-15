@@ -76,6 +76,7 @@ namespace CloverleafShared.TestInMono
             // 
             // pictureBox1
             // 
+            this.pictureBox1.Image = global::CloverleafShared.Properties.Resources.cloverleaf;
             this.pictureBox1.Location = new System.Drawing.Point(12, 12);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(64, 64);
@@ -113,7 +114,7 @@ namespace CloverleafShared.TestInMono
             this.cmdOK.UseVisualStyleBackColor = true;
             this.cmdOK.Click += new System.EventHandler(this.cmdOK_Click);
             // 
-            // frmMonoTestSelector
+            // MonoSelector
             // 
             this.AcceptButton = this.cmdOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -127,9 +128,10 @@ namespace CloverleafShared.TestInMono
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-            this.Name = "frmMonoTestSelector";
+            this.Name = "MonoSelector";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Select a Project";
+            this.Load += new System.EventHandler(this.MonoSelector_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
 

@@ -34,14 +34,14 @@ using System.Text;
 
 namespace CloverleafShared
 {
-    public abstract class BaseTester
+    public abstract class BaseAppTester
     {
         protected readonly String solutionDirectory;
         protected readonly String solutionFileName;
 
         
 
-        public BaseTester(String slnFile, String slnDirectory)
+        public BaseAppTester(String slnFile, String slnDirectory)
         {
             solutionFileName = slnFile;
             solutionDirectory = slnDirectory;
