@@ -96,5 +96,22 @@ namespace ParallelFxTests
 			queue.TryDequeue(out value);
 			Assert.IsTrue(value == 1, "#2 : " + value);
 		}
+		
+		[Test]
+		public void ToArrayTest()
+		{
+			int[] array = queue.ToArray();
+			string s = string.Empty;
+			foreach (int i in array) {
+				s += i;
+			}
+			Assert.IsTrue(s == "0123456789", "#1 : " + s);
+			queue.CopyTo(array, 0);
+			s = string.Empty;
+			foreach (int i in array) {
+				s += i;
+			}
+			Assert.IsTrue(s == "0123456789", "#2 : " + s);
+		}
 	}
 }

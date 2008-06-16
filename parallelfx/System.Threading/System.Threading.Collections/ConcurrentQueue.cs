@@ -129,7 +129,26 @@ namespace System.Threading.Collections
 		
 		public void CopyTo (Array array, int index)
 		{
-			throw new NotImplementedException ();
+			T[] dest = array as T[];
+			if (dest == null)
+				return;
+			CopyTo(dest, index);
+		}
+		
+		void CopyTo(T[] dest, int index)
+		{
+			IEnumerator<T> e = InternalGetEnumerator();
+			int i = index;
+			while (e.MoveNext()) {
+				dest[i++] = e.Current;
+			}
+		}
+		
+		public T[] ToArray ()
+		{
+			T[] dest = new T[count];
+			CopyTo(dest, 0);
+			return dest;
 		}
 		
 		public void GetObjectData (SerializationInfo info, StreamingContext context)
@@ -155,12 +174,6 @@ namespace System.Threading.Collections
 		public object SyncRoot {
 			get { return syncRoot; }
 		}
-		
-		public T[] ToArray ()
-		{
-			throw new NotImplementedException ();
-		}
-
 		
 		public int Count {
 			get {
