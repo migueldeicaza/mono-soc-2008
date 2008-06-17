@@ -6,7 +6,11 @@ CLEANFILES = reporter.exe
 DISTCLEANFILES = Makefile.in TestResult.xml
 
 reporter_sources = \
-	Driver.cs 
+	Driver.cs \
+	Pipeline.cs \
+	IAction.cs \
+	AddXSLProcessingInstructionAction.cs \
+	GenerateMasterIndexAction.cs
 
 reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
 
