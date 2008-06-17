@@ -7,4 +7,4 @@ REPORT_PATH=./2.0-reports
 MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
 FAST_MONO_ASSEMBLIES=$MONO_ASSEMBLIES/mscorlib.dll
 
-gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --master=$REPORT_PATH/`date +%m-%d-%Y` $MONO_ASSEMBLIES/*.dll
+gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --xml=`date +%m-%d-%Y`.xml $MONO_ASSEMBLIES/*.dll
