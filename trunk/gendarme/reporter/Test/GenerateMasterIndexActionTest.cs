@@ -29,6 +29,7 @@
 using System.Linq;
 using System.Xml.Linq;
 using NUnit.Framework;
+using Gendarme.Reporter;
 
 namespace Gendarme.Reporter.Test {
 	[TestFixture]
@@ -38,16 +39,18 @@ namespace Gendarme.Reporter.Test {
 		private XDocument GetProcessedDocument () 
 		{
 			XDocument document = XDocument.Load (xmlFile);
-			Assert.IsNotNull (document.Root);
+			Assert.IsNotNull (document);
 
-			return new GenerateMasterIndexAction ().Process (document);
+			document = new GenerateMasterIndexAction ().Process (document);
+			Assert.IsNotNull (document);
+			return document;
 		}
 
 		[Test]
 		public void HeaderSectionTest ()
 		{
 			XDocument document = GetProcessedDocument ();
-			Assert.IsNotNull (document);
+
 			XElement element = document.Element ("gendarme-output");
 			Assert.IsNotNull (element);
 			
@@ -57,7 +60,10 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void GeneratedFilesSectionTest ()
 		{
-
+			XDocument document = GetProcessedDocument ();
+			
+			XElement element = document.Root.Element ("files");
+			Assert.IsNotNull (element);
 		}
 	}
 }
