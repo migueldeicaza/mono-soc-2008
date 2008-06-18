@@ -29,6 +29,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using Gendarme.Reporter;
 using NUnit.Framework;
@@ -43,9 +44,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document.Root);
 
-			new AddXSLProcessingInstructionAction ().Process (document);	
-
-			return document;
+			return new AddXSLProcessingInstructionAction ().Process (document);	
 		}
 
 		[Test]
@@ -70,6 +69,8 @@ namespace Gendarme.Reporter.Test {
 				select element;
 
 			XProcessingInstruction xslProcessing = (XProcessingInstruction) query.First ();
+			
+			//This enables browsers format the xml page
 			Assert.IsTrue (xslProcessing.IsBefore (document.Root));
 		}
 	}

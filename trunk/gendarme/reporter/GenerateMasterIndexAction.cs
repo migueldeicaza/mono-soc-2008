@@ -30,8 +30,9 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class GenerateMasterIndexAction : IAction {
-		public void Process (XDocument document)
+		public XDocument Process (XDocument document)
 		{
+			return null;
 		}
 	}
 }

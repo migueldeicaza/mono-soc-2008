@@ -30,6 +30,6 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public interface IAction {
-		void Process (XDocument document);
+		XDocument Process (XDocument document);
 	}
 }
