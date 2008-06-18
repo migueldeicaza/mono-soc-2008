@@ -42,9 +42,11 @@ namespace Gendarme.Reporter.Test {
 		private XDocument GetProcessedDocument ()
 		{
 			XDocument document = XDocument.Load (xmlFile);
-			Assert.IsNotNull (document.Root);
+			Assert.IsNotNull (document);
 
-			return new AddXSLProcessingInstructionAction ().Process (document);	
+			document = new AddXSLProcessingInstructionAction ().Process (document);	
+			Assert.IsNotNull (document);
+			return document;
 		}
 
 		[Test]

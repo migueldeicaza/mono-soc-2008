@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
@@ -39,6 +40,8 @@ namespace Gendarme.Reporter {
 			newDocument.Add (new XElement ("gendarme-output",
 				new XAttribute ("date", document.Root.Attribute ("date").Value)));
 
+			newDocument.Root.Add (document.Root.Element ("files"));
+			
 			return newDocument;
 		}
 	}
