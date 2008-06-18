@@ -64,6 +64,8 @@ namespace Gendarme.Reporter.Test {
 			
 			XElement element = document.Root.Element ("files");
 			Assert.IsNotNull (element);
+			
+			Assert.AreEqual (72, element.Elements ().Count ());
 		}
 	}
 }
