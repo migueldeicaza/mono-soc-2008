@@ -1,5 +1,5 @@
 //
-// Gendarme.Reporter.Pipeline class
+// Unit tests for Gendarme.Reporter.Pipeline
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -27,25 +27,27 @@
 //
 
 using System;
-using System.Collections.Generic;
+using Gendarme.Reporter;
+using NUnit.Framework;
 
-namespace Gendarme.Reporter {
-	//What a wonderful methaphor found in the Mono.Linker!
-	public class Pipeline {
-		List<IAction> actions = new List<IAction> ();
-
-		public void Append (IAction action) 
+namespace Gendarme.Reporter.Test {
+	[TestFixture]
+	public class PipelineTest {
+		
+		[Test]
+		public void AddActionTest ()
 		{
-			if (action == null)
-				throw new ArgumentNullException ("action");
-
-			actions.Add (action);
+			Pipeline pipeline = new Pipeline ();
+			pipeline.Append (new GenerateMasterIndexAction ());
+			Assert.AreEqual (1, pipeline.GetActions ().Length);
 		}
 
-		public IAction[] GetActions () 
+		[Test]
+		[ExpectedException (typeof (ArgumentNullException))]
+		public void AddNullActionTest ()
 		{
-			return actions.ToArray ();
+			Pipeline pipeline = new Pipeline ();
+			pipeline.Append (null);
 		}
-
 	}
 }

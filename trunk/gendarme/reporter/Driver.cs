@@ -30,7 +30,6 @@ namespace Gendarme.Reporter {
 	public class Driver {
 		public static void Main (string[] args) 
 		{
-			
 		}
 	}
 }
