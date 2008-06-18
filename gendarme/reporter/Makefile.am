@@ -34,3 +34,6 @@ test: Test.Reporter.dll
 
 run-test: test
 	nunit-console2 Test.Reporter.dll
+
+run-gendarme: reporter.exe
+	gendarme reporter.exe 
