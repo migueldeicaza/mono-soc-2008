@@ -1,5 +1,5 @@
 //
-// Gendarme.Reporter.AddXSLProcessingInstructionAction class
+// Unit tests for Gendarme.Reporter.AddXSLProcessingINstructionAction
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -26,13 +26,30 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Collections;
+using System.Linq;
 using System.Xml.Linq;
+using Gendarme.Reporter;
+using NUnit.Framework;
 
-namespace Gendarme.Reporter {
-	public class AddXSLProcessingInstructionAction : IAction {
-		public void Process (XDocument document)
+namespace Gendarme.Reporter.Test {
+	[TestFixture]
+	public class AddXSLProcessingInstructionActionTest {
+		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";	
+
+		[Test]
+		public void ProcessTest ()
 		{
-			document.Add (new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"));		
+			XDocument document = XDocument.Load (xmlFile);
+			Assert.IsNotNull (document.Root);
+
+			new AddXSLProcessingInstructionAction ().Process (document);	
+
+			var query = from element in document.Nodes ()
+				where element is XProcessingInstruction
+				select element;
+
+			Assert.AreEqual (1, query.Count ());
 		}
 	}
 }
