@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Collections;
 using System.Linq;
 using System.Xml.Linq;
@@ -37,19 +38,39 @@ namespace Gendarme.Reporter.Test {
 	public class AddXSLProcessingInstructionActionTest {
 		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";	
 
-		[Test]
-		public void ProcessTest ()
+		private XDocument GetProcessedDocument ()
 		{
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document.Root);
 
 			new AddXSLProcessingInstructionAction ().Process (document);	
 
+			return document;
+		}
+
+		[Test]
+		public void ProcessExistenceTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+
 			var query = from element in document.Nodes ()
 				where element is XProcessingInstruction
 				select element;
 
 			Assert.AreEqual (1, query.Count ());
+		}
+
+		[Test]
+		public void ProcessLocationTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+
+			var query = from element in document.Nodes ()
+				where element is XProcessingInstruction
+				select element;
+
+			XProcessingInstruction xslProcessing = (XProcessingInstruction) query.First ();
+			Assert.IsTrue (xslProcessing.IsBefore (document.Root));
 		}
 	}
 }
