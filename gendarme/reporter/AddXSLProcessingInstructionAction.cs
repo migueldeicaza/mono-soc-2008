@@ -26,13 +26,18 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class AddXSLProcessingInstructionAction : IAction {
-		public void Process (XDocument document)
+		public XDocument Process (XDocument document)
 		{
-			document.Add (new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"));		
+			XDocument newDocument = new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
+				new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"),
+				document.Root);
+
+			return newDocument;
 		}
 	}
 }
