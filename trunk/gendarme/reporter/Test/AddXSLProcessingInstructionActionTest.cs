@@ -63,7 +63,6 @@ namespace Gendarme.Reporter.Test {
 		public void ProcessLocationTest ()
 		{
 			XDocument document = GetProcessedDocument ();
-
 			var query = from element in document.Nodes ()
 				where element is XProcessingInstruction
 				select element;
@@ -72,6 +71,19 @@ namespace Gendarme.Reporter.Test {
 			
 			//This enables browsers format the xml page
 			Assert.IsTrue (xslProcessing.IsBefore (document.Root));
+		}
+
+		[Test]
+		public void SkipOnAlreadyAddedTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+			document = new AddXSLProcessingInstructionAction ().Process (document);
+
+			var query = from element in document.Nodes ()
+				where element is XProcessingInstruction
+				select element;
+
+			Assert.AreEqual (1, query.Count ());
 		}
 	}
 }
