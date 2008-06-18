@@ -49,5 +49,13 @@ namespace Gendarme.Reporter.Test {
 			Pipeline pipeline = new Pipeline ();
 			pipeline.Append (null);
 		}
+
+		[Test]
+		public void InitialStateTest ()
+		{
+			Pipeline pipeline = new Pipeline ();
+			Assert.IsNotNull (pipeline.GetActions ());
+			Assert.AreEqual (0, pipeline.GetActions ().Length);
+		}
 	}
 }
