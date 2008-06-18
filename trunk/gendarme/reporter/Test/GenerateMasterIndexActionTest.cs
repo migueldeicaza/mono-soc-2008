@@ -51,7 +51,7 @@ namespace Gendarme.Reporter.Test {
 			XElement element = document.Element ("gendarme-output");
 			Assert.IsNotNull (element);
 			
-			Assert.AreEqual (XDocument.Load (xmlFile).Element ("gendarme-output").Attribute ("date"), element.Attribute ("date"));
+			Assert.AreEqual (XDocument.Load (xmlFile).Element ("gendarme-output").Attribute ("date").Value, element.Attribute ("date").Value);
 		}
 
 		[Test]

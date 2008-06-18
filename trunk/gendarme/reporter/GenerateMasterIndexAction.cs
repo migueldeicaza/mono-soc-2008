@@ -26,13 +26,20 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class GenerateMasterIndexAction : IAction {
 		public XDocument Process (XDocument document)
 		{
-			return null;
+			XDocument newDocument = new XDocument (
+				new XDeclaration ("1.0", "utf-8", "yes"));
+
+			newDocument.Add (new XElement ("gendarme-output",
+				new XAttribute ("date", document.Root.Attribute ("date").Value)));
+
+			return newDocument;
 		}
 	}
 }
