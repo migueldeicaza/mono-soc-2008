@@ -26,7 +26,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Xml.Linq;
+
 namespace Gendarme.Reporter {
 	public interface IAction {
+		void Process (XDocument document);
 	}
 }
