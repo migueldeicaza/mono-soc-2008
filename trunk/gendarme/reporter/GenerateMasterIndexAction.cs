@@ -33,18 +33,18 @@ using System.Xml.Linq;
 namespace Gendarme.Reporter {
 	public class GenerateMasterIndexAction : IAction {
 
-		private XDocument CreateStandardXmlDocument ()
+		private static XDocument CreateStandardXmlDocument ()
 		{
 			return new XDocument (new XDeclaration ("1.0", "utf-8", "yes"));
 		}
 
-		private XElement CreateRootElementFrom (XElement data)
+		private static XElement CreateRootElementFrom (XElement data)
 		{
 			return new XElement ("gendarme-output",
 				new XAttribute ("date", data.Attribute ("date").Value));
 		}
 
-		private XElement CreateFilesSection (XElement files)
+		private static XElement CreateFilesSection (XElement files)
 		{
 			return new XElement ("files", 
 				from file in files.Elements ()
