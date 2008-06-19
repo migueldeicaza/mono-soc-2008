@@ -58,7 +58,7 @@ namespace Gendarme.Reporter.Test {
 		}
 
 		[Test]
-		public void GeneratedFilesSectionTest ()
+		public void GeneratedAssembliesSectionTest ()
 		{
 			XDocument document = GetProcessedDocument ();
 			
@@ -69,6 +69,18 @@ namespace Gendarme.Reporter.Test {
 
 			Assert.AreEqual ("Accessibility", element.Elements ().First ().Attribute ("shortname").Value);
 			Assert.AreEqual ("System.Xml.Linq", element.Elements ().Last ().Attribute ("shortname").Value);
+		}
+
+		[Test]
+		public void CheckGeneratedAssemblyTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+			XElement first = document.Root.Element ("assemblies").Elements ().First ();
+			
+			Assert.IsNotNull (first.Attribute ("critical"));
+			Assert.IsNotNull (first.Attribute ("high"));
+			Assert.IsNotNull (first.Attribute ("medium"));
+			Assert.IsNotNull (first.Attribute ("low"));
 		}
 	}
 }

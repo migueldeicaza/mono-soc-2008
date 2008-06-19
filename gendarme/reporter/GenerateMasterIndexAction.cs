@@ -49,8 +49,12 @@ namespace Gendarme.Reporter {
 			return new XElement ("assemblies", 
 				from file in files.Elements ()
 				select new XElement ("assembly",
-					new XAttribute ("shortname", file.Attribute ("Name").Value.Split (',')[0]))
-			);	
+					new XAttribute ("shortname", file.Attribute ("Name").Value.Split (',')[0]),
+					new XAttribute ("critical", 0),		
+					new XAttribute ("high", 0),
+					new XAttribute ("medium", 0),
+					new XAttribute ("low", 0)
+			));	
 		}
 
 		public XDocument Process (XDocument document)
@@ -59,8 +63,6 @@ namespace Gendarme.Reporter {
 
 			newDocument.Add (CreateRootElementFrom (document.Root));
 			newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
-
-			Console.WriteLine (newDocument);
 
 			return newDocument;
 		}
