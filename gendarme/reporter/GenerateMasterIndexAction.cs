@@ -32,19 +32,33 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class GenerateMasterIndexAction : IAction {
+
+		private XDocument CreateStandardXmlDocument ()
+		{
+			return new XDocument (new XDeclaration ("1.0", "utf-8", "yes"));
+		}
+
+		private XElement CreateRootElementFrom (XElement data)
+		{
+			return new XElement ("gendarme-output",
+				new XAttribute ("date", data.Attribute ("date").Value));
+		}
+
+		private XElement CreateFilesSection (XElement files)
+		{
+			return new XElement ("files", 
+				from file in files.Elements ()
+				select new XElement ("file",
+					new XAttribute ("name", file.Attribute ("Name").Value.Split (',')[0]))
+			);	
+		}
+
 		public XDocument Process (XDocument document)
 		{
-			XDocument newDocument = new XDocument (
-				new XDeclaration ("1.0", "utf-8", "yes"));
+			XDocument newDocument = CreateStandardXmlDocument ();
 
-			newDocument.Add (new XElement ("gendarme-output",
-				new XAttribute ("date", document.Root.Attribute ("date").Value)));
-
-			newDocument.Root.Add (new XElement ("files", 
-				from file in document.Root.Element ("files").Elements ()
-				select new XElement ("file",
-					new XAttribute ("name", file.Attribute ("Name").Value.Split(',')[0]))
-			));
+			newDocument.Add (CreateRootElementFrom (document.Root));
+			newDocument.Root.Add (CreateFilesSection (document.Root.Element ("files")));
 
 			return newDocument;
 		}
