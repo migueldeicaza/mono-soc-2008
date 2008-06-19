@@ -69,7 +69,6 @@ namespace Gendarme.Reporter.Test {
 
 			Assert.AreEqual ("Accessibility", element.Elements ().First ().Attribute ("name").Value);
 			Assert.AreEqual ("System.Xml.Linq", element.Elements ().Last ().Attribute ("name").Value);
-
 		}
 	}
 }
