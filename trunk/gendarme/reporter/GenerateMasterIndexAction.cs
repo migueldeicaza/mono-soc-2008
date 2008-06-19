@@ -40,8 +40,12 @@ namespace Gendarme.Reporter {
 			newDocument.Add (new XElement ("gendarme-output",
 				new XAttribute ("date", document.Root.Attribute ("date").Value)));
 
-			newDocument.Root.Add (document.Root.Element ("files"));
-			
+			newDocument.Root.Add (new XElement ("files", 
+				from file in document.Root.Element ("files").Elements ()
+				select new XElement ("file",
+					new XAttribute ("name", file.Attribute ("Name").Value.Split(',')[0]))
+			));
+
 			return newDocument;
 		}
 	}
