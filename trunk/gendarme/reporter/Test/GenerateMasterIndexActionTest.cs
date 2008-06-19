@@ -26,6 +26,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 using NUnit.Framework;
@@ -87,12 +89,19 @@ namespace Gendarme.Reporter.Test {
 		public void CheckCountedDefectsTest ()
 		{
 			XDocument document = GetProcessedDocument ();
-			var query = from assembly in document.Root.Element ("assemblies").Elements ()
+			var query = (from assembly in document.Root.Element ("assemblies").Elements ()
 				where assembly.Attribute ("shortname").Value.Equals ("mscorlib")
-				select assembly;
-
+				select assembly).ToList ();
+			
+			
 			Assert.IsNotNull (query);
 			Assert.AreEqual (1, query.Count ());
+			Assert.IsNotNull (query.First ());
+
+			Assert.AreEqual (0, Int32.Parse (query.First ().Attribute ("critical").Value));
+			Assert.AreEqual (234, Int32.Parse (query.First ().Attribute ("high").Value));
+			Assert.AreEqual (131, Int32.Parse (query.First ().Attribute ("medium").Value));
+			Assert.AreEqual (2, Int32.Parse (query.First ().Attribute ("low").Value));
 		}
 	}
 }
