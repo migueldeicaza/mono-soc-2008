@@ -44,11 +44,11 @@ namespace Gendarme.Reporter {
 				new XAttribute ("date", data.Attribute ("date").Value));
 		}
 
-		private static XElement CreateFilesSection (XElement files)
+		private static XElement CreateAssembliesSectionFrom (XElement files)
 		{
-			return new XElement ("files", 
+			return new XElement ("assemblies", 
 				from file in files.Elements ()
-				select new XElement ("file",
+				select new XElement ("assembly",
 					new XAttribute ("name", file.Attribute ("Name").Value.Split (',')[0]))
 			);	
 		}
@@ -58,7 +58,7 @@ namespace Gendarme.Reporter {
 			XDocument newDocument = CreateStandardXmlDocument ();
 
 			newDocument.Add (CreateRootElementFrom (document.Root));
-			newDocument.Root.Add (CreateFilesSection (document.Root.Element ("files")));
+			newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
 
 			return newDocument;
 		}
