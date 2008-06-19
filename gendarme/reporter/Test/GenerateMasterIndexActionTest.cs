@@ -82,5 +82,17 @@ namespace Gendarme.Reporter.Test {
 			Assert.IsNotNull (first.Attribute ("medium"));
 			Assert.IsNotNull (first.Attribute ("low"));
 		}
+
+		[Test]
+		public void CheckCountedDefectsTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+			var query = from assembly in document.Root.Element ("assemblies").Elements ()
+				where assembly.Attribute ("shortname").Value.Equals ("mscorlib")
+				select assembly;
+
+			Assert.IsNotNull (query);
+			Assert.AreEqual (1, query.Count ());
+		}
 	}
 }
