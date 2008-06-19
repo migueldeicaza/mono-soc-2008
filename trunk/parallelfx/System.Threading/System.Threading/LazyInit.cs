@@ -34,17 +34,14 @@ namespace System.Threading
 	{
 		LazyInitMode mode;
 		Func<T>      valueSelector;
-		bool         isInitialized;
+		Func<bool>   isInitialized;
 		T            value;
 		Func<T>      specializedValue;
 		
-		struct ThreadLocalWrapper {
-			public Func<T> FinalValue;
-			
-			public ThreadLocalWrapper(Func<T> finalValue)
-			{
-				FinalValue = finalValue;
-			}
+		class DataSlotWrapper
+		{
+			public bool Init;
+			public Func<T> Getter;
 		}
 		
 		public LazyInit(Func<T> valueSelector): this(valueSelector, LazyInitMode.AllowMultipleExecution)
@@ -57,36 +54,55 @@ namespace System.Threading
 			this.mode = mode;
 			
 			Func<T> finalValue = delegate { return value; };
+			Func<bool> finalIsInitialized = delegate { return true; };
+			isInitialized = delegate { return false; };
 			
 			switch (mode) {
-			case LazyInitMode.AllowMultipleExecution:
-				specializedValue = delegate {
-					value = valueSelector();
-					isInitialized = true;
-					specializedValue = finalValue;
-					return value;
-				};
-				break;
-			case LazyInitMode.EnsureSingleExecution:
-				object syncLock = new object();
-				specializedValue = delegate {
-					lock (syncLock) {
-						if (!isInitialized) {
-							isInitialized = true;
-							value = valueSelector();
-							specializedValue = finalValue;
-						}
-					}
-					return value;
-				};
-				break;
-			case LazyInitMode.ThreadLocal:
-				Dictionary<int, Func<T>> cache = new Dictionary<int,Func<T>>();
-				// TODO: Finish the caching for multiple threads using Thread.CurrentThread.ManagedId
-				specializedValue = delegate {
-					return valueSelector();
-				};
-				break;
+				case LazyInitMode.AllowMultipleExecution:
+					specializedValue = delegate {
+						value = valueSelector();
+						isInitialized = finalIsInitialized;
+						specializedValue = finalValue;
+						return value;
+					};
+					break;
+				case LazyInitMode.EnsureSingleExecution:
+					SpinLock sl = new SpinLock(false);
+					specializedValue = delegate {
+						try {
+							sl.Enter();
+							if (!isInitialized()) {
+								isInitialized = finalIsInitialized;
+								value = valueSelector();
+								specializedValue = finalValue;
+							}
+						} finally { sl.Exit(); }
+						return value;
+					};
+					break;
+				case LazyInitMode.ThreadLocal:
+					LocalDataStoreSlot localStore = Thread.AllocateDataSlot();
+					DataSlotWrapper wrapper = new DataSlotWrapper();
+					
+					wrapper.Getter = delegate {
+						T val = valueSelector();
+						wrapper.Init = true;
+						wrapper.Getter = delegate { return val; };
+						return val;
+					};
+					
+					Thread.SetData(localStore, wrapper);
+					
+					specializedValue = delegate {
+						DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+						return myWrapper.Getter();
+					};
+					isInitialized = delegate {
+						DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+						return myWrapper.Init;
+					};
+					
+					break;
 			}
 		}
 		
@@ -94,16 +110,21 @@ namespace System.Threading
 		{
 			throw new NotImplementedException ();
 		}
-
+		
 		
 		public bool Equals (LazyInit<T> other)
 		{
 			throw new NotImplementedException ();
 		}
-
-		public bool Equals (object other)
+		
+		public override bool Equals (object other)
 		{
 			throw new NotImplementedException ();
+		}
+		
+		public override int GetHashCode()
+		{
+			return base.GetHashCode();
 		}
 		
 		public T Value {
@@ -111,16 +132,16 @@ namespace System.Threading
 				return specializedValue();
 			}
 		}
-
+		
 		public LazyInitMode Mode {
 			get {
 				return mode;
 			}
 		}
-
+		
 		public bool IsInitialized {
 			get {
-				return isInitialized;
+				return isInitialized();
 			}
 		}
 	}
