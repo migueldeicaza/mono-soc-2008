@@ -37,6 +37,13 @@ namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class GenerateMasterIndexActionTest {
 		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";
+		XDocument document;
+
+		[TestFixtureSetUp]
+		private void FixtureSetUp ()
+		{
+			document = GetProcessedDocument ();
+		}
 
 		private XDocument GetProcessedDocument () 
 		{
@@ -51,8 +58,6 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void HeaderSectionTest ()
 		{
-			XDocument document = GetProcessedDocument ();
-
 			XElement element = document.Element ("gendarme-output");
 			Assert.IsNotNull (element);
 			
@@ -62,8 +67,6 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void GeneratedAssembliesSectionTest ()
 		{
-			XDocument document = GetProcessedDocument ();
-			
 			XElement element = document.Root.Element ("assemblies");
 			Assert.IsNotNull (element);
 			
@@ -76,7 +79,6 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void CheckGeneratedAssemblyTest ()
 		{
-			XDocument document = GetProcessedDocument ();
 			XElement first = document.Root.Element ("assemblies").Elements ().First ();
 			
 			Assert.IsNotNull (first.Attribute ("critical"));
@@ -88,7 +90,6 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void CheckCountedDefectsTest ()
 		{
-			XDocument document = GetProcessedDocument ();
 			var query = (from assembly in document.Root.Element ("assemblies").Elements ()
 				where assembly.Attribute ("shortname").Value.Equals ("mscorlib")
 				select assembly).ToList ();
