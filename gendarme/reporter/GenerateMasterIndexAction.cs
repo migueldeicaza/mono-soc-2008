@@ -49,7 +49,7 @@ namespace Gendarme.Reporter {
 			return new XElement ("assemblies", 
 				from file in files.Elements ()
 				select new XElement ("assembly",
-					new XAttribute ("name", file.Attribute ("Name").Value.Split (',')[0]))
+					new XAttribute ("shortname", file.Attribute ("Name").Value.Split (',')[0]))
 			);	
 		}
 
@@ -59,6 +59,8 @@ namespace Gendarme.Reporter {
 
 			newDocument.Add (CreateRootElementFrom (document.Root));
 			newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
+
+			Console.WriteLine (newDocument);
 
 			return newDocument;
 		}
