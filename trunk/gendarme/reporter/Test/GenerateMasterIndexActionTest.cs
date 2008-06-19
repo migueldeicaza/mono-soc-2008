@@ -62,7 +62,7 @@ namespace Gendarme.Reporter.Test {
 		{
 			XDocument document = GetProcessedDocument ();
 			
-			XElement element = document.Root.Element ("files");
+			XElement element = document.Root.Element ("assemblies");
 			Assert.IsNotNull (element);
 			
 			Assert.AreEqual (72, element.Elements ().Count ());
