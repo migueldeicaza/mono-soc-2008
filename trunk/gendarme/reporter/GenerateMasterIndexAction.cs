@@ -79,7 +79,6 @@ namespace Gendarme.Reporter {
 			newDocument.Add (CreateRootElementFrom (document.Root));
 			newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
 
-			//Console.WriteLine (newDocument);
 			return newDocument;
 		}
 	}
