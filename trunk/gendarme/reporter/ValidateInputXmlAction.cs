@@ -70,7 +70,10 @@ namespace Gendarme.Reporter {
 				}
 					
 			}
-			
+
+			foreach (String message in validationErrors)
+				Console.Error.WriteLine (message);
+
 			return (validationErrors.Count () == 0) ? document : null;
 		}
 	}
