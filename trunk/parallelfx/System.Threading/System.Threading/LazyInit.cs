@@ -114,12 +114,14 @@ namespace System.Threading
 		
 		public bool Equals (LazyInit<T> other)
 		{
-			throw new NotImplementedException ();
+			// TODO: Find its it's correct or not via unit tests
+			return mode == other.mode && valueSelector == other.valueSelector;
 		}
 		
 		public override bool Equals (object other)
 		{
-			throw new NotImplementedException ();
+			LazyInit<T> temp = other as LazyInit<T>;
+			return temp == null ? false : Equals(temp);
 		}
 		
 		public override int GetHashCode()
