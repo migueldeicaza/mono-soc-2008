@@ -37,7 +37,7 @@ namespace Gendarme.Reporter.Test {
 
 		private XDocument GetProcessedDocument (string fileName)
 		{
-			XDocument document = new XDocument (fileName);
+			XDocument document = XDocument.Load (fileName);
 			Assert.IsNotNull (document);
 
 			document = new ValidateInputXmlAction ().Process (document);
