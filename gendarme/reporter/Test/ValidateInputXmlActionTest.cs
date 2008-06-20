@@ -34,6 +34,7 @@ namespace Gendarme.Reporter.Test {
 	public class ValidateInputXmlActionTest {
 		static readonly string validXmlFile = "Test/Fakes/06-18-2008.xml";
 		static readonly string invalidXmlFile = "Test/Fakes/06-18-2008-bad.xml";
+		static readonly string smallXmlFile = "Test/Fakes/06-18-2008-small.xml";
 
 		private XDocument GetProcessedDocument (string fileName)
 		{
@@ -48,6 +49,14 @@ namespace Gendarme.Reporter.Test {
 		public void ValidXmlTest ()
 		{
 			Assert.IsNotNull (GetProcessedDocument (validXmlFile));
+		}
+
+		//Handling big documents can be difficult for set up correctly
+		//the xsd file.
+		[Test]
+		public void SmallXmlTest ()
+		{
+			Assert.IsNotNull (GetProcessedDocument (smallXmlFile));
 		}
 
 		[Test]

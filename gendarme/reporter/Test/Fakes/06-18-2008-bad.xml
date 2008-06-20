@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<gendarme-output date="18/06/2008 11:49:22">
+<gendarme-output>
   <files>
     <file Name="Accessibility, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">/home/nestor/opt/mono/lib/mono/2.0/Accessibility.dll</file>
     <file Name="ByteFX.Data, Version=0.7.6.2, Culture=neutral, PublicKeyToken=0738eb9f132ed756">/home/nestor/opt/mono/lib/mono/2.0/ByteFX.Data.dll</file>
