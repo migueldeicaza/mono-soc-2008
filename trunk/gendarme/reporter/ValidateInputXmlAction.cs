@@ -26,8 +26,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.IO;
 using System.Reflection;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
@@ -46,7 +49,16 @@ namespace Gendarme.Reporter {
 
 		public XDocument Process (XDocument document)
 		{
-			return document;
+			XmlSchemaSet schemas = new XmlSchemaSet ();
+			schemas.Add (String.Empty, XmlReader.Create (GetStreamFromResource ("gendarme-output.xsd")));
+			bool errors = false;
+			document.Validate (schemas, (o, e) => 
+				{
+					Console.WriteLine ("Error validating: {0}", e.Message);
+					errors = true;
+				}, true);
+			
+			return errors? null : document;
 		}
 	}
 }
