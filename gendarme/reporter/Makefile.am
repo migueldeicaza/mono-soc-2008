@@ -10,7 +10,8 @@ reporter_sources = \
 	Pipeline.cs \
 	IAction.cs \
 	AddXSLProcessingInstructionAction.cs \
-	GenerateMasterIndexAction.cs
+	GenerateMasterIndexAction.cs \
+	ValidateInputXmlAction.cs
 
 
 reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
