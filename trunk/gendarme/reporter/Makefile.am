@@ -13,9 +13,8 @@ reporter_sources = \
 	GenerateMasterIndexAction.cs \
 	ValidateInputXmlAction.cs
 
-
-reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
-
+reporter_resources = \
+	gendarme-output.xsd
 
 reporter_test_sources = \
 	PipelineTest.cs \
@@ -23,11 +22,12 @@ reporter_test_sources = \
 	GenerateMasterIndexActionTest.cs \
 	ValidateInputXmlActionTest.cs
 
+reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
 reporter_test_build_sources = $(addprefix $(srcdir)/Test/, $(reporter_test_sources))
+reporter_build_resources = $(foreach res, $(reporter_resources), $(addprefix -resource:,$(res)),$(notdir $(res)))
 
-
-reporter.exe: $(reporter_build_sources) 
-	$(GMCS) -target:exe -r:System.Xml.Linq -out:$@ $(reporter_build_sources)
+reporter.exe: $(reporter_build_sources) $(reporter_resources) 
+	$(GMCS) -target:exe -r:System.Xml.Linq $(reporter_build_resources) -out:$@ $(reporter_build_sources)
 
 Test.Reporter.dll: $(reporter_test_build_sources) reporter.exe
 	$(GMCS) -target:library -pkg:mono-nunit -r:reporter.exe -r:System.Xml.Linq -out:$@ $(reporter_test_build_sources)

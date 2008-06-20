@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="gendarme-output">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="files" type="filesType" minOccurs="1" maxOccurs="1"/>	
+				<xs:element name="rules" type="rulesDescriptionType" minOccurs="1" maxOccurs="1"/>
+				<xs:element name="results" type="resultsType" minOccurs="1" maxOccurs="1"/>
+			</xs:sequence>
+			<xs:attribute name="date" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:complexType name="filesType">
+		<xs:sequence>
+			<xs:element name="file" type="fileType" minOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="rulesDescriptionType">
+		<xs:sequence>
+			<xs:element name="rule" type="ruleDescriptionType" minOccurs="1"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="resultsType">
+		<xs:sequence>
+			<xs:element name="rule" type="ruleType" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="fileType">
+		<xs:attribute name="Name" type="xs:string" use="required"/>
+	</xs:simpleType>
+
+	<xs:simpleType name="ruleDescriptionType">
+		<xs:attribute name="Name" type="xs:string" use="required"/>
+		<xs:attribute name="Type" type="xs:string" use="required"/>
+		<xs:attribute name="Uri" type="xs:string" use="required"/>
+	</xs:simpleType>
+
+	<xs:complexType name="ruleType"/>
+		<xs:sequence>
+			<xs:element name="problem" type="xs:string"/>
+			<xs:element name="solution" type="xs:string"/>
+			<xs:element name="target" type="targetType" minOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="Name" type="xs:string" use="required"/>
+		<xs:attribute name="Uri" type="xs:string" use="required"/>
+	<xs:complexType>
+
+	<xs:complexType name="targetType">
+		<xs:sequence>
+			<xs:element name="defect" type="defectType" minOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="Name" type="xs:string" use="required"/>
+		<xs:attribute name="Assembly" type="xs:string" use="required"/>
+	</xs:complexType>
+
+	<xs:simpleType name="defectType">
+		<xs:attribute name="Severity" type="xs:string" use="required"/>
+		<xs:attribute name="Confidence" type="xs:string" use="required"/>
+		<xs:attribute name="Location" type="xs:string" use="required"/>
+		<xs:attribute name="Source" type="xs:string" use="required"/>
+	</xs:simpleType>
+</xs:schema>
