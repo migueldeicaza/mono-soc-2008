@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<gendarme-output date="18/06/2008 11:49:22">
+  <files>
+    <file Name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">/home/nestor/opt/mono/lib/mono/2.0/mscorlib.dll</file>
+  </files>
+  <rules>
+    <rule Name="CloneMethodShouldNotReturnNullRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CloneMethodShouldNotReturnNullRule">Gendarme.Rules.BadPractice.CloneMethodShouldNotReturnNullRule</rule>
+    <rule Name="EqualsShouldHandleNullArgRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#EqualsShouldHandleNullArgRule">Gendarme.Rules.BadPractice.EqualsShouldHandleNullArgRule</rule>
+    <rule Name="ToStringReturnsNullRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ToStringReturnsNullRule">Gendarme.Rules.BadPractice.ToStringReturnsNullRule</rule>
+  </rules>
+  <results>
+    <rule Name="BadRecursiveInvocationRule" Uri="http://www.mono-project.com/Gendarme.Rules.Correctness#BadRecursiveInvocationRule">
+      <problem>This method, or property, invokes itself recursively in a suspcious way.</problem>
+      <solution>Ensure that an exit condition exists to terminate recursion.</solution>
+      <target Name="System.Void System.Collections.Specialized.OrderedDictionary::OnDeserialization(System.Object)" Assembly="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+        <defect Severity="Critical" Confidence="High" Location="System.Void System.Collections.Specialized.OrderedDictionary::OnDeserialization(System.Object)" Source="debugging symbols unavailable, IL offset 0x0002" />
+      </target>
+      <target Name="System.Data.Common.DbCommand System.Data.Common.DbDataAdapter::get_InsertCommand()" Assembly="System.Data, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+        <defect Severity="Critical" Confidence="High" Location="System.Data.Common.DbCommand System.Data.Common.DbDataAdapter::get_InsertCommand()" Source="debugging symbols unavailable, IL offset 0x0001" />
+      </target>
+    </rule>
+    <rule Name="CloneMethodShouldNotReturnNullRule" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CloneMethodShouldNotReturnNullRule">
+      <problem>The implementation ICloneable.Clone () seems to return null in some circumstances.</problem>
+      <solution>Return an appropriate object instead of returning null.</solution>
+      <target Name="Novell.Directory.Ldap.LdapConnection" Assembly="Novell.Directory.Ldap, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Medium" Confidence="Normal" Location="System.Object Novell.Directory.Ldap.LdapConnection::Clone()" Source="debugging symbols unavailable, IL offset 0x00c6" />
+      </target>
+    </rule>
+    <rule Name="ConstructorShouldNotCallVirtualMethodsRule" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ConstructorShouldNotCallVirtualMethodsRule">
+      <problem>Some constructors calls virtual methods which won't be known before runtime.</problem>
+      <solution>Avoid calling virtual methods from constructors or seal the the type.</solution>
+      <target Name="ByteFX.Data.Common.DBConnectionString" Assembly="ByteFX.Data, Version=0.7.6.2, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void ByteFX.Data.Common.DBConnectionString::.ctor()" Source="debugging symbols unavailable, IL offset 0x001e">Calling a virtual method, 'System.Collections.Hashtable ByteFX.Data.Common.DBConnectionString::GetDefaultValues()' from System.Void ByteFX.Data.Common.DBConnectionString::.ctor().</defect>
+      </target>
+      <target Name="ByteFX.Data.Common.MultiHostStream" Assembly="ByteFX.Data, Version=0.7.6.2, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void ByteFX.Data.Common.MultiHostStream::ProcessHosts(System.String,System.Int32,System.Int32)" Source="debugging symbols unavailable, IL offset 0x0020">Calling a virtual method, 'System.Boolean ByteFX.Data.Common.MultiHostStream::CreateStream(System.String)' from System.Void ByteFX.Data.Common.MultiHostStream::.ctor(System.String,System.Int32,System.Int32,System.Int32).</defect>
+        <defect Severity="High" Confidence="High" Location="System.Void ByteFX.Data.Common.MultiHostStream::ProcessHosts(System.String,System.Int32,System.Int32)" Source="debugging symbols unavailable, IL offset 0x00d5">Calling a virtual method, 'System.Void ByteFX.Data.Common.MultiHostStream::TimeOut(ByteFX.Data.Common.MultiHostStreamErrorType)' from System.Void ByteFX.Data.Common.MultiHostStream::.ctor(System.String,System.Int32,System.Int32,System.Int32).</defect>
+        <defect Severity="High" Confidence="High" Location="System.Void ByteFX.Data.Common.MultiHostStream::ProcessHosts(System.String,System.Int32,System.Int32)" Source="debugging symbols unavailable, IL offset 0x00ec">Calling a virtual method, 'System.Void ByteFX.Data.Common.MultiHostStream::Error(System.String)' from System.Void ByteFX.Data.Common.MultiHostStream::.ctor(System.String,System.Int32,System.Int32,System.Int32).</defect>
+        <defect Severity="High" Confidence="High" Location="System.Void ByteFX.Data.Common.MultiHostStream::ProcessHosts(System.String,System.Int32,System.Int32)" Source="debugging symbols unavailable, IL offset 0x013f">Calling a virtual method, 'System.Void ByteFX.Data.Common.MultiHostStream::TimeOut(ByteFX.Data.Common.MultiHostStreamErrorType)' from System.Void ByteFX.Data.Common.MultiHostStream::.ctor(System.String,System.Int32,System.Int32,System.Int32).</defect>
+      </target>
+      <target Name="Commons.Xml.Relaxng.RelaxngReader" Assembly="Commons.Xml.Relaxng, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Commons.Xml.Relaxng.RelaxngReader::.ctor(System.Xml.XmlReader,System.String,System.Xml.XmlResolver)" Source="debugging symbols unavailable, IL offset 0x0035">Calling a virtual method, 'System.Boolean Commons.Xml.Relaxng.RelaxngReader::Read()' from System.Void Commons.Xml.Relaxng.RelaxngReader::.ctor(System.Xml.XmlReader,System.String,System.Xml.XmlResolver).</defect>
+        <defect Severity="High" Confidence="High" Location="System.String Commons.Xml.Relaxng.RelaxngReader::GetSpaceStrippedAttribute(System.String,System.String)" Source="debugging symbols unavailable, IL offset 0x0003">Calling a virtual method, 'System.String Commons.Xml.XmlDefaultReader::GetAttribute(System.String,System.String)' from System.Void Commons.Xml.Relaxng.RelaxngReader::.ctor(System.Xml.XmlReader,System.String,System.Xml.XmlResolver).</defect>
+        <defect Severity="High" Confidence="High" Location="System.String Commons.Xml.Relaxng.RelaxngReader::GetSpaceStrippedAttribute(System.String,System.String)" Source="debugging symbols unavailable, IL offset 0x0003">Calling a virtual method, 'System.String Commons.Xml.XmlDefaultReader::GetAttribute(System.String,System.String)' from System.Void Commons.Xml.Relaxng.RelaxngReader::.ctor(System.Xml.XmlReader,System.String,System.Xml.XmlResolver).</defect>
+      </target>
+    </rule>
+    <rule Name="UseTypeEmptyTypesRule" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#UseTypeEmptyTypesRule">
+      <problem>The method creates an empty System.Type array instead of using Type.EmptyTypes.</problem>
+      <solution>Change the array creation for Type.EmptyTypes.</solution>
+      <target Name="System.Void Microsoft.JScript.ScriptBlock::InitTypeBuilder(System.Reflection.Emit.ModuleBuilder,System.String)" Assembly="Microsoft.JScript, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <defect Severity="Medium" Confidence="High" Location="System.Void Microsoft.JScript.ScriptBlock::InitTypeBuilder(System.Reflection.Emit.ModuleBuilder,System.String)" Source="debugging symbols unavailable, IL offset 0x0034" />
+      </target>
+      <target Name="System.Void Microsoft.JScript.CodeGenerator::emit_jscript_main_constructor(System.Reflection.Emit.TypeBuilder)" Assembly="Microsoft.JScript, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <defect Severity="Medium" Confidence="High" Location="System.Void Microsoft.JScript.CodeGenerator::emit_jscript_main_constructor(System.Reflection.Emit.TypeBuilder)" Source="debugging symbols unavailable, IL offset 0x0004" />
+        <defect Severity="Medium" Confidence="High" Location="System.Void Microsoft.JScript.CodeGenerator::emit_jscript_main_constructor(System.Reflection.Emit.TypeBuilder)" Source="debugging symbols unavailable, IL offset 0x0032" />
+      </target>
+      <target Name="System.Void Microsoft.JScript.Assign::Emit(Microsoft.JScript.EmitContext)" Assembly="Microsoft.JScript, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <defect Severity="Medium" Confidence="High" Location="System.Void Microsoft.JScript.Assign::Emit(Microsoft.JScript.EmitContext)" Source="debugging symbols unavailable, IL offset 0x00b3" />
+      </target>
+      <target Name="System.Void Microsoft.JScript.CodeGenerator::emit_jscript_main_entry_point(System.Reflection.Emit.TypeBuilder)" Assembly="Microsoft.JScript, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <defect Severity="Medium" Confidence="High" Location="System.Void Microsoft.JScript.CodeGenerator::emit_jscript_main_entry_point(System.Reflection.Emit.TypeBuilder)" Source="debugging symbols unavailable, IL offset 0x0037" />
+      </target>
+    </rule>
+  </results>
+</gendarme-output>
