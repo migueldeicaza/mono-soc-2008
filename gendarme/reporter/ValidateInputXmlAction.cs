@@ -26,10 +26,24 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.IO;
+using System.Reflection;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class ValidateInputXmlAction : IAction {
+		
+		//Taken from Helpers.cs from Gendarme
+		private static Stream GetStreamFromResource (string resourceName)
+		{
+			Assembly executing = Assembly.GetExecutingAssembly ();
+			foreach (string resource in executing.GetManifestResourceNames ()) {
+				if (resource.EndsWith (resourceName))
+					return executing.GetManifestResourceStream (resource);
+			}
+			return null;
+		}
+
 		public XDocument Process (XDocument document)
 		{
 			return document;
