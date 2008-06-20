@@ -27,15 +27,18 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Linq;
+using System.Linq;
 
 namespace Gendarme.Reporter {
 	public class ValidateInputXmlAction : IAction {
-		
+		IList<string> validationErrors = new List<string> ();
+
 		//Taken from Helpers.cs from Gendarme
 		private static Stream GetStreamFromResource (string resourceName)
 		{
@@ -47,18 +50,28 @@ namespace Gendarme.Reporter {
 			return null;
 		}
 
+		private void OnValidationErrors (object sender, ValidationEventArgs args)
+		{
+			validationErrors.Add (args.Exception.Message.Replace ("XmlSchema error", String.Format ("Error in the Xml file")));	
+		}
+
 		public XDocument Process (XDocument document)
 		{
-			XmlSchemaSet schemas = new XmlSchemaSet ();
-			schemas.Add (String.Empty, XmlReader.Create (GetStreamFromResource ("gendarme-output.xsd")));
-			bool errors = false;
-			document.Validate (schemas, (o, e) => 
-				{
-					Console.WriteLine ("Error validating: {0}", e.Message);
-					errors = true;
-				}, true);
+			using (Stream stream = GetStreamFromResource ("gendarme-output.xsd")) {
+				if (stream == null)
+					throw new InvalidDataException ("Could not locate Xml Schema Deficintion inside resources");
+
+				XmlReaderSettings settings = new XmlReaderSettings ();
+				settings.Schemas.Add (XmlSchema.Read (stream, OnValidationErrors));
+				settings.ValidationType = ValidationType.Schema;
+				settings.ValidationEventHandler += OnValidationErrors;
+				using (XmlReader reader = XmlReader.Create (new StringReader (document.ToString ()))) {
+					while (reader.Read ()) {}
+				}
+					
+			}
 			
-			return errors? null : document;
+			return (validationErrors.Count () == 0) ? document : null;
 		}
 	}
 }
