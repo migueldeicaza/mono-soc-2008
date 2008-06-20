@@ -65,7 +65,7 @@ namespace Gendarme.Reporter {
 				settings.Schemas.Add (XmlSchema.Read (stream, OnValidationErrors));
 				settings.ValidationType = ValidationType.Schema;
 				settings.ValidationEventHandler += OnValidationErrors;
-				using (XmlReader reader = XmlReader.Create (new StringReader (document.ToString ()))) {
+				using (XmlReader reader = XmlReader.Create (new StringReader (document.ToString ()), settings)) {
 					while (reader.Read ()) {}
 				}
 					
