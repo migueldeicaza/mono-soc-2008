@@ -84,18 +84,87 @@ namespace System.Threading.Tasks
 		
 		public T PopTop(out PopTopResult result)
 		{
-			TopInfo currTop = top;
+			TopInfo    currTop = top;
 			BottomInfo currBottom =  bottom;
 			
+			Node currTopNode, newTopNode;
+			int currTopIndex, newTopIndex;
+			int currTopTag, newTopTag;
+			
+			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
+			
+			if (EmptinessTest(currTop, currBottom)) {
+				if (currTop == top) 
+					result = PopTopResult.Empty;
+				else
+					result = PopTopResult.Abort;
+				return null;
+			}
+			
+			if (currTopIndex != 0) {
+				newTopNode = currTopNode;
+				newTopIndex = currTopIndex - 1;
+				newTopTag = currTopTag;
+			} else {
+				newTopTag = currTopTag + 1;
+				newTopIndex = ArraySize - 1;
+				newTopNode = currTopNode.Previous;
+			}
+			
+			TopInfo newTop = EncodeTop(newTopNode, newTopIndex, newTopTag);
+			T retVal = currTopNode.Data[currTopIndex];
+			if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
+				result = PopTopResult.Succeed;
+				return retVal;
+			}
+		}
+		
+		public T PopBottom(out PopTopResult result)
+		{
+			Node oldBotNode, newBotNode;
+			int oldBotIndex, newBotIndex;
+			DecodeBottom(bottom, out oldBotNode, oldBotIndex);
+			
+			if (oldBotIndex != ArraySize - 1) {
+				newBotNode = oldBotNode;
+				newBotIndex = oldBotIndex + 1;
+			} else {
+				newBotIndex = oldBotNode.Next;
+				newBotIndex = 0;
+			}
+			T retVal = newBotNode.Data[newBotIndex];
+			// It's ok to touch Bottom like this since only the thread owning DynamicDeque will touch bottom
+			bottom = EncodeBottom(newBotNode, newBotIndex);
+			
+			TopInfo currTop = top;
 			Node currTopNode;
 			int currTopIndex;
 			int currTopTag;
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
-		}
-		
-		public T PopBottom()
-		{
-			return default(T);
+			
+			// We are attempting to make Bottom cross over Top. Bad. Revert the last EncodeBottom
+			if (oldBotNode == currTopNode && oldBotIndex == currTopIndex) {
+				bottom = EncodeBottom(oldBotNode, oldBotIndex);
+				result = PopTopResult.Empty;
+				return null;
+			// Same as before but in the case of the updated bottom info
+			} else if (newBotNode == currTopNode && newBotIndex == currTopIndex) {
+				// We update top's tag to prevent a concurrent PopTop crossing over
+				TopInfo newTop = EncodeTop(currTopNode, currTopIndex, currTopTag + 1);
+				// If the CAS fails then it's already to late and we revert back the Bottom position like before to prevent
+				// the cross-over
+				if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
+					result = PopTopResult.Succeed;
+					return retVal;
+				} else {
+					bottom = EncodeBottom(oldBotNode, oldBotIndex);
+					result = PopTopResult.Empty;
+					return null;
+				}
+			} else {
+				result = PopTopResult.Succeed;
+				return retVal;
+			}
 		}
 		
 		void DecodeBottom(BottomInfo info, out Node node, out int index)
@@ -119,12 +188,19 @@ namespace System.Threading.Tasks
 			tag = info.TopTag;
 		}
 		
-		TopInfo EncodeBottom(Node node, int index, int tag)
+		TopInfo EncodeTop(Node node, int index, int tag)
 		{
 			BottomInfo temp = new BottomInfo();
 			temp.Bottom = node;
 			temp.BottomIndex = index;
 			return temp;
+		}
+		
+		// TODO: provides a correct impl. It should take care both of emptiness and cross-over
+		// http://en.wikipedia.org/wiki/ABA_problem#Workarounds
+		bool EmptinessTest(TopInfo topInfo, BottomInfo bottom)
+		{
+			return topInfo.TopTag != top.TopTag;
 		}
 	}
 }
