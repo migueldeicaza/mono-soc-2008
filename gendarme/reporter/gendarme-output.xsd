@@ -14,27 +14,27 @@
 
 	<xs:complexType name="filesType">
 		<xs:sequence>
-			<xs:element name="file" type="fileType" minOccurs="1"/>
+			<xs:element name="file" type="fileType" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
 	<xs:complexType name="rulesDescriptionType">
 		<xs:sequence>
-			<xs:element name="rule" type="ruleDescriptionType" minOccurs="1"/>
+			<xs:element name="rule" type="ruleDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
 	<xs:complexType name="resultsType">
 		<xs:sequence>
-			<xs:element name="rule" type="ruleType" minOccurs="0"/>
+			<xs:element name="rule" type="ruleType" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:complexType name="fileType">
+	<xs:complexType name="fileType" mixed="true">
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 	</xs:complexType>
 
-	<xs:complexType name="ruleDescriptionType">
+	<xs:complexType name="ruleDescriptionType" mixed="true">
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 		<xs:attribute name="Type" type="xs:string" use="required"/>
 		<xs:attribute name="Uri" type="xs:string" use="required"/>
@@ -44,7 +44,7 @@
 		<xs:sequence>
 			<xs:element name="problem" type="xs:string"/>
 			<xs:element name="solution" type="xs:string"/>
-			<xs:element name="target" type="targetType" minOccurs="1"/>
+			<xs:element name="target" type="targetType" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 		<xs:attribute name="Uri" type="xs:string" use="required"/>
@@ -52,13 +52,13 @@
 
 	<xs:complexType name="targetType">
 		<xs:sequence>
-			<xs:element name="defect" type="defectType" minOccurs="1"/>
+			<xs:element name="defect" type="defectType" minOccurs="1" maxOccurs="unbounded"/>
 		</xs:sequence>
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 		<xs:attribute name="Assembly" type="xs:string" use="required"/>
 	</xs:complexType>
 
-	<xs:complexType name="defectType">
+	<xs:complexType name="defectType" mixed="true">
 		<xs:attribute name="Severity" type="xs:string" use="required"/>
 		<xs:attribute name="Confidence" type="xs:string" use="required"/>
 		<xs:attribute name="Location" type="xs:string" use="required"/>
