@@ -30,17 +30,17 @@
 		</xs:sequence>
 	</xs:complexType>
 
-	<xs:simpleType name="fileType">
+	<xs:complexType name="fileType">
 		<xs:attribute name="Name" type="xs:string" use="required"/>
-	</xs:simpleType>
+	</xs:complexType>
 
-	<xs:simpleType name="ruleDescriptionType">
+	<xs:complexType name="ruleDescriptionType">
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 		<xs:attribute name="Type" type="xs:string" use="required"/>
 		<xs:attribute name="Uri" type="xs:string" use="required"/>
-	</xs:simpleType>
+	</xs:complexType>
 
-	<xs:complexType name="ruleType"/>
+	<xs:complexType name="ruleType">
 		<xs:sequence>
 			<xs:element name="problem" type="xs:string"/>
 			<xs:element name="solution" type="xs:string"/>
@@ -48,7 +48,7 @@
 		</xs:sequence>
 		<xs:attribute name="Name" type="xs:string" use="required"/>
 		<xs:attribute name="Uri" type="xs:string" use="required"/>
-	<xs:complexType>
+	</xs:complexType>
 
 	<xs:complexType name="targetType">
 		<xs:sequence>
@@ -58,10 +58,10 @@
 		<xs:attribute name="Assembly" type="xs:string" use="required"/>
 	</xs:complexType>
 
-	<xs:simpleType name="defectType">
+	<xs:complexType name="defectType">
 		<xs:attribute name="Severity" type="xs:string" use="required"/>
 		<xs:attribute name="Confidence" type="xs:string" use="required"/>
 		<xs:attribute name="Location" type="xs:string" use="required"/>
 		<xs:attribute name="Source" type="xs:string" use="required"/>
-	</xs:simpleType>
+	</xs:complexType>
 </xs:schema>
