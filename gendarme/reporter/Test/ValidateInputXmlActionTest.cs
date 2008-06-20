@@ -26,10 +26,34 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Xml.Linq;
 using NUnit.Framework;
 
 namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class ValidateInputXmlActionTest {
+		static readonly string validXmlFile = "Test/Fakes/06-18-2008.xml";
+		static readonly string invalidXmlFile = "Test/Fakes/06-18-2008-bad.xml";
+
+		private XDocument GetProcessedDocument (string fileName)
+		{
+			XDocument document = new XDocument (fileName);
+			Assert.IsNotNull (document);
+
+			document = new ValidateInputXmlAction ().Process (document);
+			return document;
+		}
+
+		[Test]
+		public void ValidXmlTest ()
+		{
+			Assert.IsNotNull (GetProcessedDocument (validXmlFile));
+		}
+
+		[Test]
+		public void InvalidXmlTest ()
+		{
+			Assert.IsNull (GetProcessedDocument (invalidXmlFile));
+		}
 	}
 }
