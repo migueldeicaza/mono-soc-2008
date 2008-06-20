@@ -62,6 +62,7 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void InvalidXmlTest ()
 		{
+			//TODO: How many errors have you found?
 			Assert.IsNull (GetProcessedDocument (invalidXmlFile));
 		}
 	}
