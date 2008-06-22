@@ -1,4 +1,4 @@
-// Commit.cs
+// RepositoryTest.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,23 +25,18 @@
 //
 
 using System;
+using Mono.Git.Repository;
 
-namespace Mono.Git.Core
+namespace Mono.Git.Tests
 {
 	/// <summary>
-	/// 
+	/// Repository related tests
 	/// </summary>
-	public class Commit : Object
+	public class RepositoryTest
 	{
-		private SHA1 parent;
-		private SHA1 tree;
-		
-		private string author;
-		private string commiter;
-		private string message;
-		
-		public Commit () : base (Type.Commit)
+		public RepositoryTest()
 		{
+			Repository.Repository.Init ("/usr/share/git-core/templates", ".git", null);
 		}
 	}
 }

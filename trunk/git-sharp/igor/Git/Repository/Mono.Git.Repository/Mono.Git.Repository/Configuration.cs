@@ -26,7 +26,7 @@
 
 using System;
 
-namespace Mono.Git.Core
+namespace Mono.Git.Repository
 {
 	/// <summary>
 	/// It holds all the user configuration
@@ -34,7 +34,7 @@ namespace Mono.Git.Core
 	public class Configuration
 	{
 		
-		public Configuration()
+		public Configuration ()
 		{
 		}
 	}

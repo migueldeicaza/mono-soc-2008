@@ -25,8 +25,9 @@
 //
 
 using System;
+using System.IO;
 
-namespace Mono.Git.Core
+namespace Mono.Git.Repository
 {
 	/// <summary>
 	/// It represent all the repository data
@@ -35,8 +36,62 @@ namespace Mono.Git.Core
 	{
 		private Configuration config;
 		
-		public Repository()
+		public Repository ()
 		{
+		}
+		
+		/// <summary>
+		/// Here we create a empty repository described here(in UNIX)
+		/// /usr/share/git-core/templates
+		/// </summary>
+		public static void Init (string templatePath, string repoPath, string permissions)
+		{
+			bool reinit = false;
+			DirectoryInfo target = new DirectoryInfo (repoPath);
+			DirectoryInfo source = new DirectoryInfo (templatePath);
+			
+			if (target.Exists) {
+				reinit = true;
+				target.Delete (true); // we also delete subdirectories
+			}
+			
+			target.Create ();
+			
+			CopyAll (source, target);
+			
+			if (reinit) {
+				Console.WriteLine ("Reinitialized directory in {0}", repoPath);
+			} else {
+				Console.WriteLine ("Initialized directory in {0}", repoPath);
+			}
+		}
+		
+		/// <summary>
+		/// Copy all the content of a directory to another
+		/// </summary>
+		/// <param name="source">
+		/// A source directory<see cref="DirectoryInfo"/>
+		/// </param>
+		/// <param name="target">
+		/// A target direcotory<see cref="DirectoryInfo"/>
+		/// </param>
+		public static void CopyAll (DirectoryInfo source, DirectoryInfo target)
+		{
+			// If the directory exists we create it
+			if (target.Exists == false) {
+				target.Create ();
+			}
+			
+			// We copy each file from source to target
+			foreach (FileInfo fi in source.GetFiles ()) {
+				fi.CopyTo (Path.Combine (target.ToString (), fi.Name), true);
+			}
+			
+			// Copy subdirs using.
+			foreach (DirectoryInfo sourceSubDir in source.GetDirectories ()) {
+				DirectoryInfo nextTargetSubDir = target.CreateSubdirectory (sourceSubDir.Name);
+				CopyAll (sourceSubDir, nextTargetSubDir);
+			}
 		}
 	}
 }
