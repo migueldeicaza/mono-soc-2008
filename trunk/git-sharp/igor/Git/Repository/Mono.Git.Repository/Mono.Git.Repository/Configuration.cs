@@ -1,4 +1,4 @@
-// Object.cs
+// Configuration.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -26,23 +26,15 @@
 
 using System;
 
-namespace GitSharp.Core
+namespace Mono.Git.Core
 {
 	/// <summary>
-	/// Contains the object types of Git
+	/// It holds all the user configuration
 	/// </summary>
-	public enum Types {
-		Blob,
-		Tree,
-		Commit,
-		Tag
-	}
-	/// <summary>
-	/// Class that holds the basic object information
-	/// </summary>
-	public class Object
+	public class Configuration
 	{
-		public Object()
+		
+		public Configuration()
 		{
 		}
 	}

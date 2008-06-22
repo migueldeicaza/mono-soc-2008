@@ -1,4 +1,4 @@
-// Test.cs
+// AssemblyInfo.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -23,18 +23,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-//
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
-using System;
+// Information about this assembly is defined by the following attributes. 
+// Change them to the values specific to your project.
 
-namespace GitSharp.Core
-{
-	public class Test
-	{
-		public static void Main (string [] args)
-		{
-			if (args.Length != 0)
-				Hash.Test (args);
-		}
-	}
-}
+[assembly: AssemblyTitle("Tests")]
+[assembly: AssemblyDescription("")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("")]
+[assembly: AssemblyCopyright("")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+
+// The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
+// If the build and revision are set to '*' they will be updated automatically.
+
+[assembly: AssemblyVersion("1.0.*.*")]
+
+// The following attributes are used to specify the signing key for the assembly, 
+// if desired. See the Mono documentation for more information about signing.
+
+[assembly: AssemblyDelaySign(false)]
+[assembly: AssemblyKeyFile("")]
