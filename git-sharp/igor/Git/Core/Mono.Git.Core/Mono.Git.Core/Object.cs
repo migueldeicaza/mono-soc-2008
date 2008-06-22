@@ -79,7 +79,7 @@ namespace Mono.Git.Core
 			}
 		}
 		
-		public Object(Type t)
+		public Object (Type t)
 		{
 			id.bytes = new byte[160];
 			type = t;

@@ -32,8 +32,16 @@ namespace Mono.Git.Tests
 	{
 		public static void Main (string[] args)
 		{
-			//new ObjectTest ();
-			new BlobTest ("a7efe6dbed6a3a0d73030134521c8b1048e6a7");
+			Console.WriteLine (args[0]);
+			
+			switch (args[0]) {
+			case "blob":
+				new BlobTest ("a7efe6dbed6a3a0d73030134521c8b1048e6a7");
+				break;
+			case "repo":
+				new RepositoryTest ();
+				break;
+			}
 		}
 	}
 }

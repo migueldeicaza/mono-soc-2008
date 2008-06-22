@@ -26,7 +26,7 @@
 
 using System;
 
-namespace Mono.Git.Core
+namespace Mono.Git.Repository
 {
 	/// <summary>
 	/// This class has all the information about the object store tipicaly
@@ -35,7 +35,7 @@ namespace Mono.Git.Core
 	public class ObjectStore
 	{
 		
-		public ObjectStore()
+		public ObjectStore ()
 		{
 		}
 	}
