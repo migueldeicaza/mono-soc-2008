@@ -11,7 +11,8 @@ reporter_sources = \
 	IAction.cs \
 	AddXSLProcessingInstructionAction.cs \
 	GenerateMasterIndexAction.cs \
-	ValidateInputXmlAction.cs
+	ValidateInputXmlAction.cs \
+	WriteToFileAction.cs
 
 reporter_resources = \
 	gendarme-output.xsd
