@@ -26,10 +26,29 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Xml.Linq;
+
 namespace Gendarme.Reporter {
 	public class Driver {
-		static void Main () 
+		static Pipeline GetDefaultPipeline ()
 		{
+			Pipeline pipeline = new Pipeline ();
+			pipeline.Append (new ValidateInputXmlAction ());
+			pipeline.Append (new GenerateMasterIndexAction ());
+			pipeline.Append (new WriteToFileAction ("master-index.xml"));
+			return pipeline;
+		}
+
+		static void Main (string[] args) 
+		{
+			if (args.Length != 1) {
+				Console.WriteLine ("usage: reporter.exe inputfile");
+				return;
+			}
+			Pipeline pipeline = GetDefaultPipeline ();
+			XDocument original = XDocument.Load (args[0]);
+			pipeline.ApplyActions (original);
 		}
 	}
 }
