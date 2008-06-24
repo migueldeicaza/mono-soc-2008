@@ -30,6 +30,13 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class WriteToFileAction : IAction {
+		string destinationFile;
+
+		public WriteToFileAction (string destinationFile)
+		{
+			this.destinationFile = destinationFile;
+		}
+
 		public XDocument Process (XDocument document)
 		{
 			return document;
