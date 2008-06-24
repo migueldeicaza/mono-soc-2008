@@ -79,12 +79,21 @@ namespace System.Threading.Collections
 		/// <summary>
 		/// </summary>
 		/// <returns></returns>
-		// FIXME: Same as TryPop in ConcurrentStack. WTF with the Try ?
 		public bool TryDequeue(out T value)
 		{
+			if (IsEmpty) {
+				value = default(T);
+				return false;
+			}
+			
 			Node temp;
 			do {
 				temp = head.Next;
+				// No more item in the queue
+				if (temp == null) {
+					value = default(T);
+					return false;
+				}	
 			} while (Interlocked.CompareExchange<Node>(ref head.Next, temp.Next, temp) != temp);
 			
 			Interlocked.Decrement(ref count);
@@ -98,6 +107,11 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryPeek(out T value)
 		{
+			if (IsEmpty) {
+				value = default(T);
+				return false;
+			}
+			
 			Node first = head.Next;
 			value = first.Value;
 			return true;

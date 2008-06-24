@@ -43,7 +43,7 @@ namespace System.Threading.Tasks
 		
 		public event EventHandler Completed;
 			
-		public Task()
+		internal Task()
 		{
 		}
 		

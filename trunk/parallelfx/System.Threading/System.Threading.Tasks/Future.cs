@@ -90,7 +90,7 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		private Future()
+		internal Future()
 		{
 		}
 		

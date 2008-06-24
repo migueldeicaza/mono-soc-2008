@@ -94,6 +94,17 @@ namespace ParallelFxTests
 			Assert.IsTrue(value == 8, "#2 : " + value);
 		}
 		
+		[Test()]
+		public void TryPopEmptyTestCase()
+		{
+			int value;
+			stack.Clear();
+			stack.Push(1);
+			Assert.IsTrue(stack.TryPop(out value), "#1");
+			Assert.IsFalse(stack.TryPop(out value), "#2");
+			Assert.IsTrue(stack.IsEmpty, "#3");
+		}
+		
 		[Test]
 		public void ToArrayTest()
 		{

@@ -27,7 +27,7 @@ using System.Threading;
 
 namespace System.Threading.Tasks
 {
-	internal enum PopTopResult	{
+	internal enum PopResult	{
 		Succeed,
 		Empty,
 		Abort
@@ -82,7 +82,7 @@ namespace System.Threading.Tasks
 			bottom = EncodeBottom(newNode, newIndex);
 		}
 		
-		public T PopTop(out PopTopResult result)
+		public PopResult PopTop(out T result)
 		{
 			TopInfo    currTop = top;
 			BottomInfo currBottom =  bottom;
@@ -94,11 +94,11 @@ namespace System.Threading.Tasks
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
 			
 			if (EmptinessTest(currTop, currBottom)) {
+				result = null;
 				if (currTop == top) 
-					result = PopTopResult.Empty;
+					return PopResult.Empty;
 				else
-					result = PopTopResult.Abort;
-				return null;
+					return PopResult.Abort;
 			}
 			
 			if (currTopIndex != 0) {
@@ -114,22 +114,24 @@ namespace System.Threading.Tasks
 			TopInfo newTop = EncodeTop(newTopNode, newTopIndex, newTopTag);
 			T retVal = currTopNode.Data[currTopIndex];
 			if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
-				result = PopTopResult.Succeed;
-				return retVal;
+				result = retVal;
+				return PopResult.Succeed;
 			}
+			result = null;
+			return PopResult.Abort;
 		}
 		
-		public T PopBottom(out PopTopResult result)
+		public PopResult PopBottom(out T result)
 		{
 			Node oldBotNode, newBotNode;
 			int oldBotIndex, newBotIndex;
-			DecodeBottom(bottom, out oldBotNode, oldBotIndex);
+			DecodeBottom(bottom, out oldBotNode, out oldBotIndex);
 			
 			if (oldBotIndex != ArraySize - 1) {
 				newBotNode = oldBotNode;
 				newBotIndex = oldBotIndex + 1;
 			} else {
-				newBotIndex = oldBotNode.Next;
+				newBotNode = oldBotNode.Next;
 				newBotIndex = 0;
 			}
 			T retVal = newBotNode.Data[newBotIndex];
@@ -145,8 +147,8 @@ namespace System.Threading.Tasks
 			// We are attempting to make Bottom cross over Top. Bad. Revert the last EncodeBottom
 			if (oldBotNode == currTopNode && oldBotIndex == currTopIndex) {
 				bottom = EncodeBottom(oldBotNode, oldBotIndex);
-				result = PopTopResult.Empty;
-				return null;
+				result = null;
+				return PopResult.Empty;
 			// Same as before but in the case of the updated bottom info
 			} else if (newBotNode == currTopNode && newBotIndex == currTopIndex) {
 				// We update top's tag to prevent a concurrent PopTop crossing over
@@ -154,16 +156,16 @@ namespace System.Threading.Tasks
 				// If the CAS fails then it's already to late and we revert back the Bottom position like before to prevent
 				// the cross-over
 				if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
-					result = PopTopResult.Succeed;
-					return retVal;
+					result = retVal;
+					return PopResult.Succeed;
 				} else {
 					bottom = EncodeBottom(oldBotNode, oldBotIndex);
-					result = PopTopResult.Empty;
-					return null;
+					result = null;
+					return PopResult.Empty;
 				}
 			} else {
-				result = PopTopResult.Succeed;
-				return retVal;
+				result = retVal;
+				return PopResult.Succeed;
 			}
 		}
 		
@@ -190,9 +192,9 @@ namespace System.Threading.Tasks
 		
 		TopInfo EncodeTop(Node node, int index, int tag)
 		{
-			BottomInfo temp = new BottomInfo();
-			temp.Bottom = node;
-			temp.BottomIndex = index;
+			TopInfo temp = new TopInfo();
+			temp.Top = node;
+			temp.TopIndex = index;
 			return temp;
 		}
 		

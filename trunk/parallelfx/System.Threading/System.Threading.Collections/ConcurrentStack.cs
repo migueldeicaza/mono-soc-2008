@@ -69,7 +69,6 @@ namespace System.Threading.Collections
 		/// <summary>
 		/// </summary>
 		/// <returns></returns>
-		// The doc seems to say that we should remove the do ... while. Stupid ?
 		public bool TryPop(out T value)
 		{
 			if (IsEmpty) {
@@ -80,6 +79,11 @@ namespace System.Threading.Collections
 			Node temp;// = Interlocked.Exchange(ref head, head.Next);
 			do {
 				temp = head;
+				// A thread which caused a contention let the stack empty
+				if (temp == null) {
+					value = default(T);
+					return false;
+				}
 			} while (Interlocked.CompareExchange<Node>(ref head, temp.Next, temp) != temp);
 			
 			Interlocked.Decrement(ref count);
@@ -188,7 +192,7 @@ namespace System.Threading.Collections
 		
 		public bool IsEmpty {
 			get {
-				return Count == 0;
+				return count == 0;
 			}
 		}
 	}
