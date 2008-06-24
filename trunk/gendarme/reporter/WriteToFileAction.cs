@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
@@ -39,6 +40,8 @@ namespace Gendarme.Reporter {
 
 		public XDocument Process (XDocument document)
 		{
+			using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
+				document.Save (writer);
 			return document;
 		}
 	}
