@@ -26,10 +26,34 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.IO;
+using System.Xml.Linq;
 using NUnit.Framework;
 
 namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class WriteToFileActionTest {
+		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";
+		static readonly string destinationFile = "new-generated.xml";
+
+		private XDocument GetProcessedDocument ()
+		{
+			XDocument document = XDocument.Load (xmlFile);
+			Assert.IsNotNull (document);
+
+			document = new WriteToFileAction (destinationFile).Process (document);
+			Assert.IsNotNull (document);
+			return document;
+		}
+
+		[Test]
+		public void GenerateNewFileTest ()
+		{
+			XDocument document = GetProcessedDocument ();
+			Assert.IsTrue (File.Exists (destinationFile));	
+
+			XDocument newDocument = XDocument.Load (destinationFile);
+			Assert.AreEqual (document.ToString (), newDocument.ToString ());
+		}
 	}
 }
