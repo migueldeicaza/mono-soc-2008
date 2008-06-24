@@ -28,6 +28,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	//What a wonderful methaphor found in the Mono.Linker!
@@ -46,6 +47,13 @@ namespace Gendarme.Reporter {
 		{
 			return actions.ToArray ();
 		}
-
+		
+		public XDocument ApplyActions (XDocument document)
+		{
+			XDocument result = document;
+			foreach (IAction action in actions) 
+				result = action.Process (result);
+			return result;
+		}
 	}
 }
