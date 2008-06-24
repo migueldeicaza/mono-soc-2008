@@ -2,9 +2,11 @@
 
 MONO_PREFIX=/home/nestor/opt/mono
 PATH=$MONO_PREFIX/bin:$PATH
-REPORT_PATH=./2.0-reports
 
 MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
 FAST_MONO_ASSEMBLIES=$MONO_ASSEMBLIES/mscorlib.dll
 
-gendarme --config rules-net_2_0.xml --set net_2_0 $assembly --xml=`date +%m-%d-%Y`.xml $MONO_ASSEMBLIES/*.dll
+export MONO_OPTIONS=--debug
+
+gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date +%m-%d-%Y`-classlib_2_0.xml $MONO_ASSEMBLIES/*.dll
+gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date +%m-%d-%Y`-tools_2_0.xml $MONO_ASSEMBLIES/*.exe
