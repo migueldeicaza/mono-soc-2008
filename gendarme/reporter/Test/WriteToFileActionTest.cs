@@ -46,6 +46,24 @@ namespace Gendarme.Reporter.Test {
 			return document;
 		}
 
+		private void RemoveGenerated ()
+		{
+			if (File.Exists (destinationFile))
+				File.Delete (destinationFile);
+		}
+
+		[TestFixtureSetUp]
+		public void FixtureSetUp ()
+		{
+			RemoveGenerated ();	
+		}
+
+		[TestFixtureTearDown]
+		public void FixtureTearDown ()
+		{
+			RemoveGenerated ();
+		}
+
 		[Test]
 		public void GenerateNewFileTest ()
 		{
