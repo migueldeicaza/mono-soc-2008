@@ -21,7 +21,8 @@ reporter_test_sources = \
 	PipelineTest.cs \
 	AddXSLProcessingInstructionActionTest.cs\
 	GenerateMasterIndexActionTest.cs \
-	ValidateInputXmlActionTest.cs
+	ValidateInputXmlActionTest.cs \
+	WriteToFileActionTest.cs
 
 reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
 reporter_test_build_sources = $(addprefix $(srcdir)/Test/, $(reporter_test_sources))
