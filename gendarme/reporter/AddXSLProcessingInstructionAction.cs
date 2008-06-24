@@ -31,13 +31,32 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class AddXSLProcessingInstructionAction : IAction {
+		string xslReference;
+
+		public AddXSLProcessingInstructionAction (string xslReference)
+		{
+			this.xslReference = xslReference;
+		}
+
 		public XDocument Process (XDocument document)
 		{
 			XDocument newDocument = new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
-				new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"),
+				new XProcessingInstruction ("xml-stylesheet", String.Format ("type='text/xsl' href='{0}'", xslReference)),
 				document.Root);
 
 			return newDocument;
+		}
+		
+		public static AddXSLProcessingInstructionAction GendarmeStyle {
+			get {
+				return new AddXSLProcessingInstructionAction ("gendarme.xsl");
+			}
+		}
+
+		public static AddXSLProcessingInstructionAction MasterStyle {
+			get {
+				return new AddXSLProcessingInstructionAction ("master.xsl");
+			}
 		}
 	}
 }
