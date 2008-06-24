@@ -31,14 +31,15 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class Driver {
-		static Pipeline GetDefaultPipeline ()
-		{
-			Pipeline pipeline = new Pipeline ();
-			pipeline.Append (new ValidateInputXmlAction ());
-			pipeline.Append (new GenerateMasterIndexAction ());
-			pipeline.Append (AddXSLProcessingInstructionAction.MasterStyle);
-			pipeline.Append (new WriteToFileAction ("master-index.xml"));
-			return pipeline;
+		static Pipeline DefaultPipeline {
+			get {
+				Pipeline pipeline = new Pipeline ();
+				pipeline.Append (new ValidateInputXmlAction ());
+				pipeline.Append (new GenerateMasterIndexAction ());
+				pipeline.Append (AddXSLProcessingInstructionAction.MasterStyle);
+				pipeline.Append (new WriteToFileAction ("master-index.xml"));
+				return pipeline;
+			}
 		}
 
 		static void Main (string[] args) 
@@ -47,9 +48,8 @@ namespace Gendarme.Reporter {
 				Console.WriteLine ("usage: reporter.exe inputfile");
 				return;
 			}
-			Pipeline pipeline = GetDefaultPipeline ();
 			XDocument original = XDocument.Load (args[0]);
-			pipeline.ApplyActions (original);
+			DefaultPipeline.ApplyActions (original);
 		}
 	}
 }
