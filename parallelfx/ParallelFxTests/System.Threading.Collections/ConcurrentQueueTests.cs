@@ -97,6 +97,17 @@ namespace ParallelFxTests
 			Assert.IsTrue(value == 1, "#2 : " + value);
 		}
 		
+		[Test()]
+		public void TryDequeueEmptyTestCase()
+		{
+			int value;
+			queue.Clear();
+			queue.Enqueue(1);
+			Assert.IsTrue(queue.TryDequeue(out value), "#1");
+			Assert.IsFalse(queue.TryDequeue(out value), "#2");
+			Assert.IsTrue(queue.IsEmpty, "#3");
+		}
+		
 		[Test]
 		public void ToArrayTest()
 		{

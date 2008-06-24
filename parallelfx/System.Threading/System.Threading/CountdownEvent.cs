@@ -29,12 +29,12 @@ namespace System.Threading
 {	
 	public class CountdownEvent: ISupportsCancellation, IDisposable
 	{
-		int cout;
+		int count;
 		readonly int initial;
 		
 		public CountdownEvent(int count)
 		{
-			this.initial = this.cout = count;
+			this.initial = this.count = count;
 		}
 		
 		public void Decrement()
@@ -103,11 +103,12 @@ namespace System.Threading
 				}
 				wait.SpinOnce();
 			}
+			return true;
 		}
 		
 		public bool Wait(TimeSpan span)
 		{
-			return Wait(span.TotalMilliseconds);
+			return Wait((int)span.TotalMilliseconds);
 		}
 		
 		public int CurrentCount {
