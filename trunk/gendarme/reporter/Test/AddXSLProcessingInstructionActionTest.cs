@@ -44,7 +44,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
-			document = new AddXSLProcessingInstructionAction ().Process (document);	
+			document = AddXSLProcessingInstructionAction.GendarmeStyle.Process (document);	
 			Assert.IsNotNull (document);
 			return document;
 		}
@@ -79,7 +79,7 @@ namespace Gendarme.Reporter.Test {
 		public void SkipOnAlreadyAddedTest ()
 		{
 			XDocument document = GetProcessedDocument ();
-			document = new AddXSLProcessingInstructionAction ().Process (document);
+			document = AddXSLProcessingInstructionAction.GendarmeStyle.Process (document);
 
 			var query = from element in document.Nodes ()
 				where element is XProcessingInstruction
