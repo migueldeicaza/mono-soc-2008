@@ -45,13 +45,18 @@ namespace Gendarme.Reporter {
 				new XAttribute ("date", data.Attribute ("date").Value));
 		}
 
+		private static string GetShortAssemblyName (XAttribute attribute)
+		{
+			return attribute.Value.Split (',')[0];
+		}
+
 		//TODO: Perhaps Linq ...
 		private int CountDefects (string assemblyName, string severity)
 		{
 			int counter = 0;
 			foreach (XElement rule in originalDocument.Root.Element ("results").Elements ()) 
 				foreach (XElement target in rule.Elements ("target")) 
-					if (String.Compare (target.Attribute ("Assembly").Value.Split (',')[0], assemblyName) == 0) 
+					if (String.Compare (GetShortAssemblyName (target.Attribute ("Assembly")), assemblyName) == 0) 
 						foreach (XElement defect in target.Elements ()) 
 							if (String.Compare (defect.Attribute ("Severity").Value, severity) == 0)
 								counter++;
@@ -63,11 +68,11 @@ namespace Gendarme.Reporter {
 			return new XElement ("assemblies", 
 				from file in files.Elements ()
 				select new XElement ("assembly",
-					new XAttribute ("shortname", file.Attribute ("Name").Value.Split (',')[0]),
-					new XAttribute ("critical", CountDefects (file.Attribute ("Name").Value.Split (',')[0], "Critical")),		
-					new XAttribute ("high", CountDefects (file.Attribute ("Name").Value.Split (',')[0], "High")),
-					new XAttribute ("medium", CountDefects (file.Attribute ("Name").Value.Split (',')[0], "Medium")),
-					new XAttribute ("low", CountDefects (file.Attribute ("Name").Value.Split (',')[0], "Low"))
+					new XAttribute ("shortname", GetShortAssemblyName (file.Attribute ("Name"))),
+					new XAttribute ("critical", CountDefects (GetShortAssemblyName (file.Attribute ("Name")), "Critical")),		
+					new XAttribute ("high", CountDefects (GetShortAssemblyName (file.Attribute ("Name")), "High")),
+					new XAttribute ("medium", CountDefects (GetShortAssemblyName (file.Attribute ("Name")), "Medium")),
+					new XAttribute ("low", CountDefects (GetShortAssemblyName (file.Attribute ("Name")), "Low"))
 			));	
 		}
 
