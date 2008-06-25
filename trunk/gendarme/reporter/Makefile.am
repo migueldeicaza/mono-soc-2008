@@ -2,7 +2,7 @@ reporterdir = $(pkglibdir)
 reporter_SCRIPTS = reporter.exe 
 reporter_DATA = 
 EXTRA_DIST = 
-CLEANFILES = reporter.exe Test.Reporter.dll 
+CLEANFILES = reporter.exe Test.Reporter.dll *.mdb TestResult.xml 
 DISTCLEANFILES = Makefile.in TestResult.xml
 
 reporter_sources = \
