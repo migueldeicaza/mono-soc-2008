@@ -69,6 +69,10 @@ namespace Gendarme.Reporter {
 					)) 
 			);
 
+			foreach (XElement rule in document.Root.Element ("results").Elements ()) 
+				if (rule.Elements ("target").Count () <= 0)
+					rule.Remove ();
+
 			return document;
 		}
 
