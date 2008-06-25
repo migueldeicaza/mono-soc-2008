@@ -12,7 +12,8 @@ reporter_sources = \
 	AddXSLProcessingInstructionAction.cs \
 	GenerateMasterIndexAction.cs \
 	ValidateInputXmlAction.cs \
-	WriteToFileAction.cs
+	WriteToFileAction.cs \
+	GenerateDefectsPerAssemblyAction.cs
 
 reporter_resources = \
 	gendarme-output.xsd
@@ -22,7 +23,8 @@ reporter_test_sources = \
 	AddXSLProcessingInstructionActionTest.cs\
 	GenerateMasterIndexActionTest.cs \
 	ValidateInputXmlActionTest.cs \
-	WriteToFileActionTest.cs
+	WriteToFileActionTest.cs \
+	GenerateDefectsPerAssemblyActionTest.cs
 
 reporter_build_sources = $(addprefix $(srcdir)/, $(reporter_sources))
 reporter_test_build_sources = $(addprefix $(srcdir)/Test/, $(reporter_test_sources))
