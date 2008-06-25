@@ -29,7 +29,9 @@
 				<th>Low</th>
 				<xsl:for-each select="assemblies/assembly">
 					<tr>
-					<xsl:value-of select="@shortname"/>
+					<a href="{@shortname}.xml">
+						<xsl:value-of select="@shortname"/>
+					</a>
 						<td><xsl:value-of select="@critical"/></td>
 						<td><xsl:value-of select="@high"/></td>
 						<td><xsl:value-of select="@medium"/></td>
