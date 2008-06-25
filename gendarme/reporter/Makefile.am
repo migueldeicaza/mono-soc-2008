@@ -39,7 +39,7 @@ Test.Reporter.dll: $(reporter_test_build_sources) reporter.exe
 test: Test.Reporter.dll
 
 run-test: test
-	nunit-console2 Test.Reporter.dll
+	nunit-console2 /xml=TestResult Test.Reporter.dll
 
 run-gendarme: reporter.exe
 	gendarme reporter.exe 
