@@ -100,5 +100,13 @@ namespace Gendarme.Reporter.Test {
 			
 			return counter;
 		}
+
+		[Test]
+		public void ResultSectionWithoutTargetsTest ()
+		{
+			XDocument document = XDocument.Load (sampleGeneratedFile);
+			foreach (XElement rule in document.Root.Element ("results").Elements ())
+				Assert.IsTrue (0 > rule.Elements ("target").Count (), "Shouldn't be rules without targets");
+		}
 	}
 }
