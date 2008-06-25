@@ -69,8 +69,17 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void FilesSectionTest ()
 		{
+			//Only one file per xml file
 			XDocument document = XDocument.Load (sampleGeneratedFile);
 			Assert.AreEqual (1, document.Root.Element ("files").Elements ().Count ());		
+		}
+
+		[Test]
+		public void RulesSectionTest ()
+		{
+			//All rules in all xml files.
+			XDocument document = XDocument.Load (sampleGeneratedFile);
+			Assert.AreEqual (19, document.Root.Element ("rules").Elements ().Count ());
 		}
 	}
 }
