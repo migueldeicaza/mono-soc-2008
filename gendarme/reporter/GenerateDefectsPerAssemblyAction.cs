@@ -53,6 +53,25 @@ namespace Gendarme.Reporter {
 				new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"));
 		}
 
+		private XDocument AddResultsSection (XDocument document, string assemblyName, XElement results)
+		{
+			document.Root.Add (new XElement ("results", 
+				from rule in results.Elements ()
+				select 
+					new XElement ("rule", 
+					new XAttribute ("Name", rule.Attribute ("Name").Value),
+					new XAttribute ("Uri", rule.Attribute ("Uri").Value),
+					new XElement ("problem", new XText (rule.Element ("problem").Value)),
+					new XElement ("solution", new XText (rule.Element ("solution").Value)),
+						from target in rule.Elements ("target")
+						where target.Attribute ("Assembly").Value.Split (',')[0] == assemblyName
+						select target
+					)) 
+			);
+
+			return document;
+		}
+
 		public XDocument Process (XDocument document)
 		{
 			var filesToWrite = from file in document.Root.Element ("files").Elements ()
@@ -65,7 +84,8 @@ namespace Gendarme.Reporter {
 				generatedDocument.Add (new XElement ("gendarme-output", new XAttribute ("date", document.Root.Attribute("date").Value)));
 				generatedDocument = AddFilesSection (generatedDocument, file, document.Root.Element ("files"));
 				generatedDocument.Root.Add (document.Root.Element ("rules"));
-
+				generatedDocument = AddResultsSection (generatedDocument, file, document.Root.Element ("results"));
+			
 				new WriteToFileAction (String.Format ("{0}.xml", file)).Process (generatedDocument);
 			}
 

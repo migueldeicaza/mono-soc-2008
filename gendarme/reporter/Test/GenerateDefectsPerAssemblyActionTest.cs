@@ -81,5 +81,24 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (sampleGeneratedFile);
 			Assert.AreEqual (19, document.Root.Element ("rules").Elements ().Count ());
 		}
+
+		[Test]
+		public void ResultSectionTest ()
+		{
+			XDocument document = XDocument.Load (sampleGeneratedFile);
+			Assert.AreEqual (18, CountDefects (document));
+		}
+
+		private int CountDefects (XDocument document)
+		{
+			int counter = 0;
+			
+			foreach (XElement rule in document.Root.Element ("results").Elements ()) 
+				foreach (XElement target in rule.Elements ("target")) 
+					foreach (XElement defect in target.Elements ("defect")) 
+						counter++;
+			
+			return counter;
+		}
 	}
 }
