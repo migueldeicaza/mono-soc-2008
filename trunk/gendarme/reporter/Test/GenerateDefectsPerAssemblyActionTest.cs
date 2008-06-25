@@ -62,6 +62,7 @@ namespace Gendarme.Reporter.Test {
 		public void WrittenFilesTest ()
 		{
 			Assert.IsTrue (File.Exists (sampleGeneratedFile));
+			Assert.AreEqual (72, Directory.GetFiles (Directory.GetCurrentDirectory (), "*.xml").Length);
 		}
 
 		[Test]
