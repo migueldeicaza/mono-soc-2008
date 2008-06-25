@@ -27,6 +27,7 @@
 //
 
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using NUnit.Framework;
 
@@ -66,9 +67,10 @@ namespace Gendarme.Reporter.Test {
 		}
 
 		[Test]
-		public void ContentTest ()
+		public void FilesSectionTest ()
 		{
-				
+			XDocument document = XDocument.Load (sampleGeneratedFile);
+			Assert.AreEqual (1, document.Root.Element ("files").Elements ().Count ());		
 		}
 	}
 }
