@@ -31,10 +31,10 @@ reporter_test_build_sources = $(addprefix $(srcdir)/Test/, $(reporter_test_sourc
 reporter_build_resources = $(foreach res, $(reporter_resources), $(addprefix -resource:,$(res)),$(notdir $(res)))
 
 reporter.exe: $(reporter_build_sources) $(reporter_resources) 
-	$(GMCS) -target:exe -r:System.Xml.Linq $(reporter_build_resources) -out:$@ $(reporter_build_sources)
+	$(GMCS) -target:exe -debug -r:System.Xml.Linq $(reporter_build_resources) -out:$@ $(reporter_build_sources)
 
 Test.Reporter.dll: $(reporter_test_build_sources) reporter.exe
-	$(GMCS) -target:library -pkg:mono-nunit -r:reporter.exe -r:System.Xml.Linq -out:$@ $(reporter_test_build_sources)
+	$(GMCS) -target:library -debug -pkg:mono-nunit -r:reporter.exe -r:System.Xml.Linq -out:$@ $(reporter_test_build_sources)
 
 test: Test.Reporter.dll
 
