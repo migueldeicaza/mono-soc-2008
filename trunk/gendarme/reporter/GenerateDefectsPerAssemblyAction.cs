@@ -26,12 +26,49 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class GenerateDefectsPerAssemblyAction : IAction {
+
+		private XDocument AddFilesSection (XDocument generated, string assemblyName, XElement filesSection)
+		{
+			generated.Root.Add (new XElement ("files", 
+				from file in filesSection.Elements ()
+				where file.Attribute ("Name").Value.StartsWith (assemblyName)
+				select new XElement ("file", 
+					new XAttribute ("Name", file.Attribute ("Name")),
+					new XText (file.Value))));
+			return generated;
+		}
+
+
+		private XDocument CreateDocument ()
+		{
+			return new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
+				new XProcessingInstruction ("xml-stylesheet", "type='text/xsl' href='gendarme.xsl'"));
+		}
+
 		public XDocument Process (XDocument document)
 		{
+			var filesToWrite = from file in document.Root.Element ("files").Elements ()
+				select file.Attribute ("Name").Value.Split (',')[0];
+			
+			foreach (var file in filesToWrite) {
+				XDocument generatedDocument = CreateDocument ();
+				//TODO: Extrac some methods in order to preserve
+				//the coherence
+				generatedDocument.Add (new XElement ("gendarme-output", new XAttribute ("date", document.Root.Attribute("date").Value)));
+				generatedDocument = AddFilesSection (generatedDocument, file, document.Root.Element ("files"));
+				generatedDocument.Root.Add (document.Root.Element ("rules"));
+
+				new WriteToFileAction (String.Format ("{0}.xml", file)).Process (generatedDocument);
+			}
+
 			return document;
 		}
 	}
