@@ -35,6 +35,7 @@ namespace Gendarme.Reporter {
 			get {
 				Pipeline pipeline = new Pipeline ();
 				pipeline.Append (new ValidateInputXmlAction ());
+				pipeline.Append (new GenerateDefectsPerAssemblyAction ());
 				pipeline.Append (new GenerateMasterIndexAction ());
 				pipeline.Append (AddXSLProcessingInstructionAction.MasterStyle);
 				pipeline.Append (new WriteToFileAction ("master-index.xml"));
