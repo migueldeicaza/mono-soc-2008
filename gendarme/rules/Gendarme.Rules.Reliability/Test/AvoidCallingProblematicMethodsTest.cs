@@ -167,7 +167,7 @@ namespace Test.Rules.Reliability {
 
 		public void MethodWithAssemblyLoadWithPartialNameCall ()
 		{
-			Assembly myAssembly = Assembly.LoadFile ("MyAssembly");
+			Assembly myAssembly = Assembly.LoadWithPartialName ("MyAssembly");
 		}
 
 		[Test]
