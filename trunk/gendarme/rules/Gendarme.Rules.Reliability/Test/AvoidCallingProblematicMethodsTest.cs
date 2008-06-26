@@ -27,6 +27,9 @@
 //
 
 using System;
+using System.Globalization;
+using System.Configuration.Assemblies;
+using System.Security.Policy;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
@@ -60,12 +63,13 @@ namespace Test.Rules.Reliability {
 			list.Add ("bar");
 			list = null;
 			GC.Collect ();
+			GC.Collect (1);
 		}
 
 		[Test]
 		public void MethodWithGCCallTest ()
 		{
-			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithGCCall");
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithGCCall", 2);
 		}
 
 		public void MethodWithThreadSuspendCall ()
@@ -101,17 +105,22 @@ namespace Test.Rules.Reliability {
 		public void MethodWithInvokeMemberWithPrivateFlagsCall ()
 		{
 			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
 		}
 
 		[Test]
 		public void MethodWithInvokeMemberWithPrivateFlagsCallTest ()
 		{
-			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithInvokeMemberWithPrivateFlagsCall");
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithInvokeMemberWithPrivateFlagsCall", 3);
 		}
 
 		public void MethodWithInvokeMemberWithoutPrivateFlagsCall ()
 		{
 			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
+
 		}
 
 		[Test]
@@ -145,35 +154,41 @@ namespace Test.Rules.Reliability {
 
 		public void MethodWithAssemblyLoadFromCall ()
 		{
-			Assembly myAssembly = Assembly.LoadFrom ("myAssembly.dll");	
+			Assembly.LoadFrom ("myAssembly.dll");	
+			Assembly.LoadFrom ("myAssembly.dll", new Evidence ());
+			Assembly.LoadFrom ("myAssembly.dll", new Evidence (), null, AssemblyHashAlgorithm.None);
+
 		}
 
 		[Test]
 		public void MethodWithAssemblyLoadFromCallTest ()
 		{
-			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFromCall");
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFromCall", 3);
 		}
 
 		public void MethodWithAssemblyLoadFileCall ()
 		{
-			Assembly myAssembly = Assembly.LoadFile ("myAssembly.dll");
+			Assembly.LoadFile ("myAssembly.dll");
+			Assembly.LoadFile ("myAssembly.dll", new Evidence ());
+
 		}
 
 		[Test]
 		public void MethodWithAssemblyLoadFileCallTest ()
 		{
-			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFileCall");
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFileCall", 2);
 		}
 
 		public void MethodWithAssemblyLoadWithPartialNameCall ()
 		{
-			Assembly myAssembly = Assembly.LoadWithPartialName ("MyAssembly");
+			Assembly.LoadWithPartialName ("MyAssembly");
+			Assembly.LoadWithPartialName ("MyAssembly", new Evidence ());
 		}
 
 		[Test]
 		public void MethodWithAssemblyLoadWithPartialNameCallTest ()
 		{
-			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadWithPartialNameCall");
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadWithPartialNameCall", 2);
 		}
 
 		public void MethodWithouAnyDangerousCall ()
