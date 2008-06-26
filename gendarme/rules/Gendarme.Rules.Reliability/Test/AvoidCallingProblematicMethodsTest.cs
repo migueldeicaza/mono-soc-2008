@@ -26,6 +26,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System.Threading;
+using Microsoft.Win32.SafeHandles;
 using Gendarme.Rules.Reliability;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -47,6 +53,128 @@ namespace Test.Rules.Reliability {
 			AssertRuleSuccess<SimpleMethods> ("DoNothing");
 		}
 
+		public void MethodWithGCCall ()
+		{
+			List<string> list = new List<string> ();
+			list.Add ("foo");
+			list.Add ("bar");
+			list = null;
+			GC.Collect ();
+		}
+
+		[Test]
+		public void MethodWithGCCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithGCCall");
+		}
+
+		public void MethodWithThreadSuspendCall ()
+		{
+			Thread thread = new Thread (delegate () {
+				Console.WriteLine ("Stupid code");
+			});
+
+			thread.Suspend ();
+		}
+
+		[Test]
+		public void MethodWithThreadSuspendCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithThreadSuspendCall");
+		}
+
+		public void MethodWithThreadResumeCall ()
+		{
+			Thread thread = new Thread (delegate () {
+				Console.WriteLine ("Useless code");
+			});
+
+			thread.Resume ();
+		}
+
+		[Test]
+		public void MethodWithThreadResumeCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithThreadResumeCall");
+		}
+
+		public void MethodWithInvokeMemberWithPrivateFlagsCall ()
+		{
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes);
+		}
+
+		[Test]
+		public void MethodWithInvokeMemberWithPrivateFlagsCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithInvokeMemberWithPrivateFlagsCall");
+		}
+
+		public void MethodWithInvokeMemberWithoutPrivateFlagsCall ()
+		{
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes);
+		}
+
+		[Test]
+		public void MethodWithInvokeMemberWithoutPrivateFlagsCallTest ()
+		{
+			AssertRuleSuccess<AvoidCallingProblematicMethodsTest> ("MethodWithInvokeMemberWithoutPrivateFlagsCall");
+		}
+		
+		private class MySafeHandle : SafeHandleZeroOrMinusOneIsInvalid {
+			public MySafeHandle () : base (true)
+			{
+			}
+
+			protected override bool ReleaseHandle () 
+			{
+				return true;
+			}
+		}
+
+		public void MethodWithSafeHandleDangerousGetHandleCall ()
+		{
+			MySafeHandle myHandle = new MySafeHandle ();
+			IntPtr handlePtr = myHandle.DangerousGetHandle ();
+		}
+
+		[Test]
+		public void MethodWithSafeHandleDangerousGetHandleCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithSafeHandleDangerousGetHandleCall");
+		}
+
+		public void MethodWithAssemblyLoadFromCall ()
+		{
+			Assembly myAssembly = Assembly.LoadFrom ("myAssembly.dll");	
+		}
+
+		[Test]
+		public void MethodWithAssemblyLoadFromCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFromCall");
+		}
+
+		public void MethodWithAssemblyLoadFileCall ()
+		{
+			Assembly myAssembly = Assembly.LoadFile ("myAssembly.dll");
+		}
+
+		[Test]
+		public void MethodWithAssemblyLoadFileCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadFileCall");
+		}
+
+		public void MethodWithAssemblyLoadWithPartialNameCall ()
+		{
+			Assembly myAssembly = Assembly.LoadFile ("MyAssembly");
+		}
+
+		[Test]
+		public void MethodWithAssemblyLoadWithPartialNameCallTest ()
+		{
+			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadWithPartialNameCall");
+		}
 
 	}
 }
