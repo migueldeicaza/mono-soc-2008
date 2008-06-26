@@ -50,17 +50,17 @@ namespace Gendarme.Rules.Reliability {
 			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(");
 		}
 
-		private bool IsCallInstruction (Instruction instruction)
+		private static bool IsCallInstruction (Instruction instruction)
 		{
 			return instruction.OpCode.FlowControl == FlowControl.Call; 
 		}
 		
-		private bool OperandIsNonPublic (int operand)
+		private static bool OperandIsNonPublic (int operand)
 		{
 			return (operand & 0x20) == 32;
 		}
 
-		private bool IsAccessingWithNonPublicModifiers (Instruction call)
+		private static bool IsAccessingWithNonPublicModifiers (Instruction call)
 		{
 			Instruction current = call;
 			while (current != null) {
