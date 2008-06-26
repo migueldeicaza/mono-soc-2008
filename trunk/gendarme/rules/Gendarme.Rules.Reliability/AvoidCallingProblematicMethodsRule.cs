@@ -47,17 +47,17 @@ namespace Gendarme.Rules.Reliability {
 			problematicMethods.Add ("System.IntPtr System.Runtime.InteropServices.SafeHandle::DangerousGetHandle()");
 			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(System.String)");
 			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(System.String)");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(System.String)");
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(System.String)");
 		}
 
 		private bool IsCallInstruction (Instruction instruction)
 		{
-			return instruction.OpCode == OpCodes.Call || 
-				instruction.OpCode == OpCodes.Callvirt;
+			return instruction.OpCode.FlowControl == FlowControl.Call; 
 		}
 
 		private bool IsProblematicCall (Instruction call)
 		{
+			Console.WriteLine (call.Operand.ToString ());
 			return problematicMethods.Contains (call.Operand.ToString ());
 		}
 
