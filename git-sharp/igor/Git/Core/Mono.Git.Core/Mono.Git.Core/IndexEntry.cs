@@ -1,4 +1,4 @@
-// ObjectStore.cs
+// IndexEntry.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -26,21 +26,43 @@
 
 using System;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// This class has all the information about the object store tipicaly
-	/// .git/objects
-	/// </summary>
-	public class ObjectStore
+	public class IndexEntry
 	{
+		/*
+		 * From GIT(crazy ass C)
+		 * 
+		 * unsigned int ce_ctime;
+		 * unsigned int ce_mtime;
+		 * unsigned int ce_dev;
+		 * unsigned int ce_ino;
+		 * unsigned int ce_mode;
+		 * unsigned int ce_uid;
+		 * unsigned int ce_gid;
+		 * unsigned int ce_size;
+		 * unsigned int ce_flags;
+		 * unsigned char sha1[20];
+		 * struct cache_entry *next;
+		 * char name[FLEX_ARRAY];
+		 */
 		
-		public ObjectStore ()
+		//Translate too:
+		DateTime ctime; // TODO: A conversion method to handle this
+		DateTime mtime; // TODO: A conversion method to handle this
+		uint dev;
+		uint ino; // Inode
+		uint mode; // Create mode(umask)
+		uint uid; // we don't really need this(jgit has as trick for this)
+		uint gid; // apply jgit trick here too
+		uint size;
+		uint flags; // what's this?
+		SHA1 sha;
+		// struct cache_entry *next; an entry that links to the other one... interesting
+		string name; // whole path
+		
+		public IndexEntry ()
 		{
-		}
-		
-		public static void Init () {
-			
 		}
 	}
 }

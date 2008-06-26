@@ -1,4 +1,4 @@
-// ObjectStore.cs
+// Index.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -26,21 +26,14 @@
 
 using System;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// This class has all the information about the object store tipicaly
-	/// .git/objects
-	/// </summary>
-	public class ObjectStore
+	public class Index
 	{
+		IndexEntry[] entries; // Index Entries
 		
-		public ObjectStore ()
+		public Index ()
 		{
-		}
-		
-		public static void Init () {
-			
 		}
 	}
 }

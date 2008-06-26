@@ -34,7 +34,36 @@ namespace Mono.Git.Repository
 	/// </summary>
 	public class Repository
 	{
+		private string path;
 		private Configuration config;
+		private ObjectStore objects;
+		
+		public string Path {
+			set {
+				path = value;
+			}
+			get {
+				return path;
+			}
+		}
+		
+		public Configuration Config {
+			set {
+				config = value;
+			}
+			get {
+				return config;
+			}
+		}
+		
+		public ObjectStore Objects {
+			set {
+				objects = value;
+			}
+			get {
+				return objects;
+			}
+		}
 		
 		public Repository ()
 		{
@@ -84,7 +113,7 @@ namespace Mono.Git.Repository
 			
 			// We copy each file from source to target
 			foreach (FileInfo fi in source.GetFiles ()) {
-				fi.CopyTo (Path.Combine (target.ToString (), fi.Name), true);
+				fi.CopyTo (System.IO.Path.Combine (target.ToString (), fi.Name), true);
 			}
 			
 			// Copy subdirs using.
