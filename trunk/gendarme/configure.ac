@@ -55,4 +55,6 @@ Makefile
 test/Makefile
 test/applyTo/Makefile
 reporter/Makefile
+rules/Makefile
+rules/Gendarme.Rules.Reliability/Makefile
 ])
