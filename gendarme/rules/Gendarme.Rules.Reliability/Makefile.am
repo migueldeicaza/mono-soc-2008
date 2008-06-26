@@ -2,7 +2,7 @@ reliabilitydir = $(pkglibdir)
 reliability_SCRIPTS = Gendarme.Rules.Reliability.dll 
 reliability_DATA = 
 EXTRA_DIST = 
-CLEANFILES = Gendarme.Rules.dll Test.Reliability.dll *.mdb TestResult.xml 
+CLEANFILES = Gendarme.Rules.Reliability.dll Test.Reliability.dll *.mdb TestResult.xml 
 DISTCLEANFILES = Makefile.in TestResult.xml
 
 reliability_sources = \
