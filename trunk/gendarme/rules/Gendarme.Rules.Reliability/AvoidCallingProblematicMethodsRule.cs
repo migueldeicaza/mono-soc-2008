@@ -53,13 +53,18 @@ namespace Gendarme.Rules.Reliability {
 		{
 			return instruction.OpCode.FlowControl == FlowControl.Call; 
 		}
+		
+		private bool OperandIsNonPublic (int operand)
+		{
+			return (operand & 0x20) == 32;
+		}
 
 		private bool IsAccessingWithNonPublicModifiers (Instruction call)
 		{
 			Instruction current = call;
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldc_I4_S  && String.Compare ("32", current.Operand.ToString ()) == 0)
-					return true;
+				if (current.OpCode == OpCodes.Ldc_I4_S )
+					return OperandIsNonPublic (Int32.Parse (current.Operand.ToString ()));
 				current = current.Previous;
 			}
 			return false;
