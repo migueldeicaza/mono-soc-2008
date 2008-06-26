@@ -43,7 +43,6 @@ namespace Gendarme.Rules.Reliability {
 			problematicMethods.Add ("System.Void System.GC::Collect()");
 			problematicMethods.Add ("System.Void System.Threading.Thread::Suspend()");
 			problematicMethods.Add ("System.Void System.Threading.Thread::Resume()");
-			problematicMethods.Add ("System.Object System.Type::InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[])");
 			problematicMethods.Add ("System.IntPtr System.Runtime.InteropServices.SafeHandle::DangerousGetHandle()");
 			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(System.String)");
 			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(System.String)");
@@ -55,8 +54,24 @@ namespace Gendarme.Rules.Reliability {
 			return instruction.OpCode.FlowControl == FlowControl.Call; 
 		}
 
+		private bool IsAccessingWithNonPublicModifiers (Instruction call)
+		{
+			Instruction current = call;
+			while (current != null) {
+				if (current.OpCode == OpCodes.Ldc_I4_S  && String.Compare ("32", current.Operand.ToString ()) == 0)
+					return true;
+				current = current.Previous;
+			}
+			return false;
+		}
+
 		private bool IsProblematicCall (Instruction call)
 		{
+			if (String.Compare ("System.Object System.Type::InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[])", 
+				call.Operand.ToString ()) == 0) {
+					return IsAccessingWithNonPublicModifiers (call);
+			}
+
 			return problematicMethods.Contains (call.Operand.ToString ());
 		}
 
