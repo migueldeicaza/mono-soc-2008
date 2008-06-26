@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Framework;
 using Mono.Cecil;
 
@@ -33,6 +34,9 @@ namespace Gendarme.Rules.Reliability {
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
+			if (!method.HasBody)
+				return RuleResult.DoesNotApply;
+
 			return Runner.CurrentRuleResult;
 		}
 	}
