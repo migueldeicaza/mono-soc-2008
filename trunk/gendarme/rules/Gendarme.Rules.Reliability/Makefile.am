@@ -23,7 +23,7 @@ Test.Rules.Reliability.dll: $(reliability_test_build_sources) Gendarme.Rules.Rel
 test: Test.Rules.Reliability.dll
 
 run-test: test
-	nunit-console2 /xml=TestResult Test.Rules.Reliability.dll
+	nunit-console2 Test.Rules.Reliability.dll
 
 run-gendarme: Gendarme.Rules.Reliability.dll
 	gendarme Gendarme.Rules.Reliability.dll
