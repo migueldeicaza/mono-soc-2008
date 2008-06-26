@@ -57,7 +57,6 @@ namespace Gendarme.Rules.Reliability {
 
 		private bool IsProblematicCall (Instruction call)
 		{
-			Console.WriteLine (call.Operand.ToString ());
 			return problematicMethods.Contains (call.Operand.ToString ());
 		}
 
