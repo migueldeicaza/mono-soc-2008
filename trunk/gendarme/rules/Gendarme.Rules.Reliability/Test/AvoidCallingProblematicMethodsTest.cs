@@ -176,5 +176,17 @@ namespace Test.Rules.Reliability {
 			AssertRuleFailure<AvoidCallingProblematicMethodsTest> ("MethodWithAssemblyLoadWithPartialNameCall");
 		}
 
+		public void MethodWithouAnyDangerousCall ()
+		{
+			List<string> list = new List<string> ();
+			list.Add ("Foo");
+			list.Add ("Bar");
+		}
+
+		[Test]
+		public void MethodWithouAnyDangerousCallTest ()
+		{
+			AssertRuleSuccess<AvoidCallingProblematicMethodsTest> ("MethodWithouAnyDangerousCallTest");
+		}
 	}
 }
