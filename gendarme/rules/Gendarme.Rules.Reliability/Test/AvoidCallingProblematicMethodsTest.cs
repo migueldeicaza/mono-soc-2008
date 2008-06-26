@@ -26,10 +26,27 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using Gendarme.Rules.Reliability;
 using NUnit.Framework;
+using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rules.Reliability {
 	[TestFixture]
-	public class AvoidCallingProblematicMethodsTest{
+	public class AvoidCallingProblematicMethodsTest : MethodRuleTestFixture<AvoidCallingProblematicMethodsRule> {
+
+		[Test]
+		public void MethodsWithoutBodyTest () 
+		{
+			AssertRuleDoesNotApply<SimpleMethods> ("strncpy");
+		}
+
+		[Test]
+		public void EmptyMethodsTest ()
+		{
+			AssertRuleSuccess<SimpleMethods> ("DoNothing");
+		}
+
+
 	}
 }
