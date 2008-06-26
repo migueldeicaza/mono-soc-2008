@@ -63,7 +63,7 @@ namespace Gendarme.Rules.Reliability {
 		{
 			Instruction current = call;
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldc_I4_S )
+				if (current.OpCode == OpCodes.Ldc_I4_S)
 					return OperandIsNonPublic (Int32.Parse (current.Operand.ToString ()));
 				current = current.Previous;
 			}
