@@ -31,6 +31,8 @@ using Gendarme.Framework;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Reliability {
+	[Problem ("There are potentially dangerous calls into your code.")]
+	[Solution ("You should remove or replace the call to the dangerous method.")]
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
