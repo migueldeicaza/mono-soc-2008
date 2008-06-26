@@ -29,9 +29,12 @@ using System.IO;
 
 namespace Mono.Git.Core
 {
-	public class TreeEntry
+	public class TreeEntry : Object
 	{
-		public TreeEntry ()
+		private string path;
+		private SHA1 parent;
+		
+		public TreeEntry () : base (Type.Tree)
 		{
 		}
 	}

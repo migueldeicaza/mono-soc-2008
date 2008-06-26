@@ -1,4 +1,4 @@
-// ObjectStore.cs
+// Ref.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -28,19 +28,12 @@ using System;
 
 namespace Mono.Git.Repository
 {
-	/// <summary>
-	/// This class has all the information about the object store tipicaly
-	/// .git/objects
-	/// </summary>
-	public class ObjectStore
+	
+	
+	public class Ref
 	{
-		
-		public ObjectStore ()
+		public Ref ()
 		{
-		}
-		
-		public static void Init () {
-			
 		}
 	}
 }

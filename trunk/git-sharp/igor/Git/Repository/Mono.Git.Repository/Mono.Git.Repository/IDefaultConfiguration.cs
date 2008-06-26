@@ -1,4 +1,4 @@
-// ObjectStore.cs
+// IDefaultConfigurations.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -29,18 +29,30 @@ using System;
 namespace Mono.Git.Repository
 {
 	/// <summary>
-	/// This class has all the information about the object store tipicaly
-	/// .git/objects
+	/// Holds default configuration variables
 	/// </summary>
-	public class ObjectStore
+	public interface IDefaultConfiguration
 	{
-		
-		public ObjectStore ()
-		{
+		string TemplatePath {
+			get;
+			set;
 		}
 		
-		public static void Init () {
-			
+		string ConfigPath {
+			get;
+			set;
+		}
+		
+		// HEAD is always in the repo directory
+		string Head {
+			get;
+			set;
+		}
+		
+		// description is always in the repo directory 
+		string Description {
+			get;
+			set;
 		}
 	}
 }

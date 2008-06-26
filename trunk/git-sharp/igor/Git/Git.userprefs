@@ -1,12 +1,9 @@
-﻿<UserCombinePreferences version="1.0" filename="/home/igor/git-sharp/igor/Git/Git.mds">
+﻿<UserCombinePreferences version="1.0" filename="/home/igor/gsoc/Git/Git.mds">
   <Files>
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Commit.cs" line="44" column="4" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Object.cs" line="59" column="2" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Blob.cs" line="129" column="15" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/TreeEntry.cs" line="1" column="1" />
-    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/Configuration.cs" line="35" column="3" />
-    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/ObjectStore.cs" line="33" column="18" />
-    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/Repository.cs" line="35" column="3" />
+    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/Ref.cs" line="1" column="1" />
+    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/ObjectStore.cs" line="1" column="1" />
+    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/IDefaultConfiguration.cs" line="46" column="14" />
+    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/Repository.cs" line="112" column="5" />
   </Files>
   <Views>
     <ViewMemento id="ProjectPad">
@@ -19,9 +16,12 @@
         <Node name="Repository" expanded="True">
           <Node name="Mono.Git.Repository" expanded="True">
             <Node name="Mono.Git.Repository" expanded="True">
-              <Node name="Repository.cs" selected="True" />
+              <Node name="IDefaultConfiguration.cs" selected="True" />
             </Node>
           </Node>
+        </Node>
+        <Node name="Tests" expanded="True">
+          <Node name="Tests" expanded="True" />
         </Node>
       </Node>
     </ViewMemento>
@@ -36,7 +36,7 @@
     </ViewMemento>
   </Views>
   <Properties>
-    <Property key="ActiveWindow" value="/home/igor/git-sharp/igor/Git/Repository/Mono.Git.Repository/Mono.Git.Repository/Repository.cs" />
+    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Repository/Mono.Git.Repository/Mono.Git.Repository/IDefaultConfiguration.cs" />
     <Property key="ActiveConfiguration" value="Debug" />
   </Properties>
 </UserCombinePreferences>

@@ -79,7 +79,7 @@ namespace Mono.Git.Core
 		}
 		
 		/// <summary>
-		/// TODO: Test, remove this please later
+		/// TODO: 
 		/// </summary>
 		/// <param name="filePath">
 		/// A <see cref="System.String"/>
@@ -121,7 +121,7 @@ namespace Mono.Git.Core
 		}
 		
 		/// <summary>
-		/// TODO: This is a test only
+		/// TODO: 
 		/// </summary>
 		/// <param name="filePath">
 		/// A <see cref="System.String"/>
