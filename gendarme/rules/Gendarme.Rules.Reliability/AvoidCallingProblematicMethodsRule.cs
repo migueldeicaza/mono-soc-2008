@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Gendarme.Framework;
 using Mono.Cecil;
@@ -40,13 +41,13 @@ namespace Gendarme.Rules.Reliability {
 		
 		public AvoidCallingProblematicMethodsRule ()
 		{
-			problematicMethods.Add ("System.Void System.GC::Collect()");
+			problematicMethods.Add ("System.Void System.GC::Collect(");
 			problematicMethods.Add ("System.Void System.Threading.Thread::Suspend()");
 			problematicMethods.Add ("System.Void System.Threading.Thread::Resume()");
 			problematicMethods.Add ("System.IntPtr System.Runtime.InteropServices.SafeHandle::DangerousGetHandle()");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(System.String)");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(System.String)");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(System.String)");
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(");
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(");
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(");
 		}
 
 		private bool IsCallInstruction (Instruction instruction)
@@ -72,12 +73,12 @@ namespace Gendarme.Rules.Reliability {
 
 		private bool IsProblematicCall (Instruction call)
 		{
-			if (String.Compare ("System.Object System.Type::InvokeMember(System.String,System.Reflection.BindingFlags,System.Reflection.Binder,System.Object,System.Object[])", 
-				call.Operand.ToString ()) == 0) {
+			if (call.Operand.ToString ().StartsWith ("System.Object System.Type::InvokeMember("))
 					return IsAccessingWithNonPublicModifiers (call);
-			}
 
-			return problematicMethods.Contains (call.Operand.ToString ());
+			return (from dangerous in problematicMethods
+				where call.Operand.ToString ().StartsWith (dangerous)
+				select dangerous).Count () != 0;
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)

@@ -15,7 +15,7 @@ reliability_build_sources = $(addprefix $(srcdir)/, $(reliability_sources))
 reliability_test_build_sources = $(addprefix $(srcdir)/Test/, $(reliability_test_sources))
 
 Gendarme.Rules.Reliability.dll: $(reliability_build_sources) 
-	$(GMCS) -target:library -debug -r:System.Xml.Linq -pkg:gendarme-framework -pkg:mono-cecil -out:$@ $(reliability_build_sources)
+	$(GMCS) -target:library -debug -pkg:gendarme-framework -pkg:mono-cecil -out:$@ $(reliability_build_sources)
 
 Test.Rules.Reliability.dll: $(reliability_test_build_sources) Gendarme.Rules.Reliability.dll
 	$(GMCS) -target:library -debug -pkg:mono-nunit -r:Gendarme.Rules.Reliability.dll -r:Test.Rules.dll -out:$@ $(reliability_test_build_sources)
