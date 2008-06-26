@@ -37,17 +37,17 @@ namespace Gendarme.Rules.Reliability {
 	[Problem ("There are potentially dangerous calls into your code.")]
 	[Solution ("You should remove or replace the call to the dangerous method.")]
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
-		List<string> problematicMethods = new List<string> (); 
+		Dictionary<string, Severity> problematicMethods = new Dictionary<string, Severity> (); 
 		
 		public AvoidCallingProblematicMethodsRule ()
 		{
-			problematicMethods.Add ("System.Void System.GC::Collect(");
-			problematicMethods.Add ("System.Void System.Threading.Thread::Suspend()");
-			problematicMethods.Add ("System.Void System.Threading.Thread::Resume()");
-			problematicMethods.Add ("System.IntPtr System.Runtime.InteropServices.SafeHandle::DangerousGetHandle()");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(");
-			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(");
+			problematicMethods.Add ("System.Void System.GC::Collect(", Severity.Critical);
+			problematicMethods.Add ("System.Void System.Threading.Thread::Suspend()", Severity.Medium);
+			problematicMethods.Add ("System.Void System.Threading.Thread::Resume()", Severity.Medium);
+			problematicMethods.Add ("System.IntPtr System.Runtime.InteropServices.SafeHandle::DangerousGetHandle()", Severity.Critical);
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFrom(", Severity.High);
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadFile(", Severity.High);
+			problematicMethods.Add ("System.Reflection.Assembly System.Reflection.Assembly::LoadWithPartialName(", Severity.High);
 		}
 
 		private static bool IsCallInstruction (Instruction instruction)
@@ -76,9 +76,21 @@ namespace Gendarme.Rules.Reliability {
 			if (call.Operand.ToString ().StartsWith ("System.Object System.Type::InvokeMember("))
 					return IsAccessingWithNonPublicModifiers (call);
 
-			return (from dangerous in problematicMethods
+			return (from dangerous in problematicMethods.Keys
 				where call.Operand.ToString ().StartsWith (dangerous)
 				select dangerous).Count () != 0;
+		}
+		
+		private Severity GetSeverityFor (Instruction call)
+		{
+			var query = from dangerous in problematicMethods.Keys
+				where call.Operand.ToString ().StartsWith (dangerous)
+				select dangerous;
+
+			if (query.Count ()!= 0)
+				return problematicMethods[query.First ()];
+			//The special case for InvokeMember (
+			return Severity.High;
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
@@ -88,7 +100,7 @@ namespace Gendarme.Rules.Reliability {
 
 			foreach (Instruction instruction in method.Body.Instructions) 
 				if (IsCallInstruction (instruction) && IsProblematicCall (instruction))
-					Runner.Report (method, instruction, Severity.Critical, Confidence.High, "You are calling a potentially dangerous method.");
+					Runner.Report (method, instruction, GetSeverityFor (instruction), Confidence.High, "You are calling a potentially dangerous method.");
 				
 			return Runner.CurrentRuleResult;
 		}
