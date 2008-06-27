@@ -28,6 +28,7 @@
 
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Collections.Generic;
 using Gendarme.Framework;
 using Mono.Cecil;
@@ -92,15 +93,15 @@ namespace Gendarme.Rules.Reliability {
 
 		private static bool OperandIsNonPublic (int operand)
 		{
-			return (operand & 0x20) == 32;
+			return ((BindingFlags) operand & BindingFlags.NonPublic) == BindingFlags.NonPublic;
 		}
 
 		private static bool IsAccessingWithNonPublicModifiers (Instruction call)
 		{
 			Instruction current = call;
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldc_I4_S)
-					return OperandIsNonPublic (Int32.Parse (current.Operand.ToString ()));
+				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4)
+					return OperandIsNonPublic ((int) (sbyte) current.Operand);
 				current = current.Previous;
 			}
 			return false;
