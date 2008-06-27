@@ -90,11 +90,6 @@ namespace Gendarme.Rules.Reliability {
 					delegate (Instruction call) {return IsAccessingWithNonPublicModifiers (call);}));
 		}
 
-		private static bool IsCallInstruction (Instruction instruction)
-		{
-			return instruction.OpCode.FlowControl == FlowControl.Call; 
-		}
-		
 		private static bool OperandIsNonPublic (int operand)
 		{
 			return (operand & 0x20) == 32;
@@ -140,10 +135,11 @@ namespace Gendarme.Rules.Reliability {
 			if (!method.HasBody)
 				return RuleResult.DoesNotApply;
 
-			foreach (Instruction instruction in method.Body.Instructions) 
-				if (IsCallInstruction (instruction) && IsProblematicCall (instruction))
+			foreach (Instruction instruction in method.Body.Instructions) {
+				if (instruction.OpCode.FlowControl == FlowControl.Call && IsProblematicCall (instruction))
 					Runner.Report (method, instruction, GetSeverityFor (instruction), Confidence.High, "You are calling a potentially dangerous method.");
-				
+			}	
+
 			return Runner.CurrentRuleResult;
 		}
 	}
