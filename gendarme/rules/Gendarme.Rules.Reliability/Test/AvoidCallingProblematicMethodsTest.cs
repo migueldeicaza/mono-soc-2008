@@ -104,9 +104,9 @@ namespace Test.Rules.Reliability {
 
 		public void MethodWithInvokeMemberWithPrivateFlagsCall ()
 		{
-			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes);
-			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
-			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic | BindingFlags.DeclaredOnly, null, null, Type.EmptyTypes);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic | BindingFlags.Static, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.NonPublic | BindingFlags.Instance, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
 		}
 
 		[Test]
@@ -117,9 +117,9 @@ namespace Test.Rules.Reliability {
 
 		public void MethodWithInvokeMemberWithoutPrivateFlagsCall ()
 		{
-			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes);
-			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
-			this.GetType ().InvokeMember ("Foo", BindingFlags.Public, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public | BindingFlags.IgnoreCase, null, null, Type.EmptyTypes);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public | BindingFlags.Instance, null, null, Type.EmptyTypes, CultureInfo.CurrentCulture);
+			this.GetType ().InvokeMember ("Foo", BindingFlags.Public | BindingFlags.DeclaredOnly, null, null, Type.EmptyTypes, null, CultureInfo.CurrentCulture, null);
 
 		}
 
