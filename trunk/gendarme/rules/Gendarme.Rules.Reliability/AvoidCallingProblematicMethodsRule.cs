@@ -39,7 +39,7 @@ namespace Gendarme.Rules.Reliability {
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
 		Dictionary<string, ProblematicMethodInfo> problematicMethods = new Dictionary<string, ProblematicMethodInfo> (new StartWithEqualityComparer ()); 
 		
-		class StartWithEqualityComparer : IEqualityComparer <string> {
+		sealed class StartWithEqualityComparer : IEqualityComparer <string> {
 			public bool Equals (string key, string source)
 			{
 				return source.StartsWith (key);
