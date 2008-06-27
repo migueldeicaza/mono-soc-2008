@@ -107,7 +107,7 @@ namespace Gendarme.Rules.Reliability {
 			return false;
 		}
 
-		private bool IsProblematicCall (Instruction call)
+		private Severity? IsProblematicCall (Instruction call)
 		{
 			string operand = call.Operand.ToString ();
 
@@ -116,33 +116,22 @@ namespace Gendarme.Rules.Reliability {
 				select dangerous;
 
 			if (query.Count () != 0) 
-				return problematicMethods [query.First ()].Predicate (call);
-
-			return false;
+				if (problematicMethods [query.First ()].Predicate (call))
+					return problematicMethods[query.First ()].Severity;
+			return null;
 		}
 		
-		private Severity GetSeverityFor (Instruction call)
-		{
-			string operand = call.Operand.ToString ();
-
-			var query = from dangerous in problematicMethods.Keys
-				where operand.StartsWith (dangerous)
-				select dangerous;
-
-			if (query.Count () != 0)
-				return problematicMethods [query.First ()].Severity;
-		
-			return Severity.Medium;
-		}
-
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody)
 				return RuleResult.DoesNotApply;
 
 			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode.FlowControl == FlowControl.Call && IsProblematicCall (instruction))
-					Runner.Report (method, instruction, GetSeverityFor (instruction), Confidence.High, "You are calling a potentially dangerous method.");
+				if (instruction.OpCode.FlowControl == FlowControl.Call){
+					Severity? severity = IsProblematicCall (instruction);
+					if (severity.HasValue) 
+						Runner.Report (method, instruction, severity.Value, Confidence.High, "You are calling a potentially dangerous method.");
+				}
 			}	
 
 			return Runner.CurrentRuleResult;
