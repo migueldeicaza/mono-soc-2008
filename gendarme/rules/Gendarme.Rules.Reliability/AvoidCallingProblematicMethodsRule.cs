@@ -109,8 +109,10 @@ namespace Gendarme.Rules.Reliability {
 
 		private bool IsProblematicCall (Instruction call)
 		{
+			string operand = call.Operand.ToString ();
+
 			var query = from dangerous in problematicMethods.Keys
-				where call.Operand.ToString ().StartsWith (dangerous)
+				where operand.StartsWith (dangerous)
 				select dangerous;
 
 			if (query.Count () != 0) 
@@ -121,8 +123,10 @@ namespace Gendarme.Rules.Reliability {
 		
 		private Severity GetSeverityFor (Instruction call)
 		{
+			string operand = call.Operand.ToString ();
+
 			var query = from dangerous in problematicMethods.Keys
-				where call.Operand.ToString ().StartsWith (dangerous)
+				where operand.StartsWith (dangerous)
 				select dangerous;
 
 			if (query.Count () != 0)
