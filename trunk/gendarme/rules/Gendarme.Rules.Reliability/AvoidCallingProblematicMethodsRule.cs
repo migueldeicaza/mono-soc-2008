@@ -27,7 +27,6 @@
 //
 
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using Gendarme.Framework;
@@ -38,8 +37,20 @@ namespace Gendarme.Rules.Reliability {
 	[Problem ("There are potentially dangerous calls into your code.")]
 	[Solution ("You should remove or replace the call to the dangerous method.")]
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
-		Dictionary<string, ProblematicMethodInfo> problematicMethods = new Dictionary<string, ProblematicMethodInfo> (); 
-	
+		Dictionary<string, ProblematicMethodInfo> problematicMethods = new Dictionary<string, ProblematicMethodInfo> (new StartWithEqualityComparer ()); 
+		
+		class StartWithEqualityComparer : IEqualityComparer <string> {
+			public bool Equals (string key, string source)
+			{
+				return source.StartsWith (key);
+			}
+
+			public int GetHashCode (string obj)
+			{
+				return 0;
+			}
+		}
+
 		private struct ProblematicMethodInfo {
 			Severity severity;
 			Predicate<Instruction> predicate;
@@ -104,20 +115,18 @@ namespace Gendarme.Rules.Reliability {
 					return OperandIsNonPublic ((int) (sbyte) current.Operand);
 				current = current.Previous;
 			}
+
 			return false;
 		}
 
 		private Severity? IsProblematicCall (Instruction call)
 		{
-			string operand = call.Operand.ToString ();
-
-			var query = from dangerous in problematicMethods.Keys
-				where operand.StartsWith (dangerous)
-				select dangerous;
-
-			if (query.Count () != 0) 
-				if (problematicMethods [query.First ()].Predicate (call))
-					return problematicMethods[query.First ()].Severity;
+			ProblematicMethodInfo info;
+			if (problematicMethods.TryGetValue (call.Operand.ToString (), out info)) {
+				if (info.Predicate (call))
+					return info.Severity;
+			}
+			
 			return null;
 		}
 		
@@ -127,7 +136,7 @@ namespace Gendarme.Rules.Reliability {
 				return RuleResult.DoesNotApply;
 
 			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode.FlowControl == FlowControl.Call){
+				if (instruction.OpCode.FlowControl == FlowControl.Call) {
 					Severity? severity = IsProblematicCall (instruction);
 					if (severity.HasValue) 
 						Runner.Report (method, instruction, severity.Value, Confidence.High, "You are calling a potentially dangerous method.");
