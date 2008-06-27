@@ -111,6 +111,8 @@ namespace Gendarme.Rules.Reliability {
 		{
 			Instruction current = call;
 			while (current != null) {
+				//Some compilers also can use the Ldc_I4
+				//instrucction.
 				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4)
 					return OperandIsNonPublic ((int) (sbyte) current.Operand);
 				current = current.Previous;
@@ -139,7 +141,7 @@ namespace Gendarme.Rules.Reliability {
 				if (instruction.OpCode.FlowControl == FlowControl.Call) {
 					Severity? severity = IsProblematicCall (instruction);
 					if (severity.HasValue) 
-						Runner.Report (method, instruction, severity.Value, Confidence.High, "You are calling a potentially dangerous method.");
+						Runner.Report (method, instruction, severity.Value, Confidence.High, String.Empty);
 				}
 			}	
 
