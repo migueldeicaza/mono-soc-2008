@@ -87,7 +87,7 @@ namespace Gendarme.Rules.Reliability {
 				where call.Operand.ToString ().StartsWith (dangerous)
 				select dangerous;
 
-			if (query.Count ()!= 0)
+			if (query.Count () != 0)
 				return problematicMethods[query.First ()];
 			//The special case for InvokeMember (
 			return Severity.High;
