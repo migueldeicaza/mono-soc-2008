@@ -35,6 +35,7 @@ namespace Mono.Git.Repository
 	public class Repository
 	{
 		private string path;
+		private string description;
 		private Configuration config;
 		private ObjectStore objects;
 		

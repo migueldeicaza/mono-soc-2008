@@ -36,9 +36,18 @@ namespace Mono.Git.Core
 		private string tag;
 		private string tagger;
 		private string message;
+		private Commit commit;
 		
 		public Tag () : base (Type.Tag)
 		{
+		}
+		
+		public Tag (string tag, string tagger, string message, Commit commit) : base (Type.Tag)
+		{
+			this.tag = tag;
+			this.tagger = tagger;
+			this.message = message;
+			this.commit = commit;
 		}
 	}
 }

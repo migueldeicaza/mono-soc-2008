@@ -25,18 +25,117 @@
 //
 
 using System;
+using System.Collections;
+using Mono.Git.Core;
 
 namespace Mono.Git.Core
 {
 	/// <summary>
-	/// A class that stores a tree of commits
+	/// A class that stores a tree of a commit
 	/// </summary>
 	public class Tree : Object
 	{
-		private SHA1 parent;
+		private string name;
+		private Tree parent;
+		private TreeEntry[] entries;
 		
-		public Tree () : base (Type.Tree)
+		public Tree (Tree parent) : base (Type.Tree)
 		{
+			this.parent = parent;
+		}
+		
+		public Tree Parent {
+			get {
+				return parent;
+			}
+			set {
+				parent = value;
+			}
+		}
+		
+		public TreeEntry[] Entries
+		{
+			set {
+				entries = value;
+			}
+			get {
+				return entries;
+			}
+		}
+		
+		/// <summary>
+		/// Init the entries, one for the current directory and 1 for the blob
+		/// blobs can be more than 1 but at least 1 
+		/// </summary>
+		public void InitEntries ()
+		{
+			entries = new TreeEntry[2];
+		}
+		
+		public void AddEntry (TreeEntry entry)
+		{
+			if (entries == null) {
+				InitEntries ();
+			}
+			
+			int size = entries.Length + 1;
+			ArrayList newEntries = new ArrayList (size);
+			
+			foreach (TreeEntry en in entries) {
+				newEntries.Add (en);
+			}
+			
+			newEntries.Add (entry);
+			
+			Entries = (TreeEntry[]) newEntries.ToArray ();
+		}
+		
+		public void RemoveEntry (TreeEntry entry)
+		{
+			if (entries.Length == 0) {
+				return;
+			}
+			
+			ArrayList newEntries = new ArrayList (entries.Length);
+			
+			foreach (TreeEntry en in entries) {
+				newEntries.Add (en);
+			}
+			
+			newEntries.Remove (entry);
+			
+			Entries = (TreeEntry[]) newEntries.ToArray ();
+		}
+		
+		public TreeEntry[] EntriesGitSorted ()
+		{
+			if (entries.Length == 0) {
+				return entries;
+			}
+			
+			TreeEntry[] newEntries = new TreeEntry[entries.Length];
+			for (int i = entries.Length - 1; i >= 0; i--)
+				newEntries[i] = entries[i];
+			
+			return newEntries;
+		}
+		
+		public bool Exists (TreeEntry entry)
+		{
+			if (entries.Length == 0) {
+				return false;
+			} else if (entries.Length == 1) {
+				return entries[0].Id.bytes == entry.Id.bytes ? true : false;
+			}
+			
+			bool exist = false;
+			
+			foreach (TreeEntry en in entries) {
+				if (en.Id.bytes == entry.Id.bytes)
+					exist = true;
+			}
+			
+			return exist;
 		}
 	}
 }
