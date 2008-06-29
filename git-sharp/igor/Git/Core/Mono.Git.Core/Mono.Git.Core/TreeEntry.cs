@@ -25,17 +25,66 @@
 //
 
 using System;
-using System.IO;
+using Mono.Git.Core;
 
 namespace Mono.Git.Core
 {
-	public class TreeEntry : Object
+	/// <summary>
+	/// Every Tree has entries, which are more trees and blobs, this is a
+	/// representation of a tree entry that can be another tree or a blob
+	/// </summary>
+	public class TreeEntry
 	{
-		private string path;
-		private SHA1 parent;
+		private SHA1 id;
+		private string name;
+		private Tree parent;
 		
-		public TreeEntry () : base (Type.Tree)
+		public TreeEntry ()
 		{
+		}
+		
+		public TreeEntry (Tree myParent, SHA1 objId, string objName)
+		{
+			id = objId;
+			name = objName;
+			parent = myParent;
+		}
+		
+		public string Name
+		{
+			set {
+				name = value;
+			}
+			get {
+				return name;
+			}
+		}
+		
+		public SHA1 Id
+		{
+			set {
+				if (parent != null && value.bytes != null) {
+					id = value;
+				} else {
+					id.bytes = null;
+				}
+			}
+			get {
+				return id;
+			}
+		}
+		
+		/// <summary>
+		/// Helper to get the last char in a tree entry
+		/// </summary>
+		/// <param name="entry">
+		/// The entry we wish to add<see cref="Object"/>
+		/// </param>
+		/// <returns>
+		/// A string \0 if its a blob / if its a tree<see cref="System.String"/>
+		/// </returns>
+		public static string LastChar (Object entry) {
+			return entry.Type == Type.Blob ? "\0" : "/";
 		}
 	}
 }

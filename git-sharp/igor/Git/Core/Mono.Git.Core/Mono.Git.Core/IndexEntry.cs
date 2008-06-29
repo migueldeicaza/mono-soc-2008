@@ -56,7 +56,7 @@ namespace Mono.Git.Core
 		uint uid; // we don't really need this(jgit has as trick for this)
 		uint gid; // apply jgit trick here too
 		uint size;
-		uint flags; // what's this?
+		bool modified; // merged or not?
 		SHA1 sha;
 		// struct cache_entry *next; an entry that links to the other one... interesting
 		string name; // whole path
