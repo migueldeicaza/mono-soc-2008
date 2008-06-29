@@ -45,15 +45,19 @@ namespace CloverleafET
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+#if DEBUG
             try
             {
+#endif
                 ProcessCmdArgs();
+#if DEBUG
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.ToString());
                 Application.Exit();
             }
+#endif
         }
 
         /// <summary>
@@ -66,7 +70,7 @@ namespace CloverleafET
             Int32 folderSearchDepth = -1;
             String[] cmdArgs = Environment.GetCommandLineArgs();
 
-            if (cmdArgs.Length < 3 && cmdArgs[1] != "--xsptest")
+            if (cmdArgs.Length < 3 && (cmdArgs[1] != "--xsptest" && cmdArgs[1] != "--wwwremote"))
                 throw new Exception("Invalid number of arguments passed to Cloverleaf. Terminating.");
 
             if (cmdArgs.Length > 3)
@@ -126,6 +130,7 @@ namespace CloverleafET
                     }
                 case "--wwwremote":
                     {
+                        (new CloverleafShared.Remote.WebTest.RemoteWebTester(Environment.CurrentDirectory)).Go();
                         break;
                     }
                 default:
