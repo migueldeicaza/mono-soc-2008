@@ -30,10 +30,12 @@ namespace System.Threading.Tasks
 	
 	public class TaskManager
 	{
-		static TaskManager tdefault;
-		static TaskManager tcurrent;
+		static TaskManager tdefault = new TaskManager();
+		static TaskManager tcurrent = tdefault;
 		
 		TaskManagerPolicy policy;
+		
+		IScheduler        sched;
 		
 		public TaskManager(): this(new TaskManagerPolicy())
 		{
@@ -42,16 +44,12 @@ namespace System.Threading.Tasks
 		public TaskManager(TaskManagerPolicy policy)
 		{
 			this.policy = policy;
+			sched = new Scheduler(policy.IdealThreads);
 		}
 		
-		public static void RunBlocking(Action action)
+		internal void AddWork(ThreadStart work)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static void RunBlocking<T>(Func<T> f)
-		{
-			throw new NotImplementedException();
+			sched.AddWork(work);
 		}
 		
 		public TaskManagerPolicy Policy {
@@ -72,6 +70,9 @@ namespace System.Threading.Tasks
 		public static TaskManager Current {
 			get {
 				return tcurrent;
+			}
+			internal set {
+				tcurrent = value;	
 			}
 		}
 		

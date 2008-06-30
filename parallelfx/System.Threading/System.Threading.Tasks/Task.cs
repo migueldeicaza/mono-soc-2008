@@ -28,7 +28,7 @@ using System.Threading;
 namespace System.Threading.Tasks
 {
 	//FIXME: Task normally implements IAsyncResult but it seems strange in the context
-	public class Task: TaskCoordinator, IDisposable
+	public class Task: TaskBase, IDisposable
 	{
 		static Task current;
 		
@@ -37,24 +37,39 @@ namespace System.Threading.Tasks
 		Exception exception;
 		bool isCanceled;
 		bool isCompleted;
-		string name;
-		Task parent;
+		Task parent = current;
+		Task creator = current;
 		TaskCreationOptions taskCreationOptions;
+		
+		TaskManager tm;
+		Action<object> action;
+		object state;
 		
 		public event EventHandler Completed;
 			
-		internal Task()
+		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
+			this.taskCreationOptions = taskCreationOptions;
+			this.tm = TaskManager.Current = tm;
+			this.action = action;
+			this.state = state;
+			
+			tm.AddWork(delegate {
+				current = this;
+				InnerInvoke();
+				Completed(this, EventArgs.Empty);
+			});
 		}
 		
+		// TODO : addition : make a generic Create so that the state isn't necessarily object (which is completly stupid)
 		public static Task Create(Action<object> action)
 		{
-			throw new NotImplementedException();
+			return Create(action, null, TaskManager.Default, TaskCreationOptions.None);
 		}
 		
 		public static Task Create(Action<object> action, object state)
 		{
-			throw new NotImplementedException();
+			return Create(action, state, TaskManager.Default, TaskCreationOptions.None);
 		}
 		
 		public static Task Create(Action<object> action, TaskManager tm)
@@ -67,26 +82,17 @@ namespace System.Threading.Tasks
 			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Action<object> action, string name)
-		{
-			throw new NotImplementedException();
-		}
 		
 		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options)
 		{
 			throw new NotImplementedException();
 		}
 		
-		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options,
-		                          string name)
+		public static Task Create(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static Task Create(Action<object> action, object state , TaskManager tm,
-		                          TaskCreationOptions options, string name)
-		{
-			throw new NotImplementedException();
+			Task result = new Task(tm, action, state, options);
+						
+			return result;
 		}
 		
 		public static Task Current {
@@ -94,41 +100,107 @@ namespace System.Threading.Tasks
 				return current;
 			}
 		}
+
+		protected virtual void InnerInvoke()
+		{
+			action(state);
+		}
 		
-		public override void Cancel()
+		#region Cancel and Wait related methods
+		public void Cancel()
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override void CancelAndWait()
+		public void CancelAndWait()
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override bool CancelAndWait(TimeSpan ts)
+		public bool CancelAndWait(TimeSpan ts)
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override bool CancelAndWait(int millisecondsTimeout)
+		public bool CancelAndWait(int millisecondsTimeout)
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override void Wait()
+		public void Wait()
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override bool Wait(TimeSpan ts)
+		public bool Wait(TimeSpan ts)
 		{
 			throw new NotImplementedException();
 		}
 		
-		public override bool Wait(int millisecondsTimeout)
+		public bool Wait(int millisecondsTimeout)
 		{
 			throw new NotImplementedException();
 		}
+		
+		public static void WaitAll(params Task[] tasks)
+		{
+			foreach (var t in tasks)
+				t.Wait();
+		}
+		
+		public static bool WaitAll(Task[] tasks, TimeSpan ts)
+		{
+			bool result = true;
+			foreach (var t in tasks)
+				result &= t.Wait(ts);
+			return result;
+		}
+		
+		public static bool WaitAll(Task[] tasks, int millisecondsTimeout)
+		{
+			bool result = true;
+			foreach (var t in tasks)
+				result &= t.Wait(millisecondsTimeout);
+			return result;
+		}
+		
+		public static void WaitAny(params Task[] tasks)
+		{
+			foreach (var t in tasks)
+				t.Wait();
+		}
+		
+		public static bool WaitAny(Task[] tasks, TimeSpan ts)
+		{
+			bool result = true;
+			foreach (var t in tasks)
+				result &= t.Wait(ts);
+			return result;
+		}
+		
+		public static bool WaitAny(Task[] tasks, int millisecondsTimeout)
+		{
+			bool result = true;
+			foreach (var t in tasks)
+				result &= t.Wait(millisecondsTimeout);
+			return result;
+		}
+		
+		static bool VerifyCompletion(Task[] tasks)
+		{
+			foreach (Task t in tasks) {
+				if (t.IsCompleted)
+					return true;
+			}
+			
+			return false;
+		}
+		
+		protected void Finish()
+		{
+			
+		}
+		#endregion
 		
 		public void Dispose()
 		{
@@ -141,7 +213,7 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		public override bool IsCanceled {
+		public bool IsCanceled {
 			get {
 				return isCanceled;
 			}
@@ -153,18 +225,15 @@ namespace System.Threading.Tasks
 			}
 		}
 
-		public string Name {
-			get {
-				return name;
-			}
-			set {
-				name = value;
-			}
-		}
-
 		public Task Parent {
 			get {
 				return parent;
+			}
+		}
+		
+		public Task Creator {
+			get {
+				return creator;	
 			}
 		}
 
@@ -184,16 +253,6 @@ namespace System.Threading.Tasks
 			get {
 				return asyncWaitHandle;
 			}
-		}
-		
-		protected void Finish()
-		{
-			throw new NotImplementedException();
-		}
-		
-		protected virtual void Invoke()
-		{
-			throw new NotImplementedException();
 		}
 	}
 }

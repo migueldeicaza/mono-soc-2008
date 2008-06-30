@@ -1,4 +1,4 @@
-// TaskCreationOptions.cs
+// TaskBase.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,15 +24,15 @@
 
 using System;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
-	[FlagsAttribute]
-	public enum TaskCreationOptions
+	
+	
+	public class TaskBase
 	{
-		None,
-		SuppressExecutionContextFlow,
-		RespectParentCancelation,
-		SelfReplicating,
-		Detached
+		
+		public TaskBase()
+		{
+		}
 	}
 }

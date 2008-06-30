@@ -25,7 +25,6 @@
     <File name="System.Threading.Tasks/Future.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Task.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskCanceledException.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Tasks/TaskCoordinator.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskCreationOptions.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskManager.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskManagerPolicy.cs" subtype="Code" buildaction="Compile" />
@@ -43,6 +42,9 @@
     <File name="System.Threading/CountdownEvent.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/Scheduler.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/ThreadWorker.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskBase.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskContinuationKind.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks/Internal/IScheduler.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />

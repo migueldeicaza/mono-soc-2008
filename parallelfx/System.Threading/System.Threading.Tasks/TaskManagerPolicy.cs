@@ -30,9 +30,10 @@ namespace System.Threading
 	
 	public class TaskManagerPolicy
 	{
-		readonly int defaultMinThreads = 0;
-		readonly int defaultIdealThreads = Environment.ProcessorCount;
-		readonly int defaultMaxThread = Environment.ProcessorCount;
+		static readonly int defaultMinThreads = 0;
+		static readonly int defaultIdealThreads = Environment.ProcessorCount;
+		static readonly int defaultMaxThread = Environment.ProcessorCount;
+		static readonly int defaultStackSize = -1;
 		
 		int minThreads;
 		int idealThreads;
@@ -77,16 +78,19 @@ namespace System.Threading
 			}
 		}
 		
-		public TaskManagerPolicy()
+		public TaskManagerPolicy():
+			this(defaultMinThreads, defaultIdealThreads, defaultMaxThread, defaultStackSize, false, false) 
 		{
 		}
 		
-		public TaskManagerPolicy(int minThreads, int idealThreads)
+		public TaskManagerPolicy(int minThreads, int idealThreads):
+			this(minThreads, idealThreads, defaultMaxThread, defaultStackSize, false, false)
 		{
 			
 		}
 		
-		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads)
+		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads):
+			this(minThreads, idealThreads, maxThreads, defaultStackSize, false, false)
 		{
 			
 		}

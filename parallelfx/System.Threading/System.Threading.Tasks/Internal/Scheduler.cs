@@ -23,25 +23,24 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
-	
-	
-	internal class Scheduler
+	internal class Scheduler: IScheduler
 	{
 		ConcurrentQueue<ThreadStart> workQueue = new ConcurrentQueue<ThreadStart>();
 		ReadOnlyCollection<ThreadWorker> workers;
 		ThreadWorker[] modifiableWorkers;
 		int maxWorker;
 		
-		public Scheduler()
+		public Scheduler(int maxWorker)
 		{
 			// We put the -1 because the thread owning the Scheduler can
-			// also be used as a WorkerThread
-			maxWorker = Environment.ProcessorCount;
+			// also be used as a worker
+			this.maxWorker = maxWorker;
 			modifiableWorkers = new ThreadWorker[maxWorker];
 			workers = Array.AsReadOnly(modifiableWorkers);
 			// -1 because the last ThreadWorker of the list is the one who call Participate
@@ -58,7 +57,7 @@ namespace System.Threading.Tasks
 			PulseAll();
 		}
 		
-		// This should be called when the user call Tasks.Wait() or WaitAll() causing the user's thread to become
+		// This should be called when the user call Task.WaitAll() causing the user's thread to become
 		// a ThreadWorker too via the Scheduler
 		public void Participate()
 		{
@@ -67,6 +66,15 @@ namespace System.Threading.Tasks
 			participant.WorkerMethod();
 			// No more work, end the participation
 			modifiableWorkers[maxWorker - 1] = null;
+		}
+		
+		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
+		// also when our wait condition is ok
+		public void Participate(IEnumerable<Task> tasks, Func<IEnumerable<Task>, bool> predicate)
+		{
+			// This one has no participation as it has no Dequeue suitable for stealing
+			ThreadWorker participant = new ThreadWorker(workers, workQueue, false);
+			participant.WorkerMethod(tasks, predicate);
 		}
 		
 		void PulseAll()

@@ -60,6 +60,13 @@ namespace System.Threading.Tasks
 		BottomInfo bottom;
 		TopInfo    top;
 		
+		public DynamicDeque()
+		{
+			Node temp = new Node();
+			bottom = EncodeBottom(temp, ArraySize - 1);
+			top = EncodeTop(temp, ArraySize - 1, int.MinValue);
+		}
+		
 		public void PushBottom(T item)
 		{
 			Node currNode;
@@ -195,14 +202,14 @@ namespace System.Threading.Tasks
 			TopInfo temp = new TopInfo();
 			temp.Top = node;
 			temp.TopIndex = index;
+			temp.TopTag = tag;
 			return temp;
 		}
 		
-		// TODO: provides a correct impl. It should take care both of emptiness and cross-over
-		// http://en.wikipedia.org/wiki/ABA_problem#Workarounds
-		bool EmptinessTest(TopInfo topInfo, BottomInfo bottom)
+		// Take care both of emptiness and cross-over
+		bool EmptinessTest(TopInfo topInfo, BottomInfo bottomInfo)
 		{
-			return topInfo.TopTag != top.TopTag;
+			return object.ReferenceEquals(topInfo.Top, bottomInfo.Bottom) && topInfo.TopIndex >= bottomInfo.BottomIndex;
 		}
 	}
 }
