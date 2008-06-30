@@ -1,4 +1,4 @@
-// TaskCreationOptions.cs
+// TaskContinuationKind.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,15 +24,13 @@
 
 using System;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
-	[FlagsAttribute]
-	public enum TaskCreationOptions
+	public enum TaskContinuationKind
 	{
-		None,
-		SuppressExecutionContextFlow,
-		RespectParentCancelation,
-		SelfReplicating,
-		Detached
+		OnCompletedSuccessfully,
+		OnFailed,
+		OnAborted,
+		OnAny
 	}
 }

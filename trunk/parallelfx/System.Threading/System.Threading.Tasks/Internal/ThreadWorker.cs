@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Collections;
@@ -50,6 +51,8 @@ namespace System.Threading.Tasks
 		{
 			if (createThread)
 				this.workerThread = new Thread(WorkerMethod);
+			else
+				this.workerThread = Thread.CurrentThread;
 			this.others = others;
 			
 			this.dDeque = new DynamicDeque<System.Threading.ThreadStart>();
@@ -89,7 +92,43 @@ namespace System.Threading.Tasks
 				}
 			}
 			// If there is no more work, finish the method
-			// Just before the method dies, set the stop flag
+			// Just before the method dies, set the start flag
+			started = 0;
+		}
+		
+		// Almost same as above but with an added predicate and treating one item at a time. 
+		// It's used by Scheduler Participate(...) method for special waiting case like
+		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
+		internal void WorkerMethod(IEnumerable<Task> tasks, Func<IEnumerable<Task>, bool> predicate)
+		{	
+			while (!predicate(tasks)) {
+				ThreadStart value;
+				
+				if (!sharedWorkQueue.IsEmpty) {
+					// Dequeue only one item as we have restriction
+					sharedWorkQueue.TryDequeue(out value);
+					value();
+					// First check to see if we comply to predicate
+					if (predicate(tasks)) {
+						started = 0;
+						return;
+					}
+				}
+				
+				// Try to complete other worker work since our desired tasks may be there
+				ThreadWorker other;
+				for (int i = 0; i < others.Count && (other = others[i]) != null && other != this; i++) {
+					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
+						value();
+					}
+					if (predicate(tasks)) {
+						started = 0;
+						return;
+					}
+				}
+			}
+			// If there is no more work, finish the method
+			// Just before the method dies, set the start flag
 			started = 0;
 		}
 		

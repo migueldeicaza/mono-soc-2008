@@ -68,30 +68,34 @@ namespace System.Threading.Tasks
 	public class Future<T>: Task
 	{
 		T value;
-		bool alreadySet;
-		bool alreadyComputed;
-		Func<T> function;
+		int alreadySet;
+		Action action;
 		
 		public T Value {
 			get {
 				// TODO: Check the return of the get when there is no Func provided
 				Wait();
-				if (!alreadyComputed) {
-					value = function();
-					alreadyComputed = true;
-				}
+				
 				return value;
 			}
 			set {
-				if (alreadySet)
+				if (Interlocked.Exchange(ref alreadySet, 1) == 1)
 					throw new Exception("Value has already been set for this Future");
 				this.value = value;
-				alreadySet = true;
 			}
 		}
 		
-		internal Future()
+		internal Future(TaskManager tm, Func<T> f, TaskCreationOptions options):
+			base(tm, null, null, options)
 		{
+			this.action = delegate {
+				this.Value = f();	
+			};
+		}
+		
+		protected override void InnerInvoke ()
+		{
+			action();
 		}
 		
 		public static Future<T> Create<T>()
@@ -114,22 +118,10 @@ namespace System.Threading.Tasks
 			throw new NotImplementedException();
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, string name)
-		{
-			throw new NotImplementedException();
-		}
-		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(tm, function, options);
 		}
-		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm,
-		                             TaskCreationOptions options, string name)
-		{
-			throw new NotImplementedException();
-		}
-		
 		
 	}
 }
