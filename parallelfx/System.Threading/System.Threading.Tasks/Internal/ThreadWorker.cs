@@ -36,23 +36,29 @@ namespace System.Threading.Tasks
 		readonly ReadOnlyCollection<ThreadWorker> others;
 		
 		readonly DynamicDeque<ThreadStart>    dDeque;
-		readonly ConcurrentQueue<ThreadStart> sharedWorkQueue;
+		readonly ConcurrentStack<ThreadStart> sharedWorkQueue;
 		
 		// Flag to tell if workerThread is running
 		int started = 0; 
+		readonly bool isLocal;
 		
-		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentQueue<ThreadStart> sharedWorkQueue):
+		const int maxRetry = 5;
+		
+		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentStack<ThreadStart> sharedWorkQueue):
 			this(others, sharedWorkQueue, true)
 		{
 			
 		}
 		
-		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentQueue<ThreadStart> sharedWorkQueue, bool createThread)
+		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
 		{
-			if (createThread)
-				this.workerThread = new Thread(WorkerMethod);
-			else
+			if (createThread) {
+				this.workerThread = new Thread(new ThreadStart(WorkerMethod));
+				//this.workerThread.IsBackground = true;
+			} else {
 				this.workerThread = Thread.CurrentThread;
+				isLocal = true;
+			}
 			this.others = others;
 			
 			this.dDeque = new DynamicDeque<System.Threading.ThreadStart>();
@@ -62,9 +68,11 @@ namespace System.Threading.Tasks
 		public void Pulse()
 		{
 			// If the thread was stopped then set it in use and restart it
-			if (Interlocked.Exchange(ref started, 1) != 0)
+			int result = Interlocked.Exchange(ref started, 1);
+			if (result != 0)
 				return;
-			workerThread.Start();
+			if (!isLocal)
+				workerThread.Start();
 		}
 		
 		internal void WorkerMethod()
@@ -75,42 +83,47 @@ namespace System.Threading.Tasks
 			* Steal from others by PopTop them and PushBottom the result to our deque. When it's done go back to the beginning.
 			* If every thing is empty then let the thread's method die. It can be started again by the Scheduler with Pulse.
 			*/
+			PopResult result = PopResult.Succeed;
 			while (!sharedWorkQueue.IsEmpty) {
 				// We fill up our work deque concurrently with other ThreadWorker	
 				ThreadStart value;
-				while (sharedWorkQueue.TryDequeue(out value))
-						dDeque.PushBottom(value);
+				while (sharedWorkQueue.TryPop(out value))
+					dDeque.PushBottom(value);
 				// Now we process our work
 				while (dDeque.PopBottom(out value) == PopResult.Succeed)
 					value();
 				// When we have finished, steal from other worker
 				ThreadWorker other;
-				for (int i = 0; i < others.Count && (other = others[i]) != null && other != this; i++) {
-					while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
-						value();	
+				
+				// Repeat the operation a little so that we can let other things process.
+				for (int j = 0; j < maxRetry; j++) {
+					for (int i = 0; i < others.Count && (other = others[i]) != null && other != this; i++) {
+						while ((result = other.dDeque.PopTop(out value)) == PopResult.Succeed) {
+							value();	
+						}
 					}
 				}
 			}
 			// If there is no more work, finish the method
 			// Just before the method dies, set the start flag
 			started = 0;
+			Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId + " because of " + result.ToString());
 		}
 		
 		// Almost same as above but with an added predicate and treating one item at a time. 
 		// It's used by Scheduler Participate(...) method for special waiting case like
 		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
-		internal void WorkerMethod(IEnumerable<Task> tasks, Func<IEnumerable<Task>, bool> predicate)
+		internal void WorkerMethod(Func<bool> predicate)
 		{	
-			while (!predicate(tasks)) {
+			while (!predicate()) {
 				ThreadStart value;
 				
 				if (!sharedWorkQueue.IsEmpty) {
 					// Dequeue only one item as we have restriction
-					sharedWorkQueue.TryDequeue(out value);
-					value();
+					if (sharedWorkQueue.TryPop(out value))
+						value();
 					// First check to see if we comply to predicate
-					if (predicate(tasks)) {
-						started = 0;
+					if (predicate()) {
 						return;
 					}
 				}
@@ -121,15 +134,11 @@ namespace System.Threading.Tasks
 					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 						value();
 					}
-					if (predicate(tasks)) {
-						started = 0;
+					if (predicate()) {
 						return;
 					}
 				}
 			}
-			// If there is no more work, finish the method
-			// Just before the method dies, set the start flag
-			started = 0;
 		}
 		
 		public bool Equals(ThreadWorker other)

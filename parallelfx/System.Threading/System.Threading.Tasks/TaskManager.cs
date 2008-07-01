@@ -52,6 +52,11 @@ namespace System.Threading.Tasks
 			sched.AddWork(work);
 		}
 		
+		internal void WaitForAllTasks()
+		{
+			sched.Participate();	
+		}
+		
 		public TaskManagerPolicy Policy {
 			get {
 				return policy;

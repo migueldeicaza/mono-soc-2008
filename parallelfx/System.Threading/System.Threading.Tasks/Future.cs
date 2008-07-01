@@ -79,7 +79,8 @@ namespace System.Threading.Tasks
 				return value;
 			}
 			set {
-				if (Interlocked.Exchange(ref alreadySet, 1) == 1)
+				int result = Interlocked.Exchange(ref alreadySet, 1);
+				if (result == 1)
 					throw new Exception("Value has already been set for this Future");
 				this.value = value;
 			}

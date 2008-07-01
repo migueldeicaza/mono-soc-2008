@@ -55,17 +55,30 @@ namespace System.Threading.Collections
 		/// <param name="item"></param>
 		public void Enqueue(T item)
 		{
-			Node temp  = new Node();
-			temp.Value = item;
+			Node node  = new Node();
+			node.Value = item;
 			
-			Node oldTail;
-			do {
+			Node oldTail = null;
+			Node oldNext = null;
+			
+			bool update = false;
+			while (!update) {
 				oldTail = tail;
-				oldTail.Next = temp;
-			} while (Interlocked.CompareExchange(ref tail, temp, oldTail) != oldTail);
-			
-			/*Node oldTail = Interlocked.Exchange<Node>(ref tail, temp);
-			oldTail.Next = temp;*/
+				oldNext = oldTail.Next;
+				
+				// Did tail was already updated ?
+				if (tail == oldTail) {
+					if (oldNext == null) {
+						// The place is for us
+						update = Interlocked.CompareExchange(ref tail.Next, node, null) == null;
+					} else {
+						// another Thread already used the place so give him a hand by putting tail where it should be
+						Interlocked.CompareExchange(ref tail, oldNext, oldTail);
+					}
+				}
+			}
+			// At this point we added correctly our node, now we have to update tail. If it fails then it will be done by another thread
+			Interlocked.CompareExchange(ref tail, node, oldTail);
 			
 			Interlocked.Increment(ref count);
 		}
@@ -81,24 +94,32 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryDequeue(out T value)
 		{
-			if (IsEmpty) {
-				value = default(T);
-				return false;
+			Node node = null;
+			
+			bool advanced = false;
+			while (!advanced) {
+				Node oldHead = head;
+				Node oldTail = tail;
+				Node oldNext = oldHead.Next;
+				
+				if (oldHead == head) {
+					// Empty case ?
+					if (oldHead == oldTail) {	
+						// This should be false then
+						if (oldNext != null) {
+							// If not then the linked list is mal formed, update tail
+							Interlocked.CompareExchange(ref tail, oldNext, oldTail);
+						}
+						value = default(T);
+						return false;
+					} else {
+						value = oldNext.Value;
+						advanced = Interlocked.CompareExchange(ref head, oldNext, oldHead) == oldHead;
+					}
+				}
 			}
 			
-			Node temp;
-			do {
-				temp = head.Next;
-				// No more item in the queue
-				if (temp == null) {
-					value = default(T);
-					return false;
-				}	
-			} while (Interlocked.CompareExchange<Node>(ref head.Next, temp.Next, temp) != temp);
-			
 			Interlocked.Decrement(ref count);
-			
-			value = temp.Value;
 			return true;
 		}
 		

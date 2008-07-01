@@ -39,7 +39,6 @@ namespace System.Threading.Collections
 			public Node Next = null;
 		}
 		
-		//Node head = new Node();
 		Node head = null;
 		
 		int count;
@@ -58,7 +57,6 @@ namespace System.Threading.Collections
 			Node temp = new Node();
 			temp.Value = element;
 			
-			//temp.Next = Interlocked.Exchange<Node>(ref head, temp);
 			do {
 				temp.Next = head;
 			} while (Interlocked.CompareExchange<Node>(ref head, temp, temp.Next) != temp.Next);
@@ -71,15 +69,10 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryPop(out T value)
 		{
-			if (IsEmpty) {
-				value = default(T);
-				return false;
-			}	
-			
-			Node temp;// = Interlocked.Exchange(ref head, head.Next);
+			Node temp;
 			do {
 				temp = head;
-				// A thread which caused a contention let the stack empty
+				// The stak is empty
 				if (temp == null) {
 					value = default(T);
 					return false;
@@ -97,17 +90,18 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryPeek(out T value)
 		{
-			if (IsEmpty) {
+			Node myHead = head;
+			if (myHead == null) {
 				value = default(T);
 				return false;
 			}
-			
-			value = head.Value;
+			value = myHead.Value;
 			return true;
 		}
 		
 		public void Clear()
 		{
+			// This is not satisfactory
 			count = 0;
 			head = null;
 		}

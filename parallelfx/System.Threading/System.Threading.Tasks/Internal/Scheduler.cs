@@ -31,7 +31,7 @@ namespace System.Threading.Tasks
 {
 	internal class Scheduler: IScheduler
 	{
-		ConcurrentQueue<ThreadStart> workQueue = new ConcurrentQueue<ThreadStart>();
+		ConcurrentStack<ThreadStart> workQueue = new ConcurrentStack<ThreadStart>();
 		ReadOnlyCollection<ThreadWorker> workers;
 		ThreadWorker[] modifiableWorkers;
 		int maxWorker;
@@ -51,6 +51,7 @@ namespace System.Threading.Tasks
 		
 		public void AddWork(ThreadStart func)
 		{
+			//Console.WriteLine("Adding work");
 			// Add to the shared work pool
 			workQueue.Add(func);
 			// Wake up some worker if they were asleep
@@ -70,17 +71,28 @@ namespace System.Threading.Tasks
 		
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
 		// also when our wait condition is ok
-		public void Participate(IEnumerable<Task> tasks, Func<IEnumerable<Task>, bool> predicate)
+		public void Participate(ICollection<Task> tasks, Func<int, int, bool> predicate)
 		{
+			int numFinished = 0;
+			int count = tasks.Count;
+			foreach (Task t in tasks) {
+				t.Completed += delegate { Interlocked.Increment(ref numFinished); };	
+			}
+			
 			// This one has no participation as it has no Dequeue suitable for stealing
 			ThreadWorker participant = new ThreadWorker(workers, workQueue, false);
-			participant.WorkerMethod(tasks, predicate);
+			
+			// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
+			participant.WorkerMethod(delegate {
+				return predicate(numFinished, count);
+			});
 		}
 		
 		void PulseAll()
 		{
-			foreach (var worker in workers) {
-				worker.Pulse();	
+			foreach (ThreadWorker worker in workers) {
+				if (worker != null)
+					worker.Pulse();	
 			}
 		}
 	}
