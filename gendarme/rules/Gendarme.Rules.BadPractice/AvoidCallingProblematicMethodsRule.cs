@@ -121,8 +121,8 @@ namespace Gendarme.Rules.BadPractice {
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldc_I4_S)
 					return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
-				//Some compilers also can use the ldc.i4
-				//instruction
+				//Some compilers can use the ldc.i4
+				//instruction instead
 				if (current.OpCode == OpCodes.Ldc_I4)
 					return OperandIsNonPublic ((BindingFlags) current.Operand);
 				current = current.Previous;
@@ -131,10 +131,9 @@ namespace Gendarme.Rules.BadPractice {
 			return false;
 		}
 
-		private Severity? IsProblematicCall (Instruction call)
+		private Severity? IsProblematicCall (Instruction call, string operand)
 		{
 			ProblematicMethodInfo info;
-			string operand = call.Operand.ToString ();
 			if (problematicMethods.TryGetValue (operand, out info)) {
 				if (info.Predicate (call))
 					return info.Severity;
@@ -150,9 +149,10 @@ namespace Gendarme.Rules.BadPractice {
 
 			foreach (Instruction instruction in method.Body.Instructions) {
 				if (instruction.OpCode.FlowControl == FlowControl.Call) {
-					Severity? severity = IsProblematicCall (instruction);
+					string operand = instruction.Operand.ToString ();
+					Severity? severity = IsProblematicCall (instruction, operand);
 					if (severity.HasValue) 
-						Runner.Report (method, instruction, severity.Value, Confidence.High);
+						Runner.Report (method, instruction, severity.Value, Confidence.High, String.Format ("You are calling to {0}, which is a potentially problematic method", operand));
 				}
 			}	
 
