@@ -24,7 +24,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Collections;
 
 namespace System.Threading.Tasks
@@ -32,8 +31,7 @@ namespace System.Threading.Tasks
 	internal class Scheduler: IScheduler
 	{
 		ConcurrentStack<ThreadStart> workQueue = new ConcurrentStack<ThreadStart>();
-		ReadOnlyCollection<ThreadWorker> workers;
-		ThreadWorker[] modifiableWorkers;
+		ThreadWorker[] workers;
 		int maxWorker;
 		
 		public Scheduler(int maxWorker)
@@ -41,11 +39,10 @@ namespace System.Threading.Tasks
 			// We put the -1 because the thread owning the Scheduler can
 			// also be used as a worker
 			this.maxWorker = maxWorker;
-			modifiableWorkers = new ThreadWorker[maxWorker];
-			workers = Array.AsReadOnly(modifiableWorkers);
+			workers = new ThreadWorker[maxWorker];
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
-				modifiableWorkers[i] = new ThreadWorker(workers, workQueue);
+				workers[i] = new ThreadWorker(workers, workQueue);
 			}
 		}
 		
@@ -63,10 +60,10 @@ namespace System.Threading.Tasks
 		public void Participate()
 		{
 			ThreadWorker participant = new ThreadWorker(workers, workQueue, false);
-			modifiableWorkers[maxWorker - 1] = participant;
+			workers[maxWorker - 1] = participant;
 			participant.WorkerMethod();
 			// No more work, end the participation
-			modifiableWorkers[maxWorker - 1] = null;
+			workers[maxWorker - 1] = null;
 		}
 		
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves

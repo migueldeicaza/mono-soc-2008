@@ -23,8 +23,6 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Collections;
 
@@ -33,7 +31,7 @@ namespace System.Threading.Tasks
 	internal class ThreadWorker
 	{
 		readonly Thread workerThread;
-		readonly ReadOnlyCollection<ThreadWorker> others;
+		readonly ThreadWorker[] others;
 		
 		readonly DynamicDeque<ThreadStart>    dDeque;
 		readonly ConcurrentStack<ThreadStart> sharedWorkQueue;
@@ -41,16 +39,17 @@ namespace System.Threading.Tasks
 		// Flag to tell if workerThread is running
 		int started = 0; 
 		readonly bool isLocal;
+		readonly int workerLength;
 		
 		const int maxRetry = 5;
 		
-		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentStack<ThreadStart> sharedWorkQueue):
+		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue):
 			this(others, sharedWorkQueue, true)
 		{
 			
 		}
 		
-		public ThreadWorker(ReadOnlyCollection<ThreadWorker> others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
+		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
 		{
 			if (createThread) {
 				this.workerThread = new Thread(new ThreadStart(WorkerMethod));
@@ -60,7 +59,7 @@ namespace System.Threading.Tasks
 				isLocal = true;
 			}
 			this.others = others;
-			
+			this.workerLength = others.Length;
 			this.dDeque = new DynamicDeque<System.Threading.ThreadStart>();
 			this.sharedWorkQueue = sharedWorkQueue;
 		}
@@ -94,10 +93,11 @@ namespace System.Threading.Tasks
 					value();
 				// When we have finished, steal from other worker
 				ThreadWorker other;
-				
 				// Repeat the operation a little so that we can let other things process.
 				for (int j = 0; j < maxRetry; j++) {
-					for (int i = 0; i < others.Count && (other = others[i]) != null && other != this; i++) {
+					for (int i = 0; i < workerLength; i++) {
+						if ((other = others[i]) == null || other == this)
+							continue;
 						while ((result = other.dDeque.PopTop(out value)) == PopResult.Succeed) {
 							value();	
 						}
@@ -130,7 +130,9 @@ namespace System.Threading.Tasks
 				
 				// Try to complete other worker work since our desired tasks may be there
 				ThreadWorker other;
-				for (int i = 0; i < others.Count && (other = others[i]) != null && other != this; i++) {
+				for (int i = 0; i < workerLength; i++) {
+					if ((other = others[i]) == null || other == this)
+						continue;
 					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 						value();
 					}
@@ -143,7 +145,7 @@ namespace System.Threading.Tasks
 		
 		public bool Equals(ThreadWorker other)
 		{
-			return this.workerThread.ManagedThreadId == other.workerThread.ManagedThreadId;	
+			return (other == null) ? false : this.workerThread.ManagedThreadId == other.workerThread.ManagedThreadId;	
 		}
 		
 		public override bool Equals (object obj)

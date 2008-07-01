@@ -103,7 +103,7 @@ namespace System.Threading.Tasks
 			int currTopTag, newTopTag;
 			
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
-			Console.WriteLine("Popping top at " + currTopIndex + " from " + Thread.CurrentThread.ManagedThreadId);
+			//Console.WriteLine("Popping top at " + currTopIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
 			if (EmptinessTest(currTop, currBottom)) {
 				result = null;
@@ -138,7 +138,7 @@ namespace System.Threading.Tasks
 			Node oldBotNode, newBotNode;
 			int oldBotIndex, newBotIndex;
 			DecodeBottom(bottom, out oldBotNode, out oldBotIndex);
-			Console.WriteLine("Poping Bottom at " + oldBotIndex + " from " + Thread.CurrentThread.ManagedThreadId);
+			//Console.WriteLine("Poping Bottom at " + oldBotIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
 			if (oldBotIndex != ArraySize - 1) {
 				newBotNode = oldBotNode;
