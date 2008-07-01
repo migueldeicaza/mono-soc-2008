@@ -1,5 +1,5 @@
 //
-// Gendarme.Rules.Reliability.AvoidCallingProblematicMethodsRule class
+// Gendarme.Rules.BadPractice.AvoidCallingProblematicMethodsRule class
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -33,7 +33,7 @@ using Gendarme.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace Gendarme.Rules.Reliability {
+namespace Gendarme.Rules.BadPractice {
 	[Problem ("There are potentially dangerous calls into your code.")]
 	[Solution ("You should remove or replace the call to the dangerous method.")]
 	public class AvoidCallingProblematicMethodsRule : Rule, IMethodRule {
@@ -121,8 +121,11 @@ namespace Gendarme.Rules.Reliability {
 			while (current != null) {
 				//Some compilers also can use the Ldc_I4
 				//instruction.
-				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4)
-					return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
+				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4) {
+					if (current.Operand is sbyte)
+						return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
+					return OperandIsNonPublic ((BindingFlags) current.Operand);
+				}
 				current = current.Previous;
 			}
 
