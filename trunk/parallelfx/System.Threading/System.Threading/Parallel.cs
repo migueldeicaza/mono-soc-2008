@@ -33,7 +33,23 @@ namespace System.Threading
 	{
 		public static void For(int from, int to, Action<int> action)
 		{
-			throw new NotImplementedException();
+			int pcount = Environment.ProcessorCount;
+			int part = (to - from) / pcount;
+			int start = from;
+			for (int i = 0; i < pcount - 1; i++) {
+				int pstart = start + i * part;
+				int pend = pstart + part;
+				Task.Create(delegate {
+					for (int j = pstart; j < pend; j++)
+						action(j);
+				});
+			}
+			Task.Create(delegate {
+				int pstart = start + (pcount - 1) * part;
+				int pend = to;
+				for (int j = pstart; j < pend; j++)
+					action(j);
+			});
 		}
 		
 		public static void For(int from, int to, int step, Action<int> action)
