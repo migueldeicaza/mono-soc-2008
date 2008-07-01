@@ -1,5 +1,5 @@
 //
-// Unit test for Gendarme.Rules.Reliability.AvoidCallingProblematicMethodsRule 
+// Unit test for Gendarme.Rules.BadPractice.AvoidCallingProblematicMethodsRule 
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -35,12 +35,12 @@ using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Win32.SafeHandles;
-using Gendarme.Rules.Reliability;
+using Gendarme.Rules.BadPractice;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
 using Test.Rules.Definitions;
 
-namespace Test.Rules.Reliability {
+namespace Test.Rules.BadPractice {
 	[TestFixture]
 	public class AvoidCallingProblematicMethodsTest : MethodRuleTestFixture<AvoidCallingProblematicMethodsRule> {
 
