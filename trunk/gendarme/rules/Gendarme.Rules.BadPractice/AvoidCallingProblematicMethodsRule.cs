@@ -119,13 +119,12 @@ namespace Gendarme.Rules.BadPractice {
 		{
 			Instruction current = call;
 			while (current != null) {
-				//Some compilers also can use the Ldc_I4
-				//instruction.
-				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4) {
-					if (current.Operand is sbyte)
-						return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
+				if (current.OpCode == OpCodes.Ldc_I4_S)
+					return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
+				//Some compilers also can use the ldc.i4
+				//instruction
+				if (current.OpCode == OpCodes.Ldc_I4)
 					return OperandIsNonPublic ((BindingFlags) current.Operand);
-				}
 				current = current.Previous;
 			}
 
