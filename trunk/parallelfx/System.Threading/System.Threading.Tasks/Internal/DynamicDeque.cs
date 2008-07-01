@@ -35,7 +35,7 @@ namespace System.Threading.Tasks
 	
 	internal class DynamicDeque<T> where T : class
 	{
-		const int ArraySize = 8;
+		const int ArraySize = 20;
 		
 		internal class Node
 		{
@@ -62,9 +62,12 @@ namespace System.Threading.Tasks
 		
 		public DynamicDeque()
 		{
-			Node temp = new Node();
-			bottom = EncodeBottom(temp, ArraySize - 1);
-			top = EncodeTop(temp, ArraySize - 1, int.MinValue);
+			Node tempA = new Node();
+			Node tempB = new Node();
+			tempA.Next = tempB;
+			tempB.Previous = tempA;
+			bottom = EncodeBottom(tempA, ArraySize - 1);
+			top = EncodeTop(tempA, ArraySize - 1, int.MinValue);
 		}
 		
 		public void PushBottom(T item)
@@ -72,6 +75,7 @@ namespace System.Threading.Tasks
 			Node currNode;
 			int currIndex;
 			DecodeBottom(bottom, out currNode, out currIndex);
+			//Console.WriteLine("Pushing Bottom at " + currIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			currNode.Data[currIndex] = item;
 			
 			Node newNode;
@@ -99,6 +103,7 @@ namespace System.Threading.Tasks
 			int currTopTag, newTopTag;
 			
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
+			Console.WriteLine("Popping top at " + currTopIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
 			if (EmptinessTest(currTop, currBottom)) {
 				result = null;
@@ -133,6 +138,7 @@ namespace System.Threading.Tasks
 			Node oldBotNode, newBotNode;
 			int oldBotIndex, newBotIndex;
 			DecodeBottom(bottom, out oldBotNode, out oldBotIndex);
+			Console.WriteLine("Poping Bottom at " + oldBotIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
 			if (oldBotIndex != ArraySize - 1) {
 				newBotNode = oldBotNode;
@@ -141,7 +147,6 @@ namespace System.Threading.Tasks
 				newBotNode = oldBotNode.Next;
 				newBotIndex = 0;
 			}
-			T retVal = newBotNode.Data[newBotIndex];
 			// It's ok to touch Bottom like this since only the thread owning DynamicDeque will touch bottom
 			bottom = EncodeBottom(newBotNode, newBotIndex);
 			
@@ -150,14 +155,14 @@ namespace System.Threading.Tasks
 			int currTopIndex;
 			int currTopTag;
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
-			
+			T retVal = newBotNode.Data[newBotIndex];
 			// We are attempting to make Bottom cross over Top. Bad. Revert the last EncodeBottom
-			if (oldBotNode == currTopNode && oldBotIndex == currTopIndex) {
+			if (object.ReferenceEquals(oldBotNode, currTopNode) && oldBotIndex == currTopIndex) {
 				bottom = EncodeBottom(oldBotNode, oldBotIndex);
 				result = null;
 				return PopResult.Empty;
 			// Same as before but in the case of the updated bottom info
-			} else if (newBotNode == currTopNode && newBotIndex == currTopIndex) {
+			} else if (object.ReferenceEquals(newBotNode, currTopNode) && newBotIndex == currTopIndex) {
 				// We update top's tag to prevent a concurrent PopTop crossing over
 				TopInfo newTop = EncodeTop(currTopNode, currTopIndex, currTopTag + 1);
 				// If the CAS fails then it's already to late and we revert back the Bottom position like before to prevent
@@ -209,7 +214,18 @@ namespace System.Threading.Tasks
 		// Take care both of emptiness and cross-over
 		bool EmptinessTest(TopInfo topInfo, BottomInfo bottomInfo)
 		{
-			return object.ReferenceEquals(topInfo.Top, bottomInfo.Bottom) && topInfo.TopIndex >= bottomInfo.BottomIndex;
+			Node bot, top;
+			int bInd, tInd, tTag;
+			DecodeBottom(bottomInfo, out bot, out bInd);
+			DecodeTop(topInfo, out top, out tInd, out tTag);
+			
+			// Empty case is we are on the same node
+			if (top == bot && (tInd == bInd || tInd + 1 == bInd))
+				return true;
+			// Over-crossing state
+			else if (bot == top.Next && bInd == 0 && tInd == ArraySize - 1)
+				return true;
+			return false;
 		}
 	}
 }

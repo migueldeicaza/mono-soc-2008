@@ -57,7 +57,8 @@ namespace System.Threading.Tasks
 			tm.AddWork(delegate {
 				current = this;
 				InnerInvoke();
-				Completed(this, EventArgs.Empty);
+				if (Completed != null)
+					Completed(this, EventArgs.Empty);
 			});
 		}
 		
@@ -140,6 +141,11 @@ namespace System.Threading.Tasks
 		public bool Wait(int millisecondsTimeout)
 		{
 			throw new NotImplementedException();
+		}
+		
+		public static void WaitAllInTaskManager(TaskManager tm)
+		{
+			tm.WaitForAllTasks();
 		}
 		
 		public static void WaitAll(params Task[] tasks)
