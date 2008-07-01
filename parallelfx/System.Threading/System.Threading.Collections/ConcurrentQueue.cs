@@ -93,9 +93,7 @@ namespace System.Threading.Collections
 		/// </summary>
 		/// <returns></returns>
 		public bool TryDequeue(out T value)
-		{
-			Node node = null;
-			
+		{	
 			bool advanced = false;
 			while (!advanced) {
 				Node oldHead = head;
