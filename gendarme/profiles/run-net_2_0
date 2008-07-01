@@ -8,5 +8,27 @@ FAST_MONO_ASSEMBLIES=$MONO_ASSEMBLIES/mscorlib.dll
 
 export MONO_OPTIONS=--debug
 
-gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date +%m-%d-%Y`-classlib_2_0.xml $MONO_ASSEMBLIES/*.dll
+gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date \
++%m-%d-%Y`-classlib_2_0.xml $MONO_ASSEMBLIES/Accessibility.dll \
+$MONO_ASSEMBLIES/ByteFX.Data.dll $MONO_ASSEMBLIES/Commons.Xml.Relaxng.dll \
+$MONO_ASSEMBLIES/cscompmgd.dll  $MONO_ASSEMBLIES/CustomMarshalers.dll \
+$MONO_ASSEMBLIES/I18N*.dll \
+$MONO_ASSEMBLIES/IBM.Data.DB2.dll $MONO_ASSEMBLIES/ICSharpCode.SharpZipLib.dll \
+$MONO_ASSEMBLIES/Microsoft.Build.*.dll \
+$MONO_ASSEMBLIES/Microsoft.JScript.dll $MONO_ASSEMBLIES/Microsoft.VisualC.dll \
+$MONO_ASSEMBLIES/Microsoft.Vsa.dll $MONO_ASSEMBLIES/Mono.*.dll \
+$MONO_ASSEMBLIES/mscorlib.dll \
+$MONO_ASSEMBLIES/Novell.Directory.Ldap.dll $MONO_ASSEMBLIES/Npgsql.dll \
+$MONO_ASSEMBLIES/PEAPI.dll $MONO_ASSEMBLIES/System.Configuration*.dll \
+$MONO_ASSEMBLIES/System.Core.dll $MONO_ASSEMBLIES/System.Data*.dll \
+$MONO_ASSEMBLIES/System.Design.dll $MONO_ASSEMBLIES/System.DirectoryServices.dll \
+$MONO_ASSEMBLIES/System.dll $MONO_ASSEMBLIES/System.Drawing*.dll \
+$MONO_ASSEMBLIES/System.EnterpriseServices.dll $MONO_ASSEMBLIES/System.Management.dll \
+$MONO_ASSEMBLIES/System.Messaging.dll $MONO_ASSEMBLIES/System.Runtime*.dll \
+$MONO_ASSEMBLIES/System.Security.dll $MONO_ASSEMBLIES/System.ServiceProcess.dll \
+$MONO_ASSEMBLIES/System.Transactions.dll $MONO_ASSEMBLIES/System.Web*.dll \
+$MONO_ASSEMBLIES/System.Windows.Forms.dll $MONO_ASSEMBLIES/System.Xml.dll 
+#System.Xml.Linq.dll excluded
+
+
 gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date +%m-%d-%Y`-tools_2_0.xml $MONO_ASSEMBLIES/*.exe
