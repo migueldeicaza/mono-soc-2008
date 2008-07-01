@@ -82,7 +82,7 @@ namespace System.Threading.Tasks
 			* Steal from others by PopTop them and PushBottom the result to our deque. When it's done go back to the beginning.
 			* If every thing is empty then let the thread's method die. It can be started again by the Scheduler with Pulse.
 			*/
-			PopResult result = PopResult.Succeed;
+			//PopResult result = PopResult.Succeed;
 			while (!sharedWorkQueue.IsEmpty) {
 				// We fill up our work deque concurrently with other ThreadWorker	
 				ThreadStart value;
@@ -98,7 +98,7 @@ namespace System.Threading.Tasks
 					for (int i = 0; i < workerLength; i++) {
 						if ((other = others[i]) == null || other == this)
 							continue;
-						while ((result = other.dDeque.PopTop(out value)) == PopResult.Succeed) {
+						while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 							value();	
 						}
 					}
@@ -107,7 +107,7 @@ namespace System.Threading.Tasks
 			// If there is no more work, finish the method
 			// Just before the method dies, set the start flag
 			started = 0;
-			Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId + " because of " + result.ToString());
+			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId + " because of " + result.ToString());
 		}
 		
 		// Almost same as above but with an added predicate and treating one item at a time. 
