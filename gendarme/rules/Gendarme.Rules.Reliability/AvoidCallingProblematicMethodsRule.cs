@@ -40,6 +40,7 @@ namespace Gendarme.Rules.Reliability {
 		Dictionary<string, ProblematicMethodInfo> problematicMethods = new Dictionary<string, ProblematicMethodInfo> (new StartWithEqualityComparer ()); 
 		
 		sealed class StartWithEqualityComparer : IEqualityComparer <string> {
+
 			public bool Equals (string key, string source)
 			{
 				return source.StartsWith (key);
@@ -47,7 +48,14 @@ namespace Gendarme.Rules.Reliability {
 
 			public int GetHashCode (string obj)
 			{
-				return 0;
+				if (obj == null)
+					return 0;
+				//If two objects are equals, they return the
+				//same hash code
+				//If two objects are different, they don't have
+				//to return different hash code -> and that will
+				//be determined by the Equals call
+				return typeof (string).GetHashCode ();
 			}
 		}
 
@@ -102,9 +110,9 @@ namespace Gendarme.Rules.Reliability {
 					delegate (Instruction call) {return IsAccessingWithNonPublicModifiers (call);}));
 		}
 
-		private static bool OperandIsNonPublic (int operand)
+		private static bool OperandIsNonPublic (BindingFlags operand)
 		{
-			return ((BindingFlags) operand & BindingFlags.NonPublic) == BindingFlags.NonPublic;
+			return (operand & BindingFlags.NonPublic) == BindingFlags.NonPublic;
 		}
 
 		private static bool IsAccessingWithNonPublicModifiers (Instruction call)
@@ -112,9 +120,9 @@ namespace Gendarme.Rules.Reliability {
 			Instruction current = call;
 			while (current != null) {
 				//Some compilers also can use the Ldc_I4
-				//instrucction.
+				//instruction.
 				if (current.OpCode == OpCodes.Ldc_I4_S || current.OpCode == OpCodes.Ldc_I4)
-					return OperandIsNonPublic ((int) (sbyte) current.Operand);
+					return OperandIsNonPublic ((BindingFlags) (sbyte) current.Operand);
 				current = current.Previous;
 			}
 
@@ -124,7 +132,8 @@ namespace Gendarme.Rules.Reliability {
 		private Severity? IsProblematicCall (Instruction call)
 		{
 			ProblematicMethodInfo info;
-			if (problematicMethods.TryGetValue (call.Operand.ToString (), out info)) {
+			string operand = call.Operand.ToString ();
+			if (problematicMethods.TryGetValue (operand, out info)) {
 				if (info.Predicate (call))
 					return info.Severity;
 			}
@@ -141,7 +150,7 @@ namespace Gendarme.Rules.Reliability {
 				if (instruction.OpCode.FlowControl == FlowControl.Call) {
 					Severity? severity = IsProblematicCall (instruction);
 					if (severity.HasValue) 
-						Runner.Report (method, instruction, severity.Value, Confidence.High, String.Empty);
+						Runner.Report (method, instruction, severity.Value, Confidence.High);
 				}
 			}	
 
