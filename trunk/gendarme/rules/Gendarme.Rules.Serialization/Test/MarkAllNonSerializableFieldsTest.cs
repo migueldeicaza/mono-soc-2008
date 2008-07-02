@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -33,5 +34,41 @@ using Test.Rules.Fixtures;
 namespace Test.Rules.Serialization {
 	[TestFixture]
 	public class MarkAllNonSerializableFieldsTest : TypeRuleTestFixture<MarkAllNonSerializableFieldsRule> {
+		
+		class NonSerializableClass {
+		}
+
+		[Serializable]
+		class SerializableClass {
+		}
+
+		[Serializable]
+		class SerializableWithoutMarks {
+			NonSerializableClass nonSerializableClass;
+		}
+
+		[Serializable]
+		class SerializableWithMarks {
+			[NonSerialized]
+			NonSerializableClass nonSerializableClass;
+		}
+
+		[Test]
+		public void SkipOnNonSerializableClassesTest ()
+		{
+			AssertRuleDoesNotApply<NonSerializableClass> ();
+		}
+
+		[Test]
+		public void FailOnSerializableClassWithoutMarksTest ()
+		{
+			AssertRuleFailure<SerializableWithoutMarks> ();
+		}
+
+		[Test]
+		public void SuccessOnSerializableClassWithMarksTest ()
+		{
+			AssertRuleSuccess<SerializableWithMarks> ();
+		}
 	}
 }
