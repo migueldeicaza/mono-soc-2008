@@ -57,4 +57,5 @@ test/applyTo/Makefile
 reporter/Makefile
 rules/Makefile
 rules/Gendarme.Rules.BadPractice/Makefile
+rules/Gendarme.Rules.Serialization/Makefile
 ])
