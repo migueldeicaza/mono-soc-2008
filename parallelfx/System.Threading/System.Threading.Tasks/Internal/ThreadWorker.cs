@@ -30,7 +30,7 @@ namespace System.Threading.Tasks
 {
 	internal class ThreadWorker
 	{
-		readonly Thread workerThread;
+		Thread workerThread;
 		readonly ThreadWorker[] others;
 		
 		readonly DynamicDeque<ThreadStart>    dDeque;
@@ -51,8 +51,15 @@ namespace System.Threading.Tasks
 		
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
 		{
+			SpinWait sw = new SpinWait();
 			if (createThread) {
-				this.workerThread = new Thread(new ThreadStart(WorkerMethod));
+				this.workerThread = new Thread(new ThreadStart(delegate() {
+					//TODO: Replace this with something depending on time passed doing nothing like in the ThreadPool
+					//while (true) {
+						WorkerMethod();
+					 	//Thread.SpinWait(50);
+					//}
+				}));
 				//this.workerThread.IsBackground = true;
 			} else {
 				this.workerThread = Thread.CurrentThread;
@@ -70,8 +77,11 @@ namespace System.Threading.Tasks
 			int result = Interlocked.Exchange(ref started, 1);
 			if (result != 0)
 				return;
-			if (!isLocal)
+			if (!isLocal) {
+				if (this.workerThread.ThreadState != ThreadState.Unstarted)
+					this.workerThread = new Thread(new ThreadStart(WorkerMethod));
 				workerThread.Start();
+			}
 		}
 		
 		internal void WorkerMethod()
@@ -90,7 +100,8 @@ namespace System.Threading.Tasks
 					dDeque.PushBottom(value);
 				// Now we process our work
 				while (dDeque.PopBottom(out value) == PopResult.Succeed)
-					value();
+					if (value != null)
+						value();
 				// When we have finished, steal from other worker
 				ThreadWorker other;
 				// Repeat the operation a little so that we can let other things process.
@@ -99,7 +110,8 @@ namespace System.Threading.Tasks
 						if ((other = others[i]) == null || other == this)
 							continue;
 						while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
-							value();	
+							if (value != null)
+								value();	
 						}
 					}
 				}
@@ -128,7 +140,7 @@ namespace System.Threading.Tasks
 					}
 				}
 				
-				// Try to complete other worker work since our desired tasks may be there
+				// Try to complete other work by stealing since our desired tasks may be in other worker
 				ThreadWorker other;
 				for (int i = 0; i < workerLength; i++) {
 					if ((other = others[i]) == null || other == this)
@@ -140,6 +152,12 @@ namespace System.Threading.Tasks
 						return;
 					}
 				}
+			}
+		}
+		
+		internal bool Finished {
+			get {
+				return started == 0;	
 			}
 		}
 		

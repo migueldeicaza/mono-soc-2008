@@ -81,7 +81,7 @@ namespace System.Threading
 		[DllImport("kernel32.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
 		private static extern void SwitchToThread();
 
-		[DllImport("libc.so", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
+		[DllImport("libc.so.6"), SuppressUnmanagedCodeSecurity]
 		private static extern void sched_yield();
 	}
 }
