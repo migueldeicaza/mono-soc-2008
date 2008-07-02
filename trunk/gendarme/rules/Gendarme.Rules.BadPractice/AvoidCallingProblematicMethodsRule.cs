@@ -55,7 +55,7 @@ namespace Gendarme.Rules.BadPractice {
 				//If two objects are different, they don't have
 				//to return different hash code -> and that will
 				//be determined by the Equals call
-				return typeof (string).GetHashCode ();
+				return GetHashCode ();
 			}
 		}
 
@@ -79,6 +79,34 @@ namespace Gendarme.Rules.BadPractice {
 				get {
 					return predicate;
 				}
+			}
+
+			public override bool Equals (object obj)
+			{
+				if (obj == null)
+					return false;
+				ProblematicMethodInfo target = (ProblematicMethodInfo) obj;
+				return target.Severity == Severity && target.Predicate == Predicate;
+			}
+
+			public bool Equals (ProblematicMethodInfo target)
+			{
+				return this == target;
+			}
+
+			public override int GetHashCode ()
+			{
+				return Severity.GetHashCode () ^ Predicate.GetHashCode ();
+			}
+
+			public static bool operator == (ProblematicMethodInfo left, ProblematicMethodInfo right)
+			{
+				return left.Equals (right);
+			}
+
+			public static bool operator != (ProblematicMethodInfo left, ProblematicMethodInfo right)
+			{
+				return !left.Equals (right);
 			}
 		}
 
