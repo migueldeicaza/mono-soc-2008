@@ -27,6 +27,7 @@
 //
 
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Serialization {
@@ -35,6 +36,13 @@ namespace Gendarme.Rules.Serialization {
 	public class MarkAllNonSerializableFieldsRule : Rule, ITypeRule {
 		public RuleResult CheckType (TypeDefinition type)
 		{
+			if (!type.IsSerializable)
+				return RuleResult.DoesNotApply;
+			foreach (FieldDefinition field in type.Fields) {
+				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized)
+					Runner.Report (field, Severity.Critical, Confidence.High);
+			}
+
 			return Runner.CurrentRuleResult;
 		}
 	}
