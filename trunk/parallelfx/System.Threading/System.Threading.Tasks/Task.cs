@@ -57,6 +57,7 @@ namespace System.Threading.Tasks
 			tm.AddWork(delegate {
 				current = this;
 				InnerInvoke();
+				isCompleted = true;
 				if (Completed != null)
 					Completed(this, EventArgs.Empty);
 			});
@@ -130,7 +131,7 @@ namespace System.Threading.Tasks
 		
 		public void Wait()
 		{
-			throw new NotImplementedException();
+			tm.WaitForTask(this);
 		}
 		
 		public bool Wait(TimeSpan ts)
@@ -170,10 +171,13 @@ namespace System.Threading.Tasks
 			return result;
 		}
 		
-		public static void WaitAny(params Task[] tasks)
+		static readonly Func<int, bool> WaitAnyPredicate = delegate (int nFinished) {
+			return nFinished == 1;
+		};
+		
+		public static int WaitAny(params Task[] tasks)
 		{
-			foreach (var t in tasks)
-				t.Wait();
+			throw new NotImplementedException();
 		}
 		
 		public static bool WaitAny(Task[] tasks, TimeSpan ts)
@@ -190,16 +194,6 @@ namespace System.Threading.Tasks
 			foreach (var t in tasks)
 				result &= t.Wait(millisecondsTimeout);
 			return result;
-		}
-		
-		static bool VerifyCompletion(Task[] tasks)
-		{
-			foreach (Task t in tasks) {
-				if (t.IsCompleted)
-					return true;
-			}
-			
-			return false;
 		}
 		
 		protected void Finish()

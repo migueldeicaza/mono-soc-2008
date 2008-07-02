@@ -66,23 +66,54 @@ namespace System.Threading.Tasks
 			workers[maxWorker - 1] = null;
 		}
 		
+		public void ParticipateUntil(Task task)
+		{
+			if (task.IsCompleted)
+				return;
+			
+			int finished = 0;
+			task.Completed += delegate { finished = 1; };
+			ThreadWorker participant = GetLocalThreadWorker();
+			
+			participant.WorkerMethod(delegate {
+				return finished == 1;	
+			});
+		}
+		
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
 		// also when our wait condition is ok
-		public void Participate(ICollection<Task> tasks, Func<int, int, bool> predicate)
+		public void ParticipateUntil(IEnumerable<Task> tasks, Func<int, bool> predicate)
 		{
 			int numFinished = 0;
-			int count = tasks.Count;
+
 			foreach (Task t in tasks) {
 				t.Completed += delegate { Interlocked.Increment(ref numFinished); };	
 			}
 			
-			// This one has no participation as it has no Dequeue suitable for stealing
-			ThreadWorker participant = new ThreadWorker(workers, workQueue, false);
+			ThreadWorker participant = GetLocalThreadWorker();
 			
 			// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
 			participant.WorkerMethod(delegate {
-				return predicate(numFinished, count);
+				return predicate(numFinished);
 			});
+		}
+		
+		// Hacky
+		public void EnsureEverybodyFinished()
+		{
+			bool c = true;
+			while (c) {
+				Thread.Sleep(5);
+				bool temp = true;
+				for (int i = 0; i < maxWorker; i++) {
+					ThreadWorker w = workers[i];
+					if (w != null)
+						temp &= w.Finished;
+					if (!temp)
+						break;
+				}
+				c = !temp;
+			}
 		}
 		
 		void PulseAll()
@@ -91,6 +122,18 @@ namespace System.Threading.Tasks
 				if (worker != null)
 					worker.Pulse();	
 			}
+		}
+		
+		// Replace that by LazyInit<T> when gmcs can compile it
+		ThreadWorker participant = null;
+		ThreadWorker GetLocalThreadWorker()
+		{
+			// This one has no participation as it has no Dequeue suitable for stealing
+			// that's why it's not in the workers array
+			if (participant == null)
+				participant = new ThreadWorker(workers, workQueue, false);
+			// It's ok to do the lazy init like this as there is only one thread which call this method (if the user don't mess up !)
+			return participant;
 		}
 	}
 }

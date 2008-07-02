@@ -12,14 +12,16 @@ class MainClass
 	
 	public static void Main()
 	{
+		Task[] tasks = new Task[max];
 		for (int i = 0; i < max; i++) {
-			Task.Create(delegate {
+			tasks [i] = Task.Create(delegate {
 				int temp = Interlocked.Increment(ref c);
 				Console.WriteLine("scwl num {0} from {1}", temp.ToString(), Thread.CurrentThread.ManagedThreadId.ToString());
 				Thread.Sleep(r.Next(500, 1000));
 				Console.WriteLine("Out of " + temp.ToString());
 			});
 		}
-		Task.WaitAllInTaskManager(TaskManager.Default);
+		//Task.WaitAllInTaskManager(TaskManager.Default);
+		Task.WaitAll(tasks);
 	}
 }

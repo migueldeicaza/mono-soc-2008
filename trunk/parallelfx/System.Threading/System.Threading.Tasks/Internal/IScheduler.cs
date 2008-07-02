@@ -1,4 +1,4 @@
-// TaskManager.cs
+// IScheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,73 +23,17 @@
 //
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 
 namespace System.Threading.Tasks
 {
-	public class TaskManager
+	internal interface IScheduler
 	{
-		static TaskManager tdefault = new TaskManager();
-		static TaskManager tcurrent = tdefault;
-		
-		TaskManagerPolicy policy;
-		
-		IScheduler        sched;
-		
-		public TaskManager(): this(new TaskManagerPolicy())
-		{
-		}
-		
-		public TaskManager(TaskManagerPolicy policy)
-		{
-			this.policy = policy;
-			sched = new Scheduler(policy.IdealThreads);
-		}
-		
-		internal void AddWork(ThreadStart work)
-		{
-			sched.AddWork(work);
-		}
-		
-		internal void WaitForAllTasks()
-		{
-			sched.Participate();
-			sched.EnsureEverybodyFinished();
-		}
-		
-		internal void WaitForTask(Task task)
-		{
-			sched.ParticipateUntil(task);
-		}
-		
-		internal void WaitForTasksUntil(ICollection<Task> tasks, Func<int, bool> predicate)
-		{
-			sched.ParticipateUntil(tasks, predicate);
-		}
-		
-		public TaskManagerPolicy Policy {
-			get {
-				return policy;
-			}
-			set {
-				policy = value;
-			}
-		}
-
-		public static TaskManager Default {
-			get {
-				return tdefault;
-			}
-		}
-
-		public static TaskManager Current {
-			get {
-				return tcurrent;
-			}
-			internal set {
-				tcurrent = value;	
-			}
-		}
-		
+		void AddWork(ThreadStart work);
+		void Participate();
+		void ParticipateUntil(Task task);
+		void ParticipateUntil(IEnumerable<Task> tasks, Func<int, bool> predicate);
+		void EnsureEverybodyFinished();
 	}
 }
