@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
 using Mono.Cecil;
@@ -43,7 +44,7 @@ namespace Gendarme.Rules.Serialization {
 
 			foreach (FieldDefinition field in type.Fields) {
 				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized)
-					Runner.Report (field, Severity.Critical, Confidence.High);
+					Runner.Report (field, Severity.Critical, Confidence.High, String.Format ("The field {0} isn't serializable.", field.Name));
 			}
 
 			return Runner.CurrentRuleResult;
