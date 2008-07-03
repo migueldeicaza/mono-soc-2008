@@ -33,7 +33,7 @@ namespace System.Threading.Tasks
 		void AddWork(ThreadStart work);
 		void Participate();
 		void ParticipateUntil(Task task);
-		void ParticipateUntil(IEnumerable<Task> tasks, Func<int, bool> predicate);
-		void EnsureEverybodyFinished();
+		bool ParticipateUntil(Task task, Func<bool> predicate);
+		void ParticipateUntil(Func<bool> predicate);
 	}
 }

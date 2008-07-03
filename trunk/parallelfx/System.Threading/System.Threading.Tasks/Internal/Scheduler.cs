@@ -71,50 +71,42 @@ namespace System.Threading.Tasks
 			if (task.IsCompleted)
 				return;
 			
-			int finished = 0;
-			task.Completed += delegate { finished = 1; };
 			ThreadWorker participant = GetLocalThreadWorker();
 			
 			participant.WorkerMethod(delegate {
-				return finished == 1;	
+				return task.IsCompleted;	
 			});
+		}
+		
+		public bool ParticipateUntil(Task task, Func<bool> predicate)
+		{
+			if (task.IsCompleted)
+				return false;
+			
+			bool isFromPredicate = false;
+			ThreadWorker participant = GetLocalThreadWorker();
+			
+			participant.WorkerMethod(delegate {
+				if (predicate()) {
+					isFromPredicate = true;
+					return true;
+				}
+				return task.IsCompleted;	
+			});
+				
+			return isFromPredicate;
 		}
 		
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
 		// also when our wait condition is ok
-		public void ParticipateUntil(IEnumerable<Task> tasks, Func<int, bool> predicate)
+		public void ParticipateUntil(Func<bool> predicate)
 		{
-			int numFinished = 0;
-
-			foreach (Task t in tasks) {
-				t.Completed += delegate { Interlocked.Increment(ref numFinished); };	
-			}
-			
 			ThreadWorker participant = GetLocalThreadWorker();
 			
-			// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
-			participant.WorkerMethod(delegate {
-				return predicate(numFinished);
-			});
+			participant.WorkerMethod(predicate);
 		}
 		
-		// Hacky
-		public void EnsureEverybodyFinished()
-		{
-			bool c = true;
-			while (c) {
-				Thread.Sleep(5);
-				bool temp = true;
-				for (int i = 0; i < maxWorker; i++) {
-					ThreadWorker w = workers[i];
-					if (w != null)
-						temp &= w.Finished;
-					if (!temp)
-						break;
-				}
-				c = !temp;
-			}
-		}
+		
 		
 		void PulseAll()
 		{

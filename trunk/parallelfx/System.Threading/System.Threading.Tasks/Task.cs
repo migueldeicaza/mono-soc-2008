@@ -35,13 +35,13 @@ namespace System.Threading.Tasks
 		object asyncState;
 		WaitHandle asyncWaitHandle;
 		Exception exception;
-		bool isCanceled;
+		bool  isCanceled;
 		bool isCompleted;
 		Task parent = current;
 		Task creator = current;
 		TaskCreationOptions taskCreationOptions;
 		
-		TaskManager tm;
+		protected readonly TaskManager tm;
 		Action<object> action;
 		object state;
 		
@@ -55,6 +55,8 @@ namespace System.Threading.Tasks
 			this.state = state;
 			
 			tm.AddWork(delegate {
+				if (isCanceled)
+					return;
 				current = this;
 				InnerInvoke();
 				isCompleted = true;
@@ -71,23 +73,23 @@ namespace System.Threading.Tasks
 		
 		public static Task Create(Action<object> action, object state)
 		{
-			return Create(action, state, TaskManager.Default, TaskCreationOptions.None);
+			return Create(action, state, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
 		public static Task Create(Action<object> action, TaskManager tm)
 		{
-			throw new NotImplementedException();
+			return Create(action, null, tm, TaskCreationOptions.None);
 		}
 		
 		public static Task Create(Action<object> action, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+			return Create(action, null, TaskManager.Current, options);
 		}
 		
 		
 		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+			return Create(action, null, tm, options);
 		}
 		
 		public static Task Create(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
@@ -111,42 +113,49 @@ namespace System.Threading.Tasks
 		#region Cancel and Wait related methods
 		public void Cancel()
 		{
-			throw new NotImplementedException();
+			// Mark the Task as canceled so that the worker function will return immediately
+			isCanceled = true;
 		}
 		
 		public void CancelAndWait()
 		{
-			throw new NotImplementedException();
+			Cancel();
+			Wait();
 		}
 		
 		public bool CancelAndWait(TimeSpan ts)
 		{
-			throw new NotImplementedException();
+			Cancel();
+			return Wait(ts);
 		}
 		
 		public bool CancelAndWait(int millisecondsTimeout)
 		{
-			throw new NotImplementedException();
+			Cancel();
+			return Wait(millisecondsTimeout);
 		}
 		
 		public void Wait()
 		{
+			if (this.IsCompleted)
+				return;
 			tm.WaitForTask(this);
 		}
 		
 		public bool Wait(TimeSpan ts)
 		{
-			throw new NotImplementedException();
+			return Wait((int)ts.TotalMilliseconds);
 		}
 		
 		public bool Wait(int millisecondsTimeout)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static void WaitAllInTaskManager(TaskManager tm)
-		{
-			tm.WaitForAllTasks();
+			if (this.IsCompleted)
+				return true;
+			
+			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+			bool result = tm.WaitForTaskWithPredicate(this, delegate { return sw.ElapsedMilliseconds >= millisecondsTimeout; });
+			sw.Stop();
+			return !result;
 		}
 		
 		public static void WaitAll(params Task[] tasks)
@@ -171,29 +180,37 @@ namespace System.Threading.Tasks
 			return result;
 		}
 		
-		static readonly Func<int, bool> WaitAnyPredicate = delegate (int nFinished) {
-			return nFinished == 1;
-		};
-		
+		// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
 		public static int WaitAny(params Task[] tasks)
 		{
-			throw new NotImplementedException();
+			int numFinished = 0;
+			int indexFirstFinished = -1;
+			
+			foreach (Task t in tasks) {
+				t.Completed += delegate (object sender, EventArgs e) { 
+					int result = Interlocked.Increment(ref numFinished);
+					if (result == 0) {
+						Task target = (Task)sender;
+						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+					}
+				};	
+			}
+			
+			TaskManager.Current.WaitForTasksUntil(delegate {
+				return numFinished >= 1;
+			});
+			
+			return indexFirstFinished;
 		}
 		
 		public static bool WaitAny(Task[] tasks, TimeSpan ts)
 		{
-			bool result = true;
-			foreach (var t in tasks)
-				result &= t.Wait(ts);
-			return result;
+			throw new NotImplementedException();
 		}
 		
 		public static bool WaitAny(Task[] tasks, int millisecondsTimeout)
 		{
-			bool result = true;
-			foreach (var t in tasks)
-				result &= t.Wait(millisecondsTimeout);
-			return result;
+			throw new NotImplementedException();
 		}
 		
 		protected void Finish()

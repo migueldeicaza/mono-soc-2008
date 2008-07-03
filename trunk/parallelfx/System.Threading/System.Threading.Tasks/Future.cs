@@ -30,38 +30,27 @@ namespace System.Threading.Tasks
 	{
 		public static Future<T> Create<T>()
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, function, options);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static Future<T> Create<T>(Func<T> function, string name)
-		{
-			throw new NotImplementedException();
+			return new Future<T>(tm, function, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm,
-		                             TaskCreationOptions options, string name)
-		{
-			throw new NotImplementedException();
+			return new Future<T>(tm, function, options);
 		}
 	}
 	
@@ -73,9 +62,8 @@ namespace System.Threading.Tasks
 		
 		public T Value {
 			get {
-				// TODO: Check the return of the get when there is no Func provided
-				Wait();
-				
+				if (action != null)
+					Wait();
 				return value;
 			}
 			set {
@@ -101,28 +89,27 @@ namespace System.Threading.Tasks
 		
 		public static Future<T> Create<T>()
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(TaskManager.Current, function, options);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
 		{
-			throw new NotImplementedException();
+			return new Future<T>(tm, function, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
 			return new Future<T>(tm, function, options);
 		}
-		
 	}
 }

@@ -51,16 +51,11 @@ namespace System.Threading.Tasks
 		
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
 		{
-			SpinWait sw = new SpinWait();
 			if (createThread) {
 				this.workerThread = new Thread(new ThreadStart(delegate() {
 					//TODO: Replace this with something depending on time passed doing nothing like in the ThreadPool
-					//while (true) {
 						WorkerMethod();
-					 	//Thread.SpinWait(50);
-					//}
 				}));
-				//this.workerThread.IsBackground = true;
 			} else {
 				this.workerThread = Thread.CurrentThread;
 				isLocal = true;
