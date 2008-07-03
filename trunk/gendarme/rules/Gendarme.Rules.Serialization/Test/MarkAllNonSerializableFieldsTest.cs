@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Runtime.Serialization;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -59,6 +60,21 @@ namespace Test.Rules.Serialization {
 			SerializableClass serializableClass;
 		}
 
+		class NonSerializableWithInnerClass {
+			[Serializable]
+			class Serializable {
+			}
+		}
+		
+		[Serializable]
+		class CustomSerializationClass : ISerializable {
+			NonSerializableClass nonSerializable;
+
+			public void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
 		[Test]
 		public void SkipOnNonSerializableClassesTest ()
 		{
@@ -81,6 +97,27 @@ namespace Test.Rules.Serialization {
 		public void SuccessOnSerializableClassWithSerializableFieldsTest ()
 		{
 			AssertRuleSuccess<SerializableWithSerializableFields> ();
+		}
+
+		[Test]
+		public void NonSerializableWithInnerClassTest ()
+		{
+			AssertRuleDoesNotApply<NonSerializableWithInnerClass> ();
+		}
+
+		[Test]
+		public void CustomSerializationClassTest ()
+		{
+			//If you are doing a custom serialization there aren't
+			//need to warn developers about the NonSerialized
+			//fields, because the runtime usess the GetObjectData
+			//method in order to retrieve the object state.
+			AssertRuleSuccess<CustomSerializationClass> ();
+			//But, perhaps if you still marks the fields, you will
+			//help others to understand better your code.
+			//
+			//Take a look at System.Collections.Generic.LinkedList
+			//by example
 		}
 	}
 }
