@@ -91,7 +91,7 @@ namespace Gendarme.Rules.BadPractice {
 
 			public bool Equals (ProblematicMethodInfo target)
 			{
-				return this == target;
+				return target.Severity == Severity && target.Predicate == Predicate;
 			}
 
 			public override int GetHashCode ()
