@@ -31,8 +31,8 @@ using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Serialization {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("This type is Serializable, but contains fields that aren't serializable and this can drive you to some troubles and SerializationExceptions.")]
+	[Solution ("Make sure you are marking all non serializable fields with the NonSerialized attribute, or implement your custom serialization.")]
 	public class MarkAllNonSerializableFieldsRule : Rule, ITypeRule {
 		public RuleResult CheckType (TypeDefinition type)
 		{
