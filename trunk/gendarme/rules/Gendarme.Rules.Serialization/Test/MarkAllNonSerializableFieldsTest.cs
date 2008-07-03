@@ -112,7 +112,7 @@ namespace Test.Rules.Serialization {
 			//need to warn developers about the NonSerialized
 			//fields, because the runtime usess the GetObjectData
 			//method in order to retrieve the object state.
-			AssertRuleSuccess<CustomSerializationClass> ();
+			AssertRuleDoesNotApply<CustomSerializationClass> ();
 			//But, perhaps if you still marks the fields, you will
 			//help others to understand better your code.
 			//
