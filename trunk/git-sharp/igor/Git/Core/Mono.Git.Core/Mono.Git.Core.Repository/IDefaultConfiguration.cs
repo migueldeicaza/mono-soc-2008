@@ -1,4 +1,4 @@
-// Ref.cs
+// IDefaultConfigurations.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -26,14 +26,33 @@
 
 using System;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core.Repository
 {
-	
-	
-	public class Ref
+	/// <summary>
+	/// Holds default configuration variables
+	/// </summary>
+	public interface IDefaultConfiguration
 	{
-		public Ref ()
-		{
+		string TemplatePath {
+			get;
+			set;
+		}
+		
+		string ConfigPath {
+			get;
+			set;
+		}
+		
+		// HEAD is always in the repo directory
+		string Head {
+			get;
+			set;
+		}
+		
+		// description is always in the repo directory 
+		string Description {
+			get;
+			set;
 		}
 	}
 }

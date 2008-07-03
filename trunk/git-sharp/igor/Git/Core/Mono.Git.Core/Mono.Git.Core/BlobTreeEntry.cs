@@ -1,4 +1,4 @@
-// ObjectStore.cs
+// BlobEntry.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,22 +25,49 @@
 //
 
 using System;
+using System.Text;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// This class has all the information about the object store tipicaly
-	/// .git/objects
-	/// </summary>
-	public class ObjectStore
+	public class BlobTreeEntry : TreeEntry
 	{
+		private GitFileMode mode;
 		
-		public ObjectStore ()
+		public BlobTreeEntry (Tree myParent, SHA1 objId, string objName, bool exec) : 
+			base (myParent, objId, objName)
 		{
+			SetExecutable (exec);
 		}
 		
-		public static void Init () {
+		public GitFileMode Mode {
+			set {
+				mode = value;
+			}
+			get {
+				return mode;
+			}
+		}
+		
+		public void SetExecutable (bool setExec)
+		{
+			mode = setExec ? GitFileMode.ExecutableFile : GitFileMode.RegularFile;
+		}
+		
+		public bool IsExecutable ()
+		{
+			return mode.Equals (GitFileModeTypes.ExecutableFile);
+		}
+		
+		public override string ToString ()
+		{
+			StringBuilder sb = new StringBuilder();
+			sb.Append (Object.BytesToHexString (Id.bytes));
+			sb.Append (" ");
+			sb.Append (IsExecutable () ? "X" : "F");
+			sb.Append (" ");
+			sb.Append (Name);
 			
+			return sb.ToString ();
 		}
 	}
 }

@@ -1,19 +1,26 @@
 ﻿<UserCombinePreferences version="1.0" filename="/home/igor/gsoc/Git/Git.mds">
   <Files>
-    <File name="Welcome" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Tree.cs" line="50" column="4" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/TreeEntry.cs" line="42" column="15" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Object.cs" line="327" column="24" />
-    <File name="Repository/Mono.Git.Repository/Mono.Git.Repository/Repository.cs" line="44" column="11" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/Revision.cs" line="28" column="1" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/TreeEntry.cs" line="46" column="20" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/GitFileMode.cs" line="64" column="64" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/BlobTreeEntry.cs" line="62" column="4" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/Commit.cs" line="55" column="4" />
   </Files>
   <Views>
     <ViewMemento id="ProjectPad">
       <Node expanded="True">
         <Node name="Core" expanded="True">
-          <Node name="Mono.Git.Core" expanded="True">
-            <Node name="Mono.Git.Core" expanded="True">
-              <Node name="TreeEntry.cs" selected="True" />
-            </Node>
+          <Node name="Mono.Git.Core" expanded="True" />
+        </Node>
+        <Node name="Repository" expanded="True">
+          <Node name="Mono.Git.Repository" expanded="True">
+            <Node name="References" selected="True" />
+            <Node name="Mono.Git.Repository" expanded="True" />
+          </Node>
+        </Node>
+        <Node name="Tests" expanded="True">
+          <Node name="Tests" expanded="True">
+            <Node name="References" expanded="True" />
           </Node>
         </Node>
       </Node>
@@ -29,7 +36,7 @@
     </ViewMemento>
   </Views>
   <Properties>
-    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Core/Mono.Git.Core/Mono.Git.Core/TreeEntry.cs" />
+    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Core/Mono.Git.Core/Mono.Git.Core/Commit.cs" />
     <Property key="ActiveConfiguration" value="Debug" />
   </Properties>
 </UserCombinePreferences>

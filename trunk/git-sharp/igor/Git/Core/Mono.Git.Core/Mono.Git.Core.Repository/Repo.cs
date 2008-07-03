@@ -27,12 +27,12 @@
 using System;
 using System.IO;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core.Repository
 {
 	/// <summary>
 	/// It represent all the repository data
 	/// </summary>
-	public class Repository
+	public class Repo
 	{
 		private string path;
 		private string description;
@@ -66,7 +66,7 @@ namespace Mono.Git.Repository
 			}
 		}
 		
-		public Repository ()
+		public Repo ()
 		{
 		}
 		
