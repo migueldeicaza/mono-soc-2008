@@ -17,6 +17,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+[assembly: InternalsVisibleTo("ParallelFxTests")]
 
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // If the build and revision are set to '*' they will be updated automatically.

@@ -17,11 +17,14 @@
     <File name="System.Threading.Collections" subtype="Directory" buildaction="Compile" />
     <File name="System.Threading.Collections/ConcurrentStackTests.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Collections/ConcurrentQueueTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Tasks" subtype="Directory" buildaction="Compile" />
+    <File name="System.Threading.Tasks/TaskTest.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
     <ProjectReference type="Gac" localcopy="True" refto="nunit.core, Version=2.2.9.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
     <ProjectReference type="Gac" localcopy="True" refto="nunit.framework, Version=2.2.9.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
     <ProjectReference type="Project" localcopy="True" refto="System.Threading" />
+    <ProjectReference type="Gac" localcopy="True" refto="nunit.mocks, Version=2.2.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
   </References>
 </Project>

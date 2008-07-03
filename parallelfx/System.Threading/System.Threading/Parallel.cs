@@ -33,6 +33,11 @@ namespace System.Threading
 	{
 		public static void For(int from, int to, Action<int> action)
 		{
+			For(from, to, 1, action);
+		}
+		
+		public static void For(int from, int to, int step, Action<int> action)
+		{
 			int part = Environment.ProcessorCount * 2;
 			int pcount = (to - from) / part;
 			int start = from;
@@ -41,16 +46,11 @@ namespace System.Threading
 				int pstart = start + i * part;
 				int pend = (i == pcount - 1) ? to : pstart + part;
 				tasks[i] = Task.Create(delegate {
-					for (int j = pstart; j < pend; j++)
+					for (int j = pstart; j < pend; j += step)
 						action(j);
 				});
 			}
 			Task.WaitAll(tasks);
-		}
-		
-		public static void For(int from, int to, int step, Action<int> action)
-		{
-			throw new NotImplementedException();
 		}
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)

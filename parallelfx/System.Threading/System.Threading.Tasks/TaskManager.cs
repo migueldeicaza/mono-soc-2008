@@ -40,10 +40,14 @@ namespace System.Threading.Tasks
 		{
 		}
 		
-		public TaskManager(TaskManagerPolicy policy)
+		public TaskManager(TaskManagerPolicy policy): this(policy, new Scheduler(policy.IdealThreads))
+		{
+		}
+		
+		internal TaskManager(TaskManagerPolicy policy, IScheduler sched)
 		{
 			this.policy = policy;
-			sched = new Scheduler(policy.IdealThreads);
+			this.sched = sched;
 		}
 		
 		internal void AddWork(ThreadStart work)
@@ -51,20 +55,19 @@ namespace System.Threading.Tasks
 			sched.AddWork(work);
 		}
 		
-		internal void WaitForAllTasks()
-		{
-			sched.Participate();
-			sched.EnsureEverybodyFinished();
-		}
-		
 		internal void WaitForTask(Task task)
 		{
 			sched.ParticipateUntil(task);
 		}
 		
-		internal void WaitForTasksUntil(ICollection<Task> tasks, Func<int, bool> predicate)
+		internal bool WaitForTaskWithPredicate(Task task, Func<bool> predicate)
 		{
-			sched.ParticipateUntil(tasks, predicate);
+			return sched.ParticipateUntil(task, predicate);
+		}
+		
+		internal void WaitForTasksUntil(Func<bool> predicate)
+		{
+			sched.ParticipateUntil(predicate);
 		}
 		
 		public TaskManagerPolicy Policy {
