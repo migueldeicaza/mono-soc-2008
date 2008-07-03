@@ -36,8 +36,11 @@ namespace Gendarme.Rules.Serialization {
 	public class MarkAllNonSerializableFieldsRule : Rule, ITypeRule {
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			if (!type.IsSerializable)
+			//if isn't serializable or
+			//implements a custom serialization
+			if (!type.IsSerializable || type.Implements ("System.Runtime.Serialization.ISerializable"))
 				return RuleResult.DoesNotApply;
+
 			foreach (FieldDefinition field in type.Fields) {
 				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized)
 					Runner.Report (field, Severity.Critical, Confidence.High);
