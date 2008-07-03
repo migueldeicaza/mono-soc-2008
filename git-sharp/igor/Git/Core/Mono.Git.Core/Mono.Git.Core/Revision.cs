@@ -1,4 +1,4 @@
-// IDefaultConfigurations.cs
+// Revision.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -26,33 +26,45 @@
 
 using System;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// Holds default configuration variables
-	/// </summary>
-	public interface IDefaultConfiguration
+	public enum TraversalFlags : uint
 	{
-		string TemplatePath {
-			get;
-			set;
-		}
+		Dense,
+		NoMerges,
+		NoWalk,
+		RemoveEmptyTrees,
+		SimplifyHistory,
+		LIFO,
+		TopologicalOrder,
+		TagObjects,
+		TreeObjects,
+		BlobObjects,
+		EdgeHint,
+		Limited,
+		Unpacked,
+		Boundary,
+		Parents,
+	}
+	
+	public enum DiffFlags : uint
+	{
+		Diff,
+		FullDiff,
+		ShowRootDiff,
+		NoCommitId,
+		VerboseHeader,
+		IgnoreMerges,
+		CombineMerges,
+		DenseCombinedMerges,
+		AlwaysShowHeader,
+	}
+	
+	public class Revision
+	{
 		
-		string ConfigPath {
-			get;
-			set;
-		}
-		
-		// HEAD is always in the repo directory
-		string Head {
-			get;
-			set;
-		}
-		
-		// description is always in the repo directory 
-		string Description {
-			get;
-			set;
+		public Revision ()
+		{
 		}
 	}
 }

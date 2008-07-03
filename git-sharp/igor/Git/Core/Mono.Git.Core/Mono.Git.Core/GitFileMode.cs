@@ -34,11 +34,11 @@ namespace Mono.Git.Core
 	/// </summary>
 	public enum GitFileModeTypes
 	{
-		TREE,
-		SYMLINK,
-		REGULAR_FILE,
-		EXECUTABLE_FILE,
-	};
+		Tree,
+		Symlink,
+		RegularFile,
+		ExecutableFile,
+	}
 	
 	public class GitFileMode
 	{
@@ -46,10 +46,10 @@ namespace Mono.Git.Core
 		private int mode_bits; // mode, in _human_ (e.g. 755 == excecutable file)
 		
 		// Git Constants(mostly the meaning of this class)
-		public static GitFileMode TREE = new GitFileMode (040000);
-		public static GitFileMode SYMLINK = new GitFileMode(0120000);
-		public static GitFileMode REGULAR_FILE = new GitFileMode(0100644);
-		public static GitFileMode EXECUTABLE_FILE = new GitFileMode(0100755);
+		public static GitFileMode Tree = new GitFileMode (040000);
+		public static GitFileMode Symlink = new GitFileMode(0120000);
+		public static GitFileMode RegularFile = new GitFileMode(0100644);
+		public static GitFileMode ExecutableFile = new GitFileMode(0100755);
 		
 		/// <summary>
 		/// Compares a _human_ filemode in a type to see if its equal
@@ -63,17 +63,17 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// A true if are equal false if aren't<see cref="System.Boolean"/>
 		/// </returns>
-		public bool Equals (int modeBits, GitFileModeTypes type)
+		public bool Equals (GitFileModeTypes type)
 		{
 			switch (type) {
-			case GitFileModeTypes.TREE:
-				return (modeBits & 040000) == 040000;
-			case GitFileModeTypes.SYMLINK:
-				return (modeBits & 020000) == 020000;
-			case GitFileModeTypes.REGULAR_FILE:
-				return (modeBits & 0100000) == 0100000 && (modeBits & 0111) == 0;
-			case GitFileModeTypes.EXECUTABLE_FILE:
-				return (modeBits & 0100000) == 0100000 && (modeBits & 0111) != 0;
+			case GitFileModeTypes.Tree:
+				return (mode_bits & 040000) == 040000;
+			case GitFileModeTypes.Symlink:
+				return (mode_bits & 020000) == 020000;
+			case GitFileModeTypes.RegularFile:
+				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) == 0;
+			case GitFileModeTypes.ExecutableFile:
+				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) != 0;
 			}
 			
 			// FIXME: Using this to avoid: not all code paths return a value(CS0161)

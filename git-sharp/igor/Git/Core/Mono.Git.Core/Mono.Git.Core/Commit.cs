@@ -25,6 +25,7 @@
 //
 
 using System;
+using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
 {
@@ -33,15 +34,99 @@ namespace Mono.Git.Core
 	/// </summary>
 	public class Commit : Object
 	{
-		private SHA1 parent;
-		private SHA1 tree;
+		private SHA1 parent; // Represent the parent commit
+		private SHA1 tree; // its the tree that you're commiting
 		
-		private string author;
-		private string commiter;
-		private string message;
+		private string author; // initial author of the commit(inherited from parent)
+		private string commiter; // the commiter name
+		private string message; // message in the commit
 		
+		private Repo repository; // repository where it belongs
+		
+		public string Author
+		{
+			set {
+				author = value;
+			}
+			get {
+				return author;
+			}
+		}
+		
+		public string Commiter
+		{
+			set {
+				commiter = value;
+			}
+			get {
+				return commiter;
+			}
+		}
+		
+		public string Message
+		{
+			set {
+				message = value;
+			}
+			get {
+				return message;
+			}
+		}
+		
+		public SHA1 Tree
+		{
+			set {
+				tree = value;
+			}
+			get {
+				return tree;
+			}
+		}
+		
+		public SHA1 Parent
+		{
+			set {
+				parent = value;
+			}
+			get {
+				return parent;
+			}
+		}
+		
+		public Repo Repository
+		{
+			set {
+				repository = value;
+			}
+			get {
+				return repository;
+			}
+		}
+		
+		/// <summary>
+		/// Creating an empty commit
+		/// </summary>
 		public Commit () : base (Type.Commit)
 		{
+			parent = new SHA1 ();
+			tree = new SHA1 ();
+		}
+		
+		public Commit (Repo repo) : base (Type.Commit)
+		{
+			repository = repo;
+			parent.bytes = null;
+		}
+		
+		public Commit (Repo repo, SHA1 treeId, SHA1 parentId, string authorName,
+		               string commiterName, string messageContent) : base (Type.Commit)
+		{
+			repository = repo;
+			tree = treeId;
+			parent = parentId;
+			author = authorName;
+			commiter = commiterName;
+			message = messageContent;
 		}
 	}
 }

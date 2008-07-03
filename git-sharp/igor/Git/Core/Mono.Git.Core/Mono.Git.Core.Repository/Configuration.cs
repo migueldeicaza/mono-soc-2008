@@ -1,4 +1,4 @@
-// RepositoryTest.cs
+// Configuration.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,18 +25,17 @@
 //
 
 using System;
-using Mono.Git.Repository;
 
-namespace Mono.Git.Tests
+namespace Mono.Git.Core.Repository
 {
 	/// <summary>
-	/// Repository related tests
+	/// It holds all the user configuration
 	/// </summary>
-	public class RepositoryTest
+	public class Configuration
 	{
-		public RepositoryTest()
+		
+		public Configuration ()
 		{
-			Repo.Init ("/usr/share/git-core/templates", ".git", null);
 		}
 	}
 }

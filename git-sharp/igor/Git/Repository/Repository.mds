@@ -7,7 +7,7 @@
       <Entry build="True" name="Mono.Git.Repository" configuration="Release" />
     </Configuration>
   </Configurations>
-  <StartMode startupentry="Mono.Git.Repository" single="True">
+  <StartMode startupentry="Mono.Git.Repository" single="False">
     <Execute type="None" entry="Mono.Git.Repository" />
   </StartMode>
   <Entries>

@@ -1,4 +1,4 @@
-// RepositoryTest.cs
+// Ref.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,18 +25,15 @@
 //
 
 using System;
-using Mono.Git.Repository;
 
-namespace Mono.Git.Tests
+namespace Mono.Git.Core.Repository
 {
-	/// <summary>
-	/// Repository related tests
-	/// </summary>
-	public class RepositoryTest
+	
+	
+	public class Ref
 	{
-		public RepositoryTest()
+		public Ref ()
 		{
-			Repo.Init ("/usr/share/git-core/templates", ".git", null);
 		}
 	}
 }

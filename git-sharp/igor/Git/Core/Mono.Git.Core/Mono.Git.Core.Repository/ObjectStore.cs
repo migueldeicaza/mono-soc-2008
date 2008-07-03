@@ -1,4 +1,4 @@
-// Configuration.cs
+// ObjectStore.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,17 +25,23 @@
 //
 
 using System;
+using Mono.Git.Core;
 
-namespace Mono.Git.Repository
+namespace Mono.Git.Core.Repository
 {
 	/// <summary>
-	/// It holds all the user configuration
+	/// This class has all the information about the object store tipicaly
+	/// .git/objects
 	/// </summary>
-	public class Configuration
+	public class ObjectStore
 	{
 		
-		public Configuration ()
+		public ObjectStore ()
 		{
+		}
+		
+		public static void Init () {
+			
 		}
 	}
 }

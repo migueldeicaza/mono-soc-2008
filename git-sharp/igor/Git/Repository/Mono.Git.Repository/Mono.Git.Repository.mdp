@@ -13,11 +13,4 @@
       <CodeGeneration compiler="Mcs" warninglevel="4" optimize="True" unsafecodeallowed="False" generateoverflowchecks="True" generatexmldocumentation="False" ctype="CSharpCompilerParameters" />
     </Configuration>
   </Configurations>
-  <Contents>
-    <File name="Mono.Git.Repository/Configuration.cs" subtype="Code" buildaction="Compile" />
-    <File name="Mono.Git.Repository/ObjectStore.cs" subtype="Code" buildaction="Compile" />
-    <File name="Mono.Git.Repository/Repository.cs" subtype="Code" buildaction="Compile" />
-    <File name="Mono.Git.Repository/Ref.cs" subtype="Code" buildaction="Compile" />
-    <File name="Mono.Git.Repository/IDefaultConfiguration.cs" subtype="Code" buildaction="Compile" />
-  </Contents>
 </Project>
