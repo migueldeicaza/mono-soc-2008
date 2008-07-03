@@ -45,12 +45,18 @@ namespace Test.Rules.Serialization {
 		[Serializable]
 		class SerializableWithoutMarks {
 			NonSerializableClass nonSerializableClass;
+			NonSerializableClass nonSerializableClass1;
 		}
 
 		[Serializable]
 		class SerializableWithMarks {
 			[NonSerialized]
 			NonSerializableClass nonSerializableClass;
+		}
+
+		[Serializable]
+		class SerializableWithSerializableFields {
+			SerializableClass serializableClass;
 		}
 
 		[Test]
@@ -62,13 +68,19 @@ namespace Test.Rules.Serialization {
 		[Test]
 		public void FailOnSerializableClassWithoutMarksTest ()
 		{
-			AssertRuleFailure<SerializableWithoutMarks> ();
+			AssertRuleFailure<SerializableWithoutMarks> (2);
 		}
 
 		[Test]
 		public void SuccessOnSerializableClassWithMarksTest ()
 		{
 			AssertRuleSuccess<SerializableWithMarks> ();
+		}
+
+		[Test]
+		public void SuccessOnSerializableClassWithSerializableFieldsTest ()
+		{
+			AssertRuleSuccess<SerializableWithSerializableFields> ();
 		}
 	}
 }
