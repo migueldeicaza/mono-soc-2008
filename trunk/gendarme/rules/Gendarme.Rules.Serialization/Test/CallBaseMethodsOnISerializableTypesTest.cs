@@ -98,7 +98,7 @@ namespace Test.Rules.Serialization {
 		}
 
 		[Test]
-		public void SkipOnDefaultSerialzationTest ()
+		public void SkipOnDefaultSerializationTest ()
 		{
 			AssertRuleDoesNotApply<DefaultSerialization> ();
 		}
