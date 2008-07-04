@@ -100,13 +100,13 @@ namespace Test.Rules.Serialization {
 		}
 
 		[Test]
-		public void NonSerializableWithInnerClassTest ()
+		public void SkipOnNonSerializableWithInnerClassTest ()
 		{
 			AssertRuleDoesNotApply<NonSerializableWithInnerClass> ();
 		}
 
 		[Test]
-		public void CustomSerializationClassTest ()
+		public void SkipOnCustomSerializationClassTest ()
 		{
 			//If you are doing a custom serialization there aren't
 			//need to warn developers about the NonSerialized
