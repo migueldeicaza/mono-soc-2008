@@ -37,6 +37,7 @@ namespace Gendarme.Rules.Serialization {
 	public class MarkAllNonSerializableFieldsRule : Rule, ITypeRule {
 		const string ISerializable = "System.Runtime.Serialization.ISerializable";
 		const string MessageError = "The field {0} isn't serializable.";
+		const string InterfaceMessageError = "Serialization of interface {0} as field {1} unknown until runtime";
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
@@ -46,8 +47,16 @@ namespace Gendarme.Rules.Serialization {
 				return RuleResult.DoesNotApply;
 
 			foreach (FieldDefinition field in type.Fields) {
-				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized && !field.FieldType.Resolve ().IsEnum)
-					Runner.Report (field, Severity.Critical, Confidence.High, String.Format (MessageError, field.Name));
+				if (!field.IsNotSerialized) { 
+					TypeDefinition fieldType = field.FieldType.Resolve ();
+
+					if (fieldType.IsInterface) {
+						Runner.Report (field, Severity.Critical, Confidence.Low, String.Format (InterfaceMessageError, fieldType, field.Name));
+						continue;
+					}
+					if (!fieldType.IsEnum && !fieldType.IsSerializable)
+						Runner.Report (field, Severity.Critical, Confidence.High, String.Format (MessageError, field.Name));
+				}
 			}
 
 			return Runner.CurrentRuleResult;
