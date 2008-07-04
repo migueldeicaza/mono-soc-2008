@@ -6,10 +6,12 @@ CLEANFILES = Gendarme.Rules.Serialization.dll Test.Rules.Serialization.dll *.mdb
 DISTCLEANFILES = Makefile.in TestResult.xml
 
 serialization_sources = \
-	MarkAllNonSerializableFieldsRule.cs
+	MarkAllNonSerializableFieldsRule.cs \
+	CallBaseMethodsOnISerializableTypesRule.cs
 
 serialization_test_sources = \
-	MarkAllNonSerializableFieldsTest.cs
+	MarkAllNonSerializableFieldsTest.cs \
+	CallBaseMethodsOnISerializableTypesTest.cs
 
 serialization_build_sources = $(addprefix $(srcdir)/, $(serialization_sources))
 serialization_test_build_sources = $(addprefix $(srcdir)/Test/, $(serialization_test_sources))
