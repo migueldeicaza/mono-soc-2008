@@ -75,6 +75,16 @@ namespace Test.Rules.Serialization {
 			}
 		}
 
+		enum Values {
+			Foo,
+			Bar
+		}
+
+		[Serializable]
+		class SerializableWithEnumClass {
+			Values values;
+		}
+
 		[Test]
 		public void SkipOnNonSerializableClassesTest ()
 		{
@@ -118,6 +128,12 @@ namespace Test.Rules.Serialization {
 			//
 			//Take a look at System.Collections.Generic.LinkedList
 			//by example
+		}
+
+		[Test]
+		public void SuccessOnSerializableWithEnumClassTest ()
+		{
+			AssertRuleSuccess<SerializableWithEnumClass> ();
 		}
 	}
 }

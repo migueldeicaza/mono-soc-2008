@@ -46,7 +46,7 @@ namespace Gendarme.Rules.Serialization {
 				return RuleResult.DoesNotApply;
 
 			foreach (FieldDefinition field in type.Fields) {
-				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized)
+				if (!field.FieldType.Resolve ().IsSerializable && !field.IsNotSerialized && !field.FieldType.Resolve ().IsEnum)
 					Runner.Report (field, Severity.Critical, Confidence.High, String.Format (MessageError, field.Name));
 			}
 
