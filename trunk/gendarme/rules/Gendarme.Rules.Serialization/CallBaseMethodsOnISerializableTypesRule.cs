@@ -29,9 +29,13 @@
 using System;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
+using Gendarme.Framework.Helpers;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Serialization {
+	[Problem ("")]
+	[Solution ("")]
 	public class CallBaseMethodsOnISerializableTypesRule : Rule, ITypeRule {
 
 		private static bool InheritsFromISerializableImplementation (TypeReference type)
@@ -45,10 +49,40 @@ namespace Gendarme.Rules.Serialization {
 			return InheritsFromISerializableImplementation (current.BaseType);
 		}
 
+		private string[] ExtractCallInformation (string operand)
+		{
+			string[] firstSplit = operand.Split (' ');
+			string[] secondSplit = firstSplit[1].Replace ("::", ":").Split (':');
+			return new string[] {firstSplit[0], secondSplit[0], secondSplit[1]};
+		}
+
+		private void CheckCallingBaseMethod (TypeDefinition type, MethodSignature methodSignature)
+		{
+			MethodDefinition method = type.GetMethod (methodSignature);
+			if (method == null)
+				return; // Perhaps should report that doesn't exist the method (only with ctor).
+			bool foundBaseCall = false;
+			foreach (Instruction instruction in method.Body.Instructions) {
+				if (instruction.OpCode.FlowControl == FlowControl.Call) {
+					string[] callInformation = ExtractCallInformation (instruction.Operand.ToString ());
+					foundBaseCall |=  String.Compare (type.BaseType.FullName, callInformation[1]) == 0 &&
+						String.Compare (methodSignature.ReturnType, callInformation[0]) == 0 &&
+						callInformation [2].StartsWith (methodSignature.Name);
+				}
+			}
+
+			if (!foundBaseCall)
+				Runner.Report (method, Severity.High, Confidence.Low);
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			if (!InheritsFromISerializableImplementation (type.BaseType))
 				return RuleResult.DoesNotApply;
+			
+			CheckCallingBaseMethod (type, MethodSignatures.SerializationConstructor);
+			CheckCallingBaseMethod (type, MethodSignatures.GetObjectData);
+
 			return Runner.CurrentRuleResult;
 		}
 	}
