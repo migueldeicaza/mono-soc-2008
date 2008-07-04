@@ -26,17 +26,28 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Serialization {
 	public class CallBaseMethodsOnISerializableTypesRule : Rule, ITypeRule {
+
+		private static bool InheritsFromISerializableImplementation (TypeReference type)
+		{
+			TypeDefinition current = type.Resolve ();
+			if (current == null || current.FullName == "System.Object")
+				return false;
+			if (current.IsSerializable && current.Implements ("System.Runtime.Serialization.ISerializable"))
+				return true;
+
+			return InheritsFromISerializableImplementation (current.BaseType);
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			//if is not serializable or not implements a custom
-			//serialization
-			if (!type.IsSerializable || !type.Implements ("System.Runtime.Serialization.ISerializable"))
+			if (!InheritsFromISerializableImplementation (type.BaseType))
 				return RuleResult.DoesNotApply;
 			return Runner.CurrentRuleResult;
 		}
