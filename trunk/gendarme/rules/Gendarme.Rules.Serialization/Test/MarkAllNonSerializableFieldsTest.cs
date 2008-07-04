@@ -1,5 +1,5 @@
 //
-// Unit test for Gendarme.Rules.Serialization.MarkAllNonSerializableFieldsRule
+// Unit tests for MarkAllNonSerializableFieldsRule
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>

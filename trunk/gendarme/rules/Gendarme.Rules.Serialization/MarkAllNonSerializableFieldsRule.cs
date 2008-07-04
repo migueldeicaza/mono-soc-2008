@@ -1,5 +1,5 @@
 //
-// Gendarme.Rules.Serialization.MarkAllNonSerializableFieldsRule class
+// Gendarme.Rules.Serialization.MarkAllNonSerializableFieldsRule
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
