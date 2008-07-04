@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections;
 using System.Runtime.Serialization;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
@@ -85,6 +86,11 @@ namespace Test.Rules.Serialization {
 			Values values;
 		}
 
+		[Serializable]
+		class SerializableWithInterfaceClass {
+			IList List = new ArrayList ();
+		}
+
 		[Test]
 		public void SkipOnNonSerializableClassesTest ()
 		{
@@ -134,6 +140,23 @@ namespace Test.Rules.Serialization {
 		public void SuccessOnSerializableWithEnumClassTest ()
 		{
 			AssertRuleSuccess<SerializableWithEnumClass> ();
+		}
+
+		[Test]
+		public void SuccessOnSerializableWithInterfaceClassTest () 
+		{
+			//The SerializableAttribute can't be applied to an
+			//interface, and we can only check the polimorphism in
+			//run-time.
+			//The chosen behaviour is warn.
+			//And the solution could be:
+			//	* Ugly: Use the class instead of the interface.
+			//	* Mark it, as NonSerializable
+			//	* Use custom serialization
+			AssertRuleFailure<SerializableWithInterfaceClass> ();
+			//Perhaps a better analysis could try to look for the
+			//concrete class, but it couldn't have a 100% of success
+			//because the polimorphism is resolved at run-time.
 		}
 	}
 }
