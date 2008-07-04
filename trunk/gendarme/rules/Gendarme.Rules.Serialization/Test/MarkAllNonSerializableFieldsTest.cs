@@ -150,7 +150,7 @@ namespace Test.Rules.Serialization {
 			//run-time.
 			//The chosen behaviour is warn.
 			//And the solution could be:
-			//	* Ugly: Use the class instead of the interface.
+			//	* Use the class instead of the interface.
 			//	* Mark it, as NonSerializable
 			//	* Use custom serialization
 			AssertRuleFailure<SerializableWithInterfaceClass> ();
