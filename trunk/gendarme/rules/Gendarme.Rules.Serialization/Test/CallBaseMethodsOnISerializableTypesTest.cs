@@ -100,7 +100,25 @@ namespace Test.Rules.Serialization {
 		[Test]
 		public void SkipOnDefaultSerialzationTest ()
 		{
-			AssertRuleDoesNotApply <DefaultSerialization> ();
+			AssertRuleDoesNotApply<DefaultSerialization> ();
+		}
+
+		[Test]
+		public void SkipOnBaseTest ()
+		{
+			AssertRuleDoesNotApply<Base> ();
+		}
+
+		[Test]
+		public void SuccessOnGoodDerivedTest ()
+		{
+			AssertRuleSuccess<GoodDerived> ();
+		}
+
+		[Test]
+		public void FailOnBadDerivedTest ()
+		{
+			AssertRuleFailure<BadDerived> ();
 		}
 	}
 }
