@@ -27,12 +27,17 @@
 //
 
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Serialization {
 	public class CallBaseMethodsOnISerializableTypesRule : Rule, ITypeRule {
 		public RuleResult CheckType (TypeDefinition type)
 		{
+			//if is not serializable or not implements a custom
+			//serialization
+			if (!type.IsSerializable || !type.Implements ("System.Runtime.Serialization.ISerializable"))
+				return RuleResult.DoesNotApply;
 			return Runner.CurrentRuleResult;
 		}
 	}
