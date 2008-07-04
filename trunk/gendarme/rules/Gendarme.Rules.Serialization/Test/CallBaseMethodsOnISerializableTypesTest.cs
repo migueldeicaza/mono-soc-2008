@@ -26,12 +26,81 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Runtime.Serialization;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rules.Serialization {
 	[TestFixture]
 	public class CallBaseMethodsOnISerializableTypesTest : TypeRuleTestFixture<CallBaseMethodsOnISerializableTypesRule> {
+	
+		[Serializable]
+		class Base : ISerializable {
+			int myValue;
+
+			public Base ()
+			{
+			}
+
+			protected Base (SerializationInfo info, StreamingContext context)
+			{
+				myValue = info.GetInt32 ("myValue");
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("myValue", myValue);
+			}
+		}
+
+		[Serializable]
+		class BadDerived : Base {
+			int otherValue;
+	
+			protected BadDerived (SerializationInfo info, StreamingContext context)
+			{
+				otherValue = info.GetInt32 ("otherValue");
+			}
+	
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("otherValue", otherValue);
+			}
+		}
+
+		[Serializable]
+		class GoodDerived : Base {
+			int otherValue;
+	
+			protected GoodDerived (SerializationInfo info, StreamingContext context) : base (info, context)
+			{
+				otherValue = info.GetInt32 ("otherValue");
+			}
+
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("otherValue", otherValue);
+				base.GetObjectData (info, context);
+			}
+		}
+
+		[Serializable]
+		class DefaultSerialization {
+		}
+
+		[Test]
+		public void SkipOnCanonicalScenariosTest ()
+		{
+			AssertRuleDoesNotApply (SimpleTypes.Class);
+		}
+
+		[Test]
+		public void SkipOnDefaultSerialzationTest ()
+		{
+			AssertRuleDoesNotApply <DefaultSerialization> ();
+		}
 	}
 }
