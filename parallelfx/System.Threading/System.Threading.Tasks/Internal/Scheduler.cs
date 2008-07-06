@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Threading.Collections;
 
@@ -40,6 +41,9 @@ namespace System.Threading.Tasks
 			// also be used as a worker
 			this.maxWorker = maxWorker;
 			workers = new ThreadWorker[maxWorker];
+			
+			participant = new LazyInit<ThreadWorker>(delegate { return new ThreadWorker(workers, workQueue, false); });
+			
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
 				workers[i] = new ThreadWorker(workers, workQueue);
@@ -48,7 +52,7 @@ namespace System.Threading.Tasks
 		
 		public void AddWork(ThreadStart func)
 		{
-			//Console.WriteLine("Adding work");
+
 			// Add to the shared work pool
 			workQueue.Add(func);
 			// Wake up some worker if they were asleep
@@ -116,16 +120,15 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		// Replace that by LazyInit<T> when gmcs can compile it
-		ThreadWorker participant = null;
+
+		LazyInit<ThreadWorker> participant;
+		
+		// This one has no participation as it has no Dequeue suitable for stealing
+		// that's why it's not in the workers array
 		ThreadWorker GetLocalThreadWorker()
 		{
-			// This one has no participation as it has no Dequeue suitable for stealing
-			// that's why it's not in the workers array
-			if (participant == null)
-				participant = new ThreadWorker(workers, workQueue, false);
 			// It's ok to do the lazy init like this as there is only one thread which call this method (if the user don't mess up !)
-			return participant;
+			return participant.Value;
 		}
 	}
 }

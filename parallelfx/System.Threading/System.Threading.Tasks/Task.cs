@@ -203,14 +203,35 @@ namespace System.Threading.Tasks
 			return indexFirstFinished;
 		}
 		
-		public static bool WaitAny(Task[] tasks, TimeSpan ts)
+		public static int WaitAny(Task[] tasks, TimeSpan ts)
 		{
-			throw new NotImplementedException();
+			return WaitAny(tasks, (int)ts.TotalMilliseconds);
 		}
 		
-		public static bool WaitAny(Task[] tasks, int millisecondsTimeout)
+		public static int WaitAny(Task[] tasks, int millisecondsTimeout)
 		{
-			throw new NotImplementedException();
+			int numFinished = 0;
+			int indexFirstFinished = -1;
+			
+			foreach (Task t in tasks) {
+				t.Completed += delegate (object sender, EventArgs e) { 
+					int result = Interlocked.Increment(ref numFinished);
+					if (result == 0) {
+						Task target = (Task)sender;
+						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+					}
+				};	
+			}
+			
+			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
+			TaskManager.Current.WaitForTasksUntil(delegate {
+				if (sw.ElapsedMilliseconds > millisecondsTimeout)
+					return true;
+				return numFinished >= 1;
+			});
+			sw.Stop();
+			
+			return indexFirstFinished;
 		}
 		
 		protected void Finish()
