@@ -54,7 +54,7 @@ namespace System.Threading.Tasks
 		}
 	}
 	
-	public class Future<T>: Task
+	public sealed class Future<T>: Task
 	{
 		T value;
 		int alreadySet;

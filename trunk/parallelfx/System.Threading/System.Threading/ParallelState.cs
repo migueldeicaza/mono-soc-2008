@@ -23,12 +23,19 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
 namespace System.Threading
 {
 	public class ParallelState
 	{
 		bool isStopped;
+		Task[] tasks;
+		
+		internal ParallelState(Task[] tasks)
+		{
+			this.tasks = tasks;
+		}
 		
 		public bool IsStopped {
 			get {
@@ -38,6 +45,11 @@ namespace System.Threading
 		
 		public void Stop()
 		{
+			foreach (var t in tasks) {
+				if (t == null)
+					continue;
+				t.Cancel();
+			}
 			isStopped = true;
 		}
 	}
@@ -45,6 +57,12 @@ namespace System.Threading
 	public class ParallelState<T>: ParallelState
 	{
 		T threadLocalState;
+		LazyInit<T> val;
+		
+		internal ParallelState(Task[] tasks, Func<T> localDataCreator): base(tasks)
+		{
+			val = new LazyInit<T>(localDataCreator, LazyInitMode.ThreadLocal);
+		}
 		
 		public T ThreadLocalState {
 			get {

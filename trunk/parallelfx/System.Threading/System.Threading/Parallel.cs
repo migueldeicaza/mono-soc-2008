@@ -55,12 +55,27 @@ namespace System.Threading
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)
 		{
-			throw new NotImplementedException();
+			For(from, to, 1, action);
 		}
 		
 		public static void For(int from, int to, int step, Action<int, ParallelState> action)
 		{
-			throw new NotImplementedException();
+			int part = Environment.ProcessorCount * 2;
+			int pcount = (to - from) / part;
+			int start = from;
+			Task[] tasks = new Task[pcount];
+			
+			ParallelState state = new ParallelState(tasks);
+			
+			for (int i = 0; i < pcount; i++) {
+				int pstart = start + i * part;
+				int pend = (i == pcount - 1) ? to : pstart + part;
+				tasks[i] = Task.Create(delegate {
+					for (int j = pstart; j < pend; j += step)
+						action(j, state);
+				});
+			}
+			Task.WaitAll(tasks);
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
@@ -133,14 +148,18 @@ namespace System.Threading
 			throw new NotImplementedException();
 		}
 		
-		public static void Do(params Action[] actions)
+		public static void Invoke(params Action[] actions)
 		{
-			throw new NotImplementedException();
+			foreach (Action a in actions) {
+				Task.Create(_ => a());
+			}
 		}
 		
-		public static void Do(Action[] actions, TaskManager tm, TaskCreationOptions tco)
+		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
-			throw new NotImplementedException();
+			foreach (Action a in actions) {
+				Task.Create(_ => a(), tm, tco);
+			}
 		}
 	}
 }
