@@ -131,6 +131,13 @@ namespace CloverleafShared.Remote.WebTest
 
             (new RemoteWebServerCloser(Path.GetFileName(closeScriptPath),
                 host, user, password)).Show();
+
+            ProcessStartInfo wwwProcInfo = new ProcessStartInfo();
+            wwwProcInfo.FileName = "http://" + host + ":" + port.ToString();
+            wwwProcInfo.UseShellExecute = true;
+            Process wwwProc = new Process();
+            wwwProc.StartInfo = wwwProcInfo;
+            wwwProc.Start();
         }
 
         private void cmdCancel_Click(object sender, EventArgs e)
