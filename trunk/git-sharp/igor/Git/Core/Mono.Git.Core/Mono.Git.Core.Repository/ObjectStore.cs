@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.Collections;
 using Mono.Git.Core;
 
 namespace Mono.Git.Core.Repository
@@ -35,13 +36,83 @@ namespace Mono.Git.Core.Repository
 	/// </summary>
 	public class ObjectStore
 	{
+		Object[] objects;
+		
+		public Object[] Objects
+		{
+			set {
+				objects = value;
+			}
+			get {
+				return objects;
+			}
+		}
 		
 		public ObjectStore ()
 		{
+			
 		}
 		
-		public static void Init () {
+		public static void Init ()
+		{
 			
+		}
+		
+		public void Add (Object obj)
+		{
+			ArrayList array = new ArrayList (objects);
+			
+			switch (obj.Type) {
+			case Type.Blob:
+				array.Add ((Blob) obj);
+				break;
+			case Type.Commit:
+				array.Add ((Commit) obj);
+				break;
+			case Type.Tag:
+				array.Add ((Tag) obj);
+				break;
+			case Type.Tree:
+				array.Add ((Tree) obj);
+				break;
+			}
+			
+			objects = (Object[]) array.ToArray ();
+		}
+		
+		// FIXME: I don't know about this one
+		public void Remove (Object obj)
+		{
+			ArrayList array = new ArrayList (objects);
+			
+			array.Remove (obj);
+			
+			objects = (Object[]) array.ToArray ();
+		}
+		
+		public Object GetObjectById (SHA1 objIdSHA1)
+		{
+			return GetObjectById (objIdSHA1.bytes);
+		}
+		
+		public Object GetObjectById (byte[] objIdBytes)
+		{
+			foreach (Object obj in objects) {
+				if (obj.Id.bytes == objIdBytes)
+					return obj;
+			}
+			
+			return null;
+		}
+		
+		public Object GetOjectById (string objIdSHA1)
+		{
+			foreach (Object obj in objects) {
+				if (Object.BytesToHexString (obj.Id.bytes) == objIdSHA1)
+					return obj;
+			}
+			
+			return null;
 		}
 	}
 }

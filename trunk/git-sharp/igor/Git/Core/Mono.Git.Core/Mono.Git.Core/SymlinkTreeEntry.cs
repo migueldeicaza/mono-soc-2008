@@ -1,4 +1,4 @@
-// Configuration.cs
+// SymlinkTreeEntry.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,82 +25,33 @@
 //
 
 using System;
+using System.Text;
 
-namespace Mono.Git.Core.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// It holds all the user configuration
-	/// </summary>
-	public class Configuration : IConfiguration
+	public class SymlinkTreeEntry : TreeEntry
 	{
-		private string head;
-		private string description;
-		private string path;
-		private string template_path;
+		GitFileMode mode;
 		
-		public string Description
+		public SymlinkTreeEntry (Tree myParent, SHA1 objId, string objName, bool exec) : 
+			base (myParent, objId, objName)
 		{
-			set {
-				description = value;
-			}
-			get {
-				return description;
-			}
+			mode = GitFileMode.Symlink;
 		}
 		
-		public string Head
+		public GitFileMode GetFileMode ()
 		{
-			set {
-				head = value;
-			}
-			get {
-				return head;
-			}
+			return mode;
 		}
 		
-		public string ConfigPath
+		public override string ToString ()
 		{
-			set {
-				path = value;
-			}
-			get {
-				return path;
-			}
-		}
-		
-		public string TemplatePath
-		{
-			set {
-				template_path = value;
-			}
-			get {
-				return template_path;
-			}
-		}
-		
-		public Configuration ()
-		{ 
-		}
-		
-		// These methods are used to get default configurations from C Git(mostly in UNIX systems)
-		public static string GetDefaultHead ()
-		{
-			return "ref: refs/heads/master";
-		}
-		
-		public static string GetDefaultTemplateDir ()
-		{
-			return "";
-		}
-		
-		public static string GetDefaultConfigDir ()
-		{
-			return ".git";
-		}
-		
-		public static string GetDefaultDescription ()
-		{
-			return "Unnamed repository; edit this file to name it for gitweb.";
+			StringBuilder sb = new StringBuilder ();
+			sb.Append (Object.BytesToHexString (Id.bytes));
+			sb.Append (" S ");
+			sb.Append (Name);
+			
+			return sb.ToString ();
 		}
 	}
 }
