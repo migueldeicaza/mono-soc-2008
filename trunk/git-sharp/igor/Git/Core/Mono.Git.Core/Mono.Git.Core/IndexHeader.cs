@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.IO;
 
 namespace Mono.Git.Core
 {
@@ -60,6 +61,17 @@ namespace Mono.Git.Core
 			signature = 0x44495243;
 			version = 2;
 			entries = indexEntries.Length;
+		}
+		
+		public FileStream Write (FileStream fs)
+		{
+			BinaryWriter bw = new BinaryWriter (fs);
+			
+			bw.Write (signature);
+			bw.Write (version);
+			bw.Write (entries);
+			
+			return fs;
 		}
 	}
 }
