@@ -51,6 +51,7 @@ namespace Mono.Git.Core
 	
 	public class Index
 	{
+		private IndexHeader header;
 		private IndexEntry[] entries; // Index Entries
 		private uint stage; // Merged in the constructor
 		private FileStream index_file;
@@ -96,8 +97,19 @@ namespace Mono.Git.Core
 			}
 		}
 		
+		public IndexHeader Header
+		{
+			set {
+				header = value;
+			}
+			get {
+				return header;
+			}
+		}
+		
 		public Index ()
 		{
+			Init ();
 		}
 		
 		public Index (string indexFilePath)
@@ -106,6 +118,12 @@ namespace Mono.Git.Core
 			if (File.Exists (indexFilePath))
 				File.Create (indexFilePath);
 			
+			Init ();
+		}
+		
+		public void Init ()
+		{
+			header = new IndexHeader (entries);
 			stage = (uint) IndexStage.Normal;
 		}
 		
