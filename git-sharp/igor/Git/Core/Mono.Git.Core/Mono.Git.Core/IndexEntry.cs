@@ -30,24 +30,6 @@ namespace Mono.Git.Core
 {
 	public class IndexEntry
 	{
-		/*
-		 * From GIT(crazy ass C)
-		 * 
-		 * unsigned int ce_ctime;
-		 * unsigned int ce_mtime;
-		 * unsigned int ce_dev;
-		 * unsigned int ce_ino;
-		 * unsigned int ce_mode;
-		 * unsigned int ce_uid;
-		 * unsigned int ce_gid;
-		 * unsigned int ce_size;
-		 * unsigned int ce_flags;
-		 * unsigned char sha1[20];
-		 * struct cache_entry *next;
-		 * char name[FLEX_ARRAY];
-		 */
-		
-		//Translate too:
 		DateTime ctime; // TODO: A conversion method to handle this
 		DateTime mtime; // TODO: A conversion method to handle this
 		uint dev;
@@ -57,8 +39,7 @@ namespace Mono.Git.Core
 		uint gid; // apply jgit trick here too
 		uint size;
 		bool modified; // merged or not?
-		SHA1 sha;
-		// struct cache_entry *next; an entry that links to the other one... interesting
+		SHA1 id; // ID
 		string name; // whole path
 		
 		public IndexEntry ()

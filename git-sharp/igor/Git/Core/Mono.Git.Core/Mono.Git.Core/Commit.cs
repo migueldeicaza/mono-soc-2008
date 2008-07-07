@@ -37,13 +37,13 @@ namespace Mono.Git.Core
 		private SHA1 parent; // Represent the parent commit
 		private SHA1 tree; // its the tree that you're commiting
 		
-		private string author; // initial author of the commit(inherited from parent)
-		private string commiter; // the commiter name
+		private User author; // initial author of the commit(inherited from parent)
+		private User commiter; // the commiter name
 		private string message; // message in the commit
 		
 		private Repo repository; // repository where it belongs
 		
-		public string Author
+		public User Author
 		{
 			set {
 				author = value;
@@ -53,7 +53,7 @@ namespace Mono.Git.Core
 			}
 		}
 		
-		public string Commiter
+		public User Commiter
 		{
 			set {
 				commiter = value;
@@ -119,13 +119,19 @@ namespace Mono.Git.Core
 		}
 		
 		public Commit (Repo repo, SHA1 treeId, SHA1 parentId, string authorName,
-		               string commiterName, string messageContent) : base (Type.Commit)
+		               string commiterName, string authorEmail, string commiterEmail, 
+		               string messageContent) : base (Type.Commit)
 		{
 			repository = repo;
 			tree = treeId;
 			parent = parentId;
-			author = authorName;
-			commiter = commiterName;
+			
+			author.Name = authorName;
+			author.Email = authorEmail;
+			
+			commiter.Name = commiterName;
+			commiter.Name = commiterEmail;
+			
 			message = messageContent;
 		}
 	}

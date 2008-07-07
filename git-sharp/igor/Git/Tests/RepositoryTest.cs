@@ -25,7 +25,7 @@
 //
 
 using System;
-using Mono.Git.Repository;
+using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Tests
 {

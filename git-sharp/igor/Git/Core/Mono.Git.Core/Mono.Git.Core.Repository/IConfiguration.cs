@@ -1,4 +1,4 @@
-// IDefaultConfigurations.cs
+// IConfigurations.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -31,7 +31,7 @@ namespace Mono.Git.Core.Repository
 	/// <summary>
 	/// Holds default configuration variables
 	/// </summary>
-	public interface IDefaultConfiguration
+	public interface IConfiguration
 	{
 		string TemplatePath {
 			get;
@@ -43,13 +43,13 @@ namespace Mono.Git.Core.Repository
 			set;
 		}
 		
-		// HEAD is always in the repo directory
+		// HEAD is always in the ConfigPath
 		string Head {
 			get;
 			set;
 		}
 		
-		// description is always in the repo directory 
+		// description is always in the ConfigPath
 		string Description {
 			get;
 			set;

@@ -1,4 +1,4 @@
-// Configuration.cs
+// User.cs
 //
 // Author:
 //   Igor Guerrero Fonseca <igfgt1@gmail.com>
@@ -25,82 +25,48 @@
 //
 
 using System;
+using System.Text;
 
-namespace Mono.Git.Core.Repository
+namespace Mono.Git.Core
 {
-	/// <summary>
-	/// It holds all the user configuration
-	/// </summary>
-	public class Configuration : IConfiguration
+	public class User
 	{
-		private string head;
-		private string description;
-		private string path;
-		private string template_path;
+		private string name;
+		private string email;
 		
-		public string Description
+		public string Name
 		{
 			set {
-				description = value;
+				name = value;
 			}
 			get {
-				return description;
+				return name;
 			}
 		}
 		
-		public string Head
+		public string Email
 		{
 			set {
-				head = value;
+				email = value;
 			}
 			get {
-				return head;
+				return email;
 			}
 		}
 		
-		public string ConfigPath
+		public User ()
 		{
-			set {
-				path = value;
-			}
-			get {
-				return path;
-			}
 		}
 		
-		public string TemplatePath
+		public User (string n, string e)
 		{
-			set {
-				template_path = value;
-			}
-			get {
-				return template_path;
-			}
+			name = n;
+			email = e;
 		}
 		
-		public Configuration ()
-		{ 
-		}
-		
-		// These methods are used to get default configurations from C Git(mostly in UNIX systems)
-		public static string GetDefaultHead ()
+		public override string ToString ()
 		{
-			return "ref: refs/heads/master";
-		}
-		
-		public static string GetDefaultTemplateDir ()
-		{
-			return "";
-		}
-		
-		public static string GetDefaultConfigDir ()
-		{
-			return ".git";
-		}
-		
-		public static string GetDefaultDescription ()
-		{
-			return "Unnamed repository; edit this file to name it for gitweb.";
+			return String.Format ("{0} {1}", name, email);
 		}
 	}
 }

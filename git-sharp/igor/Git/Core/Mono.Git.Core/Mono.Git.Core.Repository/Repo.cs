@@ -34,21 +34,22 @@ namespace Mono.Git.Core.Repository
 	/// </summary>
 	public class Repo
 	{
-		private string path;
-		private string description;
 		private Configuration config;
 		private ObjectStore objects;
+		private Index index_file;
 		
-		public string Path {
+		public string Path
+		{
 			set {
-				path = value;
+				config.ConfigPath = value;
 			}
 			get {
-				return path;
+				return config.ConfigPath;
 			}
 		}
 		
-		public Configuration Config {
+		public Configuration Config
+		{
 			set {
 				config = value;
 			}
@@ -57,7 +58,8 @@ namespace Mono.Git.Core.Repository
 			}
 		}
 		
-		public ObjectStore Objects {
+		public ObjectStore Objects
+		{
 			set {
 				objects = value;
 			}
@@ -66,8 +68,24 @@ namespace Mono.Git.Core.Repository
 			}
 		}
 		
+		public Index IndexFile
+		{
+			set {
+				index_file = value;
+			}
+			get {
+				return index_file;
+			}
+		}
+		
 		public Repo ()
 		{
+		}
+		
+		public Repo (Configuration conf)
+		{
+			config = conf;
+			objects = new ObjectStore ();
 		}
 		
 		/// <summary>
@@ -94,6 +112,11 @@ namespace Mono.Git.Core.Repository
 			} else {
 				Console.WriteLine ("Initialized directory in {0}", repoPath);
 			}
+		}
+		
+		public static void Init (Configuration config, string permissions)
+		{
+			Init (config.TemplatePath, config.ConfigPath, permissions);
 		}
 		
 		/// <summary>
