@@ -26,6 +26,7 @@
 
 using System;
 using Mono.Git.Core;
+using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
 {
@@ -83,8 +84,32 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// A string \0 if its a blob / if its a tree<see cref="System.String"/>
 		/// </returns>
-		public static string LastChar (Object entry) {
+		public static string LastChar (Object entry)
+		{
 			return entry.Type == Type.Blob ? "\0" : "/";
+		}
+		
+		/// <summary>
+		/// Identify if an entry is a Tree
+		/// </summary>
+		/// <param name="repository">
+		/// The repository where it belongs<see cref="Repo"/>
+		/// </param>
+		/// <returns>
+		/// A returned boolean<see cref="System.Boolean"/>
+		/// </returns>
+		public bool IsTree (Repo repository)
+		{
+			bool isTree = false;
+			
+			Object[] objects = repository.Objects.Objects;
+			
+			foreach (Object obj in objects) {
+				if (obj.Type == Type.Tree)
+					isTree = true;
+			}
+			
+			return isTree;
 		}
 	}
 }

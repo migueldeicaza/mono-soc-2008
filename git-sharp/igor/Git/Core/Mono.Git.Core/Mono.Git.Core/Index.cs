@@ -27,6 +27,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Text;
 using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
@@ -143,6 +144,28 @@ namespace Mono.Git.Core
 			array.Remove (indexEntry);
 			
 			entries = (IndexEntry[]) array.ToArray ();
+		}
+		
+		public void ReadTree (Tree tree, Repo repo)
+		{
+			ReadTree ("", tree, repo);
+		}
+		
+		public void ReadTree (string prefix, Tree tree, Repo repo)
+		{
+			TreeEntry[] treeEntries = tree.Entries;
+			
+			foreach (TreeEntry te in treeEntries) {
+				string name;
+				
+				if (!String.IsNullOrEmpty (prefix))
+					name = String.Format ("{0}/{1}", prefix, te.Name);
+				else
+					name = te.Name;
+				
+				if (te.IsTree (repo))
+					ReadTree (name, tree, repo);
+			}
 		}
 	}
 }
