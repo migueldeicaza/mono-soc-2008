@@ -35,6 +35,11 @@ using CloverleafShared;
 
 namespace CloverleafET
 {
+    /// <summary>
+    /// CloverleafET is just a "springboard" application for invoking
+    /// the functions within CloverleafShared. It's hackish, but should
+    /// be fine for most purpoes.
+    /// </summary>
     static class Program
     {
         /// <summary>

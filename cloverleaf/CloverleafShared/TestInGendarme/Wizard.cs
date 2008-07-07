@@ -40,7 +40,14 @@ using Mono.Cecil;
 
 namespace CloverleafShared.TestInGendarme
 { 
-
+    /// <summary>
+    /// The Gendarme runner GUI.
+    /// </summary>
+    /// <remarks>
+    /// Considerably mangled version of swf-win32-runner, by Sebastian Pouliot.
+    /// Tons of thanks to Sebastian for helping me puzzle out how to hack the
+    /// code to achieve my goals.
+    /// </remarks>
 	public partial class Wizard : Form {
 
 		// used to call code asynchronously
@@ -303,7 +310,7 @@ namespace CloverleafShared.TestInGendarme
 
             // this is an ugly hack, but I can't seem to get the text
             // caption any other way; project_list_box.Items doesn't
-            // have a Get() method.
+            // have a *working* Get() method.
             for (Int32 i = 0; i < project_list_box.Items.Count; i++)
             {
                 if (project_list_box.GetItemChecked(i) == true)

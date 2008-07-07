@@ -35,6 +35,16 @@ using System.Text;
 
 namespace CloverleafShared
 {
+    /// <summary>
+    /// A little class used by the local and remote application testers
+    /// to grab data about projects.
+    /// </summary>
+    /// <remarks>
+    /// I looked into trying to repurpose the MonoDevelop solution/project
+    /// parsers, but they looked really hairy and tightly integrated into
+    /// MonoDevelop. This was easier and provides the necessary information
+    /// for Cloverleaf.
+    /// </remarks>
     public class ProjectInfo
     {
         String fileName;
@@ -88,11 +98,13 @@ namespace CloverleafShared
         {
             get { return executable; }
         }
+        /// <summary>
+        /// A listing of the project's output paths. Combining ProjectInfo.Directory
+        /// with the various output paths in the list that OutputPaths returns will
+        /// yield the executable directories for the various project builds.
+        /// </summary>
         public List<String> OutputPaths
         {
-            // couple ProjectInfo.Directory with the output paths to get files to run
-            // for executable projects:
-            // ProjectInfo.Directory + OutputPath + AssemblyName + ".exe"
             get { return outputPaths; }
         }
     }

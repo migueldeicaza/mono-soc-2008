@@ -38,11 +38,23 @@ using System.Windows.Forms;
 
 namespace CloverleafShared.TestInMono
 {
+    /// <summary>
+    /// The project selector for testing an application
+    /// locally using Mono.
+    /// </summary>
     public partial class MonoSelector : Form
     {
         String solutionDirectory;
         List<ProjectInfo> projectList;
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="slnDirectory">The currently used solution directory.</param>
+        /// <param name="projList">
+        /// A list of projects to display; internally each of these are concatenated
+        /// with slnDirectory when one is selected.
+        /// </param>
         public MonoSelector(String slnDirectory, List<ProjectInfo> projList)
         {
             InitializeComponent();

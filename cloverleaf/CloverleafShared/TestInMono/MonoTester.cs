@@ -32,6 +32,10 @@ using System.Text;
 
 namespace CloverleafShared.TestInMono
 {
+    /// <summary>
+    /// The starter class for testing application projects
+    /// locally, using Mono.
+    /// </summary>
     public class MonoTester : BaseAppTester
     {
         public MonoTester(String slnFile, String slnDirectory)
