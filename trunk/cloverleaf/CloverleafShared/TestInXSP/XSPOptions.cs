@@ -11,6 +11,14 @@ using System.Windows.Forms;
 
 namespace CloverleafShared.TestInXSP
 {
+    /// <summary>
+    /// A GUI wrapper atop XSP2.
+    /// </summary>
+    /// <remarks>
+    /// This could possibly be extracted and used as nothing more than a GUI
+    /// wrapper for XSP2 (which'd be nice on Windows, as the command line on
+    /// Windows is teeth-grindingly annoying to use).
+    /// </remarks>
     public partial class XSPOptions : Form
     {
         String projectDirectory;

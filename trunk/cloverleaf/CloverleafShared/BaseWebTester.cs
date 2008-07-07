@@ -6,7 +6,10 @@ using System.Text;
 
 namespace CloverleafShared
 {
-    public class BaseWebTester
+    /// <summary>
+    /// The base testing class for handling web projects (--xsptest and --wwwremote).
+    /// </summary>
+    public abstract class BaseWebTester
     {
         protected readonly String projectDirectory;
 

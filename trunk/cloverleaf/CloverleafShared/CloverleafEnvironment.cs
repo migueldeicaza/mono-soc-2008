@@ -8,6 +8,15 @@ using Nini.Config;
 
 namespace CloverleafShared
 {
+    /// <summary>
+    /// Basic configuration details and a wrapper for the INI file in
+    /// which they are stored.
+    /// </summary>
+    /// <remarks>
+    /// Yeah, I know, I know, XML is the future and all that--but I
+    /// like INI and nobody should be editing this file by hand anyway,
+    /// I would think. ;-)
+    /// </remarks>
     public static class CloverleafEnvironment
     {
         private static String cloverleafAppDataDirectory;
@@ -18,6 +27,9 @@ namespace CloverleafShared
         private static String iniFileName;
         private static IniConfigSource iniFile;
 
+        /// <summary>
+        /// Prepares the CloverleafEnvironment values for application use.
+        /// </summary>
         public static void Initialize()
         {
             if (monoRootPath != null) return;
@@ -54,18 +66,30 @@ namespace CloverleafShared
             monoBinPath = Path.Combine(MonoRootPath, "bin");
 
         }
+        /// <summary>
+        /// The user-specific application data directory for Cloverleaf.
+        /// </summary>
         public static String CloverleafAppDataPath
         {
             get { return cloverleafAppDataDirectory; }
         }
+        /// <summary>
+        /// The Cloverleaf executable's root path.
+        /// </summary>
         public static String CloverleafPath
         {
             get { return Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath); }
         }
+        /// <summary>
+        /// General path for any tools that Cloverleaf needs.
+        /// </summary>
         public static String CloverleafToolsPath
         {
             get { return Path.Combine(CloverleafPath, "tools"); }
         }
+        /// <summary>
+        /// Path to the Xming X server.
+        /// </summary>
         public static String XPath
         {
             get
@@ -74,14 +98,24 @@ namespace CloverleafShared
                   "xming.exe");
             }
         }
+        /// <summary>
+        /// The root path of the established default Mono installation,
+        /// as defined in the registry.
+        /// </summary>
         public static String MonoRootPath
         {
             get { return monoRootPath; }
         }
+        /// <summary>
+        /// The path to Mono's binaries.
+        /// </summary>
         public static String MonoBinPath
         {
             get { return monoBinPath; }
         }
+        /// <summary>
+        /// The port on which XSP2 should run.
+        /// </summary>
         public static Int32 DefaultLocalXSPPort
         {
             get { return iniFile.Configs["XSPTester"].GetInt("port", 12021); }
@@ -91,6 +125,9 @@ namespace CloverleafShared
                 iniFile.Save(iniFileName);
             }
         }
+        /// <summary>
+        /// Should XSP2 run with HTTPS support?
+        /// </summary>
         public static Boolean LocalXSPUsesHTTPS
         {
             get { return iniFile.Configs["XSPTester"].GetBoolean("https", false); }
@@ -100,6 +137,9 @@ namespace CloverleafShared
                 iniFile.Save(iniFileName);
             }
         }
+        /// <summary>
+        /// Should the browser automatically start when XSP2 is invoked locally?
+        /// </summary>
         public static Boolean XSPBrowserAutostart
         {
             get { return iniFile.Configs["XSPTester"].GetBoolean("browser_autostart", true); }
@@ -109,7 +149,9 @@ namespace CloverleafShared
                 iniFile.Save(iniFileName);
             }
         }
-
+        /// <summary>
+        /// Last entered remote server IP/hostname. Used by --appremote and --wwwremote.
+        /// </summary>
         public static String RemoteServerHost
         {
             get
@@ -122,18 +164,9 @@ namespace CloverleafShared
                 iniFile.Save(iniFileName);
             }
         }
-        public static Int32 RemoteServerPort
-        {
-            get
-            {
-                return iniFile.Configs["RemoteTests"].GetInt("port", 15951);
-            }
-            set
-            {
-                iniFile.Configs["RemoteTests"].Set("port", value);
-                iniFile.Save(iniFileName);
-            }
-        }
+        /// <summary>
+        /// Create a new configuration.
+        /// </summary>
         private static void CreateConfiguration()
         {
             iniFile = new IniConfigSource();

@@ -38,12 +38,25 @@ using System.Windows.Forms;
 
 namespace CloverleafShared.TestInMono
 {
+    /// <summary>
+    /// The runner widget for running an application locally
+    /// under Mono, with the ability to stop the application
+    /// with a kill-switch.
+    /// </summary>
     public partial class MonoRunner : Form
     {
 
         StreamReader stdErrReader;
         Process monoProc = null;
         
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="appToRun">Application for Cloverleaf to run under Mono.</param>
+        /// <remarks>
+        /// For some reason, trying to redirect stdOut and stdErr raises an
+        /// InvalidOperationException. I haven't been able to figure out why.
+        /// </remarks>
         public MonoRunner(String appToRun)
         {
             InitializeComponent();

@@ -34,6 +34,9 @@ using System.Text;
 
 namespace CloverleafShared
 {
+    /// <summary>
+    /// The base testing class for handling application projects (--monotest and --appremote).
+    /// </summary>
     public abstract class BaseAppTester
     {
         protected readonly String solutionDirectory;
@@ -50,6 +53,19 @@ namespace CloverleafShared
 
         public abstract void Go();
 
+        /// <summary>
+        /// Locate all application projects under "folder".
+        /// </summary>
+        /// <remarks>
+        /// Hackish and in need of eventual replacement. The MonoDevelop codebase has
+        /// a solution parser, but I couldn't figure out a clean way to separate it
+        /// from MonoDevelop.
+        /// </remarks>
+        /// <param name="folder">The folder under which to search.</param>
+        /// <param name="omitNonExecutables">
+        /// Omit projects that aren't executable (class libraries, etc.)
+        /// </param>
+        /// <returns>A list of ProjectInfo objects containing the data for all found projects.</returns>
         protected List<ProjectInfo> FindProjects(String folder, Boolean omitNonExecutables)
         {
             List<ProjectInfo> projList = new List<ProjectInfo>();

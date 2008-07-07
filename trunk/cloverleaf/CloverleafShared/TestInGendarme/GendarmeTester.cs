@@ -32,6 +32,9 @@ using System.Text;
 
 namespace CloverleafShared.TestInGendarme
 {
+    /// <summary>
+    /// Invokes Gendarme on the currently active solution.
+    /// </summary>
     public class GendarmeTester : BaseAppTester
     {
         Wizard form;
