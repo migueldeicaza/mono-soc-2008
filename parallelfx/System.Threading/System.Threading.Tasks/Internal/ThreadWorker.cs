@@ -93,10 +93,11 @@ namespace System.Threading.Tasks
 					while (sharedWorkQueue.TryPop(out value))
 						dDeque.PushBottom(value);
 					// Now we process our work
-					while (dDeque.PopBottom(out value) == PopResult.Succeed)
-						if (value != null)
-							value();
-					
+					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
+						if (value != null) {
+							value();	
+						}
+					}
 				}
 				// When we have finished, steal from other worker
 				ThreadWorker other;
@@ -106,8 +107,9 @@ namespace System.Threading.Tasks
 						if ((other = others[i]) == null || other == this)
 							continue;
 						while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
-							if (value != null)
+							if (value != null) {
 								value();	
+							}
 						}
 					}
 				}
