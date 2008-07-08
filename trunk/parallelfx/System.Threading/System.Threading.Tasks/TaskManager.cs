@@ -40,8 +40,9 @@ namespace System.Threading.Tasks
 		{
 		}
 		
-		public TaskManager(TaskManagerPolicy policy):
-			this(policy, new Scheduler(policy.IdealProcessors * policy.IdealThreadsPerProcessor))
+		public TaskManager(TaskManagerPolicy policy): 
+			this(policy, new Scheduler(policy.IdealProcessors * policy.IdealThreadsPerProcessor,
+			                           policy.MaxStackSize, policy.ThreadPriority))
 		{
 		}
 		

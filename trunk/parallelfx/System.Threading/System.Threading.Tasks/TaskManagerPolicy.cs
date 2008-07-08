@@ -111,6 +111,7 @@ namespace System.Threading
 			this.idealProcessors = idealProcessors;
 			this.idealThreadsPerProcessor = idealThreadsPerProcessor;
 			this.maxStackSize = maxStackSize;
+			this.priority = priority;
 		}
 	}
 }

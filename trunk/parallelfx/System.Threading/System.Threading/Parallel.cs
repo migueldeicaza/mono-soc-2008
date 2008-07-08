@@ -38,7 +38,8 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
-			int part = Environment.ProcessorCount * 2;
+			TaskManagerPolicy policy = TaskManager.Current.Policy;
+			int part = policy.IdealProcessors * 2;
 			int pcount = (to - from) / part;
 			int start = from;
 			Task[] tasks = new Task[pcount];

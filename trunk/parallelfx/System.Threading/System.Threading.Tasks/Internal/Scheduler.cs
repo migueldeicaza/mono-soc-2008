@@ -31,42 +31,32 @@ namespace System.Threading.Tasks
 {
 	internal class Scheduler: IScheduler
 	{
-		ConcurrentStack<ThreadStart> workQueue = new ConcurrentStack<ThreadStart>();
+		OptimizedStack<ThreadStart> workQueue;
 		ThreadWorker[] workers;
 		int maxWorker;
 		
-		public Scheduler(int maxWorker)
+		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
-			// We put the -1 because the thread owning the Scheduler can
-			// also be used as a worker
 			this.maxWorker = maxWorker;
+			workQueue = new OptimizedStack<ThreadStart>(maxWorker);
 			workers = new ThreadWorker[maxWorker];
 			
-			participant = new LazyInit<ThreadWorker>(delegate { return new ThreadWorker(workers, workQueue, false); });
+			participant = new LazyInit<ThreadWorker>(delegate {
+				return new ThreadWorker(workers, workQueue, false, 0, ThreadPriority.Normal);
+			});
 			
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
-				workers[i] = new ThreadWorker(workers, workQueue);
+				workers[i] = new ThreadWorker(workers, workQueue, maxStackSize, priority);
 			}
 		}
 		
 		public void AddWork(ThreadStart func)
 		{
 			// Add to the shared work pool
-			workQueue.Add(func);
+			workQueue.Push(func);
 			// Wake up some worker if they were asleep
 			PulseAll();
-		}
-		
-		// This should be called when the user call Task.WaitAll() causing the user's thread to become
-		// a ThreadWorker too via the Scheduler
-		public void Participate()
-		{
-			ThreadWorker participant = new ThreadWorker(workers, workQueue, false);
-			workers[maxWorker - 1] = participant;
-			participant.WorkerMethod();
-			// No more work, end the participation
-			workers[maxWorker - 1] = null;
 		}
 		
 		public void ParticipateUntil(Task task)
@@ -118,7 +108,6 @@ namespace System.Threading.Tasks
 					worker.Pulse();	
 			}
 		}
-		
 
 		LazyInit<ThreadWorker> participant;
 		
