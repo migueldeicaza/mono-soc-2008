@@ -45,12 +45,12 @@ namespace System.Threading.Tasks
 		
 		class ThreadInfo
 		{
-			public ThreadInfo(Operation op, Cell cell, int spin)
+			public ThreadInfo(Operation op, Cell cell)
 			{
 				Id = Thread.CurrentThread.ManagedThreadId;
 				Op = op;
 				Cell = cell;
-				Spin = spin;
+				Spin = 5;
 			
 				CollisionFactor = 0.5f;
 			}
@@ -69,6 +69,7 @@ namespace System.Threading.Tasks
 		Cell         top;
 		ThreadInfo[] location;
 		int[]        collision;
+		SpinWait wait = new SpinWait();
 		
 		const int UpperCollisionLimit = 10;
 		const int LowerCollisionLimit = -1;
@@ -78,27 +79,30 @@ namespace System.Threading.Tasks
 		
 		//Random r = new Random();
 		
+		int count;
+		
 		public OptimizedStack(int numThread)
 		{
 			location  = new ThreadInfo[numThread + 1];
 			collision = new int[numThread + 1];
 		}
 		
-		public T Pop()
+		/*public T Pop()
 		{
-			ThreadInfo p = new ThreadInfo(Operation.Pop, null, 50);
+			ThreadInfo p = new ThreadInfo(Operation.Pop, null);
 			StackOp(p);
 			return (p.Cell == null) ? default(T) : p.Cell.Data;
-		}
+		}*/
 		
 		public bool TryPop(out T value)
 		{
-			ThreadInfo p = new ThreadInfo(Operation.Pop, null, 50);
+			ThreadInfo p = new ThreadInfo(Operation.Pop, null);
 			StackOp(p);
 			if (p.Cell == null) {
 				value = default(T);
 				return false;
 			}
+			Interlocked.Decrement(ref count);
 			value = p.Cell.Data;
 			return true;
 		}
@@ -106,8 +110,15 @@ namespace System.Threading.Tasks
 		public void Push(T value)
 		{
 			Cell cell = new Cell(value);
-			ThreadInfo p = new ThreadInfo(Operation.Push, cell, 50);
+			ThreadInfo p = new ThreadInfo(Operation.Push, cell);
 			StackOp(p);
+			Interlocked.Increment(ref count);
+		}
+		
+		public bool IsEmpty {
+			get {
+				return count == 0;
+			}
 		}
 		
 		void StackOp(ThreadInfo p)
@@ -181,7 +192,7 @@ namespace System.Threading.Tasks
 						}
 					}
 				}
-				Thread.Sleep(p.Spin);
+				Sleep(p.Spin);
 				if (Interlocked.CompareExchange(ref location[p.Id], null, p) != p) {
 					FinishCollision(p);
 					return;
@@ -215,6 +226,7 @@ namespace System.Threading.Tasks
 			int factor = (collision.Length - reduced) / 2;
 			int up = collision.Length - 1 - factor, down = factor;
 			return (temp % (up - down)) + down;
+			//return r.Next(down, up);
 		}
 		
 		void FinishCollision(ThreadInfo p)
@@ -223,6 +235,12 @@ namespace System.Threading.Tasks
 				p.Cell = location[p.Id].Cell;
 				location[p.Id] = null;
 			}
+		}
+		
+		void Sleep(int iterations)
+		{
+			for (int i = 0; i < iterations; i++)
+				wait.SpinOnce();
 		}
 	}
 }
