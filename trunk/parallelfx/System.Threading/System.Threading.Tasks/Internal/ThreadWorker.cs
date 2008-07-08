@@ -52,10 +52,8 @@ namespace System.Threading.Tasks
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
 		{
 			if (createThread) {
-				this.workerThread = new Thread(new ThreadStart(delegate() {
-					//TODO: Replace this with something depending on time passed doing nothing like in the ThreadPool
-						WorkerMethod();
-				}));
+				//TODO: Replace this with something depending on time passed doing nothing like in the ThreadPool
+				this.workerThread = new Thread(new ThreadStart(WorkerMethod));
 			} else {
 				this.workerThread = Thread.CurrentThread;
 				isLocal = true;
@@ -88,15 +86,18 @@ namespace System.Threading.Tasks
 			* If every thing is empty then let the thread's method die. It can be started again by the Scheduler with Pulse.
 			*/
 			//PopResult result = PopResult.Succeed;
-			while (!sharedWorkQueue.IsEmpty) {
-				// We fill up our work deque concurrently with other ThreadWorker	
+			do {
 				ThreadStart value;
-				while (sharedWorkQueue.TryPop(out value))
-					dDeque.PushBottom(value);
-				// Now we process our work
-				while (dDeque.PopBottom(out value) == PopResult.Succeed)
-					if (value != null)
-						value();
+				while (!sharedWorkQueue.IsEmpty) {
+					// We fill up our work deque concurrently with other ThreadWorker	
+					while (sharedWorkQueue.TryPop(out value))
+						dDeque.PushBottom(value);
+					// Now we process our work
+					while (dDeque.PopBottom(out value) == PopResult.Succeed)
+						if (value != null)
+							value();
+					
+				}
 				// When we have finished, steal from other worker
 				ThreadWorker other;
 				// Repeat the operation a little so that we can let other things process.
@@ -110,7 +111,8 @@ namespace System.Threading.Tasks
 						}
 					}
 				}
-			}
+			// While we were stealing work may have been re-added to the workQueue
+			} while (!sharedWorkQueue.IsEmpty);
 			// If there is no more work, finish the method
 			// Just before the method dies, set the start flag
 			started = 0;
