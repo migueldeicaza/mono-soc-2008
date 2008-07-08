@@ -40,7 +40,7 @@ namespace System.Threading.Tasks
 		{
 		}
 		
-		public TaskManager(TaskManagerPolicy policy): this(policy, new Scheduler(policy.IdealThreads))
+		public TaskManager(TaskManagerPolicy policy): this(policy, new Scheduler(policy.IdealProcessors))
 		{
 		}
 		

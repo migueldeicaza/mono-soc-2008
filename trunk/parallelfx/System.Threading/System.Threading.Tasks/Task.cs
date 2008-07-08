@@ -60,8 +60,10 @@ namespace System.Threading.Tasks
 				current = this;
 				InnerInvoke();
 				isCompleted = true;
-				if (Completed != null)
-					Completed(this, EventArgs.Empty);
+				// Call the event in the correct style
+				EventHandler tempCompleted = Completed;
+				if (tempCompleted != null)
+					tempCompleted(this, EventArgs.Empty);
 			});
 		}
 		

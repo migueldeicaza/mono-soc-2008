@@ -30,95 +30,87 @@ namespace System.Threading
 	
 	public class TaskManagerPolicy
 	{
-		static readonly int defaultMinThreads = 0;
-		static readonly int defaultIdealThreads = Environment.ProcessorCount;
-		static readonly int defaultMaxThread = Environment.ProcessorCount;
-		static readonly int defaultStackSize = -1;
+		static readonly int defaultIdealThreadsPerProcessor = 1;
+		static readonly int defaultIdealProcessors = Environment.ProcessorCount;
+		static readonly int defaultMinProcessors = 1;
+		static readonly int defaultStackSize = 0;
+		static readonly ThreadPriority defaultPriority = ThreadPriority.Normal;
 		
-		int minThreads;
-		int idealThreads;
-		int maxThreads;
+		int idealProcessors;
+		int idealThreadsPerProcessor;
+		int minProcessors;
 		int maxStackSize;
-		bool suppressExecutionContextFlow;
-		bool fatalUnhandledExceptions;
+		ThreadPriority priority;
 		
-		public int MinThreads {
+		public ThreadPriority ThreadPriority {
 			get {
-				return minThreads;
+				return priority;
 			}
 		}
-
-		public int IdealThreads {
+		
+		public int MinProcessors {
 			get {
-				return idealThreads;
+				return minProcessors;
 			}
 		}
-
-		public int MaxThreads {
-			get {
-				return maxThreads;
-			}
-		}
-
+		
 		public int MaxStackSize {
 			get {
 				return maxStackSize;
 			}
-		}
 
-		public bool SuppressExecutionContextFlow {
-			get {
-				return suppressExecutionContextFlow;
-			}
 		}
-
-		public bool FatalUnhandledExceptions {
+		
+		public int IdealThreadsPerProcessor {
 			get {
-				return fatalUnhandledExceptions;
+				return idealThreadsPerProcessor;
 			}
+
+		}
+		
+		public int IdealProcessors {
+			get {
+				return idealProcessors;
+			}
+
 		}
 		
 		public TaskManagerPolicy():
-			this(defaultMinThreads, defaultIdealThreads, defaultMaxThread, defaultStackSize, false, false) 
+			this(defaultMinProcessors, defaultIdealProcessors, defaultIdealThreadsPerProcessor, defaultStackSize, defaultPriority) 
 		{
 		}
 		
-		public TaskManagerPolicy(int minThreads, int idealThreads):
-			this(minThreads, idealThreads, defaultMaxThread, defaultStackSize, false, false)
-		{
-			
-		}
-		
-		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads):
-			this(minThreads, idealThreads, maxThreads, defaultStackSize, false, false)
+		public TaskManagerPolicy(int minProcessors, int idealProcessors):
+			this(minProcessors, idealProcessors, defaultIdealThreadsPerProcessor, defaultStackSize, defaultPriority)
 		{
 			
 		}
 		
-		public TaskManagerPolicy(int maxStackSize)
+		public TaskManagerPolicy(int minProcessors, int idealProcessors, int idealThreadsPerProcessor):
+			this(minProcessors, idealProcessors, idealThreadsPerProcessor, defaultStackSize, defaultPriority)
 		{
 			
 		}
 		
-		public TaskManagerPolicy(bool suppressExecutionContextFlow)
+		public TaskManagerPolicy(int maxStackSize):
+			this(defaultMinProcessors, defaultIdealProcessors, defaultIdealThreadsPerProcessor, maxStackSize, defaultPriority)
 		{
 			
 		}
 		
-		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads, int maxStackSize, bool suppressExecutionContextFlow)
-			: this(minThreads, idealThreads, maxThreads, maxStackSize, suppressExecutionContextFlow, false)
-		{	
+		public TaskManagerPolicy(int minProcessors, int idealProcessors, ThreadPriority priority):
+			this(minProcessors, idealProcessors, defaultIdealThreadsPerProcessor, defaultStackSize, priority)
+		{
+			
 		}
 		
-		public TaskManagerPolicy(int minThreads, int idealThreads, int maxThreads, int maxStackSize, bool suppressExecutionContextFlow,
-		                         bool fatalUnhandledExceptions)
+		public TaskManagerPolicy(int minProcessors, int idealProcessors,
+		                         int idealThreadsPerProcessor, int maxStackSize, ThreadPriority priority)
 		{
-			this.minThreads = minThreads;
-			this.idealThreads = idealThreads;
-			this.maxThreads = maxThreads;
-			this.maxStackSize = maxStackSize;
-			this.suppressExecutionContextFlow = suppressExecutionContextFlow;
-			this.fatalUnhandledExceptions = fatalUnhandledExceptions;
+			this.minProcessors = MinProcessors;
+			this.idealProcessors = idealProcessors;
+			this.idealThreadsPerProcessor = IdealThreadsPerProcessor;
+			this.maxStackSize = MaxStackSize;
 		}
 	}
 }
