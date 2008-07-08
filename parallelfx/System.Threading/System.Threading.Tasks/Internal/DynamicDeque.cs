@@ -35,13 +35,23 @@ namespace System.Threading.Tasks
 	
 	internal class DynamicDeque<T> where T : class
 	{
-		const int ArraySize = 20;
+		const int ArraySize = 10;
+		const int BaseArraySize = 2000;
 		
 		internal class Node
 		{
-			public T[] Data = new T[ArraySize];
+			public T[] Data;
 			public Node Previous;
 			public Node Next;
+			
+			public Node(): this(false)
+			{
+			}
+			
+			public Node(bool isBase)
+			{
+				Data = isBase ? new T[BaseArraySize] : new T[ArraySize];
+			}
 		}
 		
 		class BottomInfo
@@ -60,14 +70,17 @@ namespace System.Threading.Tasks
 		BottomInfo bottom;
 		TopInfo    top;
 		
+		//int  isBaseNodeFreed;
+		Node baseNode;
+		
 		public DynamicDeque()
 		{
-			Node tempA = new Node();
+			baseNode = new Node(true);
 			Node tempB = new Node();
-			tempA.Next = tempB;
-			tempB.Previous = tempA;
-			bottom = EncodeBottom(tempA, ArraySize - 1);
-			top = EncodeTop(tempA, ArraySize - 1, int.MinValue);
+			baseNode.Next = tempB;
+			tempB.Previous = baseNode;
+			bottom = EncodeBottom(baseNode, BaseArraySize - 1);
+			top = EncodeTop(baseNode, BaseArraySize - 1, int.MinValue);
 		}
 		
 		public void PushBottom(T item)
@@ -84,7 +97,10 @@ namespace System.Threading.Tasks
 				newNode = currNode;
 				newIndex = currIndex - 1;
 			} else {
-				// TODO: this should come out of a shared pool but let's create it everytime for the moment
+				// Normally the node should come out of a Shared pool but I prefered to put a big base node
+				// so that call to new Node() would be minimized (and we can take advantage of .NET garbage collection)
+				//int result = Interlocked.Exchange(ref isBaseNodeFreed, 0);
+				//newNode = result == 0 ? new Node() : baseNode;
 				newNode = new Node();
 				newNode.Next = currNode;
 				currNode.Previous = newNode;
@@ -119,8 +135,10 @@ namespace System.Threading.Tasks
 				newTopTag = currTopTag;
 			} else {
 				newTopTag = currTopTag + 1;
-				newTopIndex = ArraySize - 1;
 				newTopNode = currTopNode.Previous;
+				newTopIndex = newTopNode.Data.Length - 1;
+				//if (currTopNode == baseNode) isBaseNodeFreed = 1;
+				//newTopIndex = ArraySize - 1;
 			}
 			
 			TopInfo newTop = EncodeTop(newTopNode, newTopIndex, newTopTag);
@@ -140,7 +158,8 @@ namespace System.Threading.Tasks
 			DecodeBottom(bottom, out oldBotNode, out oldBotIndex);
 			//Console.WriteLine("Poping Bottom at " + oldBotIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
-			if (oldBotIndex != ArraySize - 1) {
+			if (oldBotIndex != oldBotNode.Data.Length - 1) {
+			//if (oldBotIndex != ArraySize - 1) {
 				newBotNode = oldBotNode;
 				newBotIndex = oldBotIndex + 1;
 			} else {
