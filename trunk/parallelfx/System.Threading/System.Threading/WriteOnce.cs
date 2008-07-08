@@ -1,4 +1,4 @@
-// IScheduler.cs
+// WriteOnce.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,19 +23,49 @@
 //
 
 using System;
-using System.Threading;
-using System.Collections.Generic;
 
-namespace System.Threading.Tasks
+namespace System.Threading
 {
-	internal interface IScheduler
+	
+	
+	public struct WriteOnce<T>: IEquatable<WriteOnce<T>>
 	{
-		void AddWork(Task t);
-		void ParticipateUntil(Task task);
-		bool ParticipateUntil(Task task, Func<bool> predicate);
-		void ParticipateUntil(Func<bool> predicate);
-		void PulseAll();
-		void InhibitPulse();
-		void UnInhibitPulse();
+		T value;
+		int setFlag;
+		
+		public bool HasValue {
+			get {
+				return setFlag == 1;
+			}
+		}
+		
+		public T Value {
+			get {
+				if (!HasValue)
+					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
+				return value;
+			}
+			set {
+				int result = Interlocked.Exchange(ref setFlag, 1);
+				if (result == 1)
+					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
+				this.value = value;
+			}
+		}
+		
+		public bool Equals(WriteOnce<T> other)
+		{
+			return value.Equals(other.value);
+		}
+		
+		public override bool Equals(object other)
+		{
+			return (other is WriteOnce<T>) ? Equals((WriteOnce<T>)other) : false;
+		}
+		
+		public override int GetHashCode()
+		{
+			return value.GetHashCode();
+		}
 	}
 }

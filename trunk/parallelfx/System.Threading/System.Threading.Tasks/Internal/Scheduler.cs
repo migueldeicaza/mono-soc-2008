@@ -31,14 +31,13 @@ namespace System.Threading.Tasks
 {
 	internal class Scheduler: IScheduler
 	{
-		OptimizedStack<ThreadStart> workQueue;
+		ConcurrentStack<Task> workQueue;
 		ThreadWorker[] workers;
-		int maxWorker;
 		
 		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
-			this.maxWorker = maxWorker;
-			workQueue = new OptimizedStack<ThreadStart>(maxWorker);
+			//workQueue = new OptimizedStack<Task>(maxWorker);
+			workQueue = new ConcurrentStack<Task>();
 			workers = new ThreadWorker[maxWorker];
 			
 			participant = new LazyInit<ThreadWorker>(delegate {
@@ -51,10 +50,10 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		public void AddWork(ThreadStart func)
+		public void AddWork(Task t)
 		{
 			// Add to the shared work pool
-			workQueue.Push(func);
+			workQueue.Push(t);
 			// Wake up some worker if they were asleep
 			PulseAll();
 		}
@@ -99,14 +98,24 @@ namespace System.Threading.Tasks
 			participant.WorkerMethod(predicate);
 		}
 		
-		
-		
-		void PulseAll()
+		bool isPulsable = true;
+		public void PulseAll()
 		{
-			foreach (ThreadWorker worker in workers) {
-				if (worker != null)
-					worker.Pulse();	
+			if (isPulsable) {
+				foreach (ThreadWorker worker in workers) {
+					if (worker != null)
+						worker.Pulse();	
+				}
 			}
+		}
+		
+		public void InhibitPulse()
+		{
+			isPulsable = false;
+		}
+		
+		public void UnInhibitPulse() {
+			isPulsable = true;
 		}
 
 		LazyInit<ThreadWorker> participant;

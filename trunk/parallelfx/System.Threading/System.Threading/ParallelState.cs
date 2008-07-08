@@ -56,7 +56,6 @@ namespace System.Threading
 	
 	public class ParallelState<T>: ParallelState
 	{
-		T threadLocalState;
 		LazyInit<T> val;
 		
 		internal ParallelState(Task[] tasks, Func<T> localDataCreator): base(tasks)
@@ -66,10 +65,7 @@ namespace System.Threading
 		
 		public T ThreadLocalState {
 			get {
-				return threadLocalState;
-			}
-			set {
-				threadLocalState = value;
+				return val.Value;
 			}
 		}
 	}

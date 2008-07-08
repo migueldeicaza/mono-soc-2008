@@ -39,8 +39,11 @@ namespace System.Threading
 		public static void For(int from, int to, int step, Action<int> action)
 		{
 			TaskManagerPolicy policy = TaskManager.Current.Policy;
-			int part = policy.IdealProcessors * 2;
+			int part = 40 / policy.IdealProcessors;
 			int pcount = (to - from) / part;
+			if (pcount == 0)
+				pcount = 1;
+			
 			int start = from;
 			Task[] tasks = new Task[pcount];
 			for (int i = 0; i < pcount; i++) {
@@ -63,6 +66,9 @@ namespace System.Threading
 		{
 			int part = Environment.ProcessorCount * 2;
 			int pcount = (to - from) / part;
+			if (pcount == 0)
+				pcount = 1;
+			
 			int start = from;
 			Task[] tasks = new Task[pcount];
 			

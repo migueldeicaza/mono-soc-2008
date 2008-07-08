@@ -52,9 +52,9 @@ namespace System.Threading.Tasks
 			this.sched = sched;
 		}
 		
-		internal void AddWork(ThreadStart work)
+		internal void AddWork(Task t)
 		{
-			sched.AddWork(work);
+			sched.AddWork(t);
 		}
 		
 		internal void WaitForTask(Task task)
@@ -96,5 +96,16 @@ namespace System.Threading.Tasks
 			}
 		}
 		
+		// May be used if we want to feed a big bunch of Tasks without waking up Workers
+		internal bool IsInhibited {
+			set {
+				if (value)
+					sched.InhibitPulse();
+				else {
+					sched.UnInhibitPulse();
+					sched.PulseAll();
+				}
+			}
+		}
 	}
 }

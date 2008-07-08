@@ -31,7 +31,7 @@ namespace System.Threading
 	{
 		None,
 		SuppressExecutionContextFlow,
-		RespectParentCancelation,
+		RespectCreatorCancellation,
 		SelfReplicating,
 		Detached
 	}

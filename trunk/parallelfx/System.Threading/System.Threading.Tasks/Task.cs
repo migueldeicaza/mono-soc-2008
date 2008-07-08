@@ -27,12 +27,10 @@ using System.Threading;
 
 namespace System.Threading.Tasks
 {
-	//FIXME: Task normally implements IAsyncResult but it seems strange in the context
-	public class Task: TaskBase, IDisposable
+	public class Task: TaskBase, IDisposable, IAsyncResult
 	{
 		static Task current;
 		
-		object asyncState;
 		WaitHandle asyncWaitHandle;
 		Exception exception;
 		bool  isCanceled;
@@ -46,6 +44,8 @@ namespace System.Threading.Tasks
 		object state;
 		
 		internal event EventHandler Completed;
+		
+		internal ThreadStart threadStart;
 			
 		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
@@ -53,21 +53,28 @@ namespace System.Threading.Tasks
 			this.tm = TaskManager.Current = tm;
 			this.action = action;
 			this.state = state;
-			
-			tm.AddWork(delegate {
-				if (isCanceled)
-					return;
-				current = this;
-				InnerInvoke();
+		}
+		
+		void Schedule()
+		{
+			threadStart = delegate {
+				if (!isCanceled) {
+					current = this;
+					try {
+						InnerInvoke();
+					} catch (Exception e) {
+						exception = e;
+					}
+				}
 				isCompleted = true;
 				// Call the event in the correct style
 				EventHandler tempCompleted = Completed;
 				if (tempCompleted != null)
 					tempCompleted(this, EventArgs.Empty);
-			});
+			};
+			tm.AddWork(this);
 		}
 		
-		// TODO : addition : make a generic Create so that the state isn't necessarily object (which is completly stupid)
 		public static Task Create(Action<object> action)
 		{
 			return Create(action, null, TaskManager.Default, TaskCreationOptions.None);
@@ -97,8 +104,49 @@ namespace System.Threading.Tasks
 		public static Task Create(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
 		{
 			Task result = new Task(tm, action, state, options);
-						
+			result.Schedule();
 			return result;
+		}
+		
+		public Task ContinueWith(Action<Task> action)
+		{
+			return ContinueWith(action, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+		}
+		
+		public Task ContinueWith(Action<Task> action, TaskContinuationKind kind)
+		{
+			return ContinueWith(action, kind, TaskCreationOptions.None);
+		}
+		
+		public Task ContinueWith(Action<Task> action, TaskContinuationKind kind, TaskCreationOptions option)
+		{
+			Task continuation = new Task(TaskManager.Current, delegate { action(this); }, null, option);
+			if (isCompleted) {
+				continuation.Schedule();
+				return continuation;
+			}
+				
+			this.Completed += delegate {
+				switch (kind) {
+					case TaskContinuationKind.OnAny:
+						continuation.Schedule();
+						break;
+					case TaskContinuationKind.OnAborted:
+						if (isCanceled)
+							continuation.Schedule();
+						break;
+					case TaskContinuationKind.OnFailed:
+						if (exception != null)
+							continuation.Schedule();
+						break;
+					case TaskContinuationKind.OnCompletedSuccessfully:
+						if (exception == null && !isCanceled)
+							continuation.Schedule();
+						break;
+				}
+			};
+			
+			return continuation;
 		}
 		
 		public static Task Current {
@@ -285,7 +333,13 @@ namespace System.Threading.Tasks
 
 		public object AsyncState {
 			get {
-				return asyncState;
+				return state;
+			}
+		}
+		
+		public bool CompletedSynchronously {
+			get {
+				return true;
 			}
 		}
 
