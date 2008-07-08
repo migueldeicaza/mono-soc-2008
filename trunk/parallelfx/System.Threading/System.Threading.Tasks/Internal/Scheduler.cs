@@ -52,7 +52,6 @@ namespace System.Threading.Tasks
 		
 		public void AddWork(ThreadStart func)
 		{
-
 			// Add to the shared work pool
 			workQueue.Add(func);
 			// Wake up some worker if they were asleep

@@ -107,10 +107,10 @@ namespace System.Threading
 		public TaskManagerPolicy(int minProcessors, int idealProcessors,
 		                         int idealThreadsPerProcessor, int maxStackSize, ThreadPriority priority)
 		{
-			this.minProcessors = MinProcessors;
+			this.minProcessors = minProcessors;
 			this.idealProcessors = idealProcessors;
-			this.idealThreadsPerProcessor = IdealThreadsPerProcessor;
-			this.maxStackSize = MaxStackSize;
+			this.idealThreadsPerProcessor = idealThreadsPerProcessor;
+			this.maxStackSize = maxStackSize;
 		}
 	}
 }

@@ -45,7 +45,7 @@ namespace System.Threading.Tasks
 		Action<object> action;
 		object state;
 		
-		public event EventHandler Completed;
+		internal event EventHandler Completed;
 			
 		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
