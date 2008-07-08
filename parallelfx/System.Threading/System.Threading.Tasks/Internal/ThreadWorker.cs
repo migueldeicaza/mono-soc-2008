@@ -34,7 +34,7 @@ namespace System.Threading.Tasks
 		readonly ThreadWorker[] others;
 		
 		readonly DynamicDeque<ThreadStart>    dDeque;
-		readonly ConcurrentStack<ThreadStart> sharedWorkQueue;
+		readonly OptimizedStack<ThreadStart> sharedWorkQueue;
 		
 		// Flag to tell if workerThread is running
 		int started = 0; 
@@ -42,18 +42,34 @@ namespace System.Threading.Tasks
 		readonly int workerLength;
 		
 		const int maxRetry = 5;
+		const int sleepTimeBeforeRetry = 100;
 		
-		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue):
-			this(others, sharedWorkQueue, true)
+		public ThreadWorker(ThreadWorker[] others, OptimizedStack<ThreadStart> sharedWorkQueue,
+		                    int maxStackSize, ThreadPriority priority):
+			this(others, sharedWorkQueue, true, maxStackSize, priority)
 		{
 			
 		}
 		
-		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<ThreadStart> sharedWorkQueue, bool createThread)
+		public ThreadWorker(ThreadWorker[] others, OptimizedStack<ThreadStart> sharedWorkQueue,
+		                    bool createThread, int maxStackSize, ThreadPriority priority)
 		{
 			if (createThread) {
-				//TODO: Replace this with something depending on time passed doing nothing like in the ThreadPool
-				this.workerThread = new Thread(new ThreadStart(WorkerMethod));
+				ThreadStart func = new ThreadStart(delegate {
+					while (started == 1) {
+						WorkerMethod();
+						Thread.Sleep(sleepTimeBeforeRetry);
+					}
+					// If there is no more work, finish the method
+					// Just before the method dies, set the start flag
+					started = 0;
+				});
+				if (maxStackSize == 0)
+					this.workerThread = new Thread(func);
+				else
+					this.workerThread = new Thread(func, maxStackSize);
+				this.workerThread.IsBackground = true;
+				this.workerThread.Priority = priority;
 			} else {
 				this.workerThread = Thread.CurrentThread;
 				isLocal = true;
@@ -71,10 +87,19 @@ namespace System.Threading.Tasks
 			if (result != 0)
 				return;
 			if (!isLocal) {
-				if (this.workerThread.ThreadState != ThreadState.Unstarted)
+				if (this.workerThread.ThreadState != ThreadState.Unstarted) {
 					this.workerThread = new Thread(new ThreadStart(WorkerMethod));
+					this.workerThread.IsBackground = true;
+				}
 				workerThread.Start();
 			}
+		}
+		
+		public void Stop()
+		{
+			// Set the flag to stop so that the while in the thread will stop
+			// doing its infinite loop.
+			started = 0;
 		}
 		
 		internal void WorkerMethod()
@@ -85,40 +110,32 @@ namespace System.Threading.Tasks
 			* Steal from others by PopTop them and PushBottom the result to our deque. When it's done go back to the beginning.
 			* If every thing is empty then let the thread's method die. It can be started again by the Scheduler with Pulse.
 			*/
-			//PopResult result = PopResult.Succeed;
-			do {
-				ThreadStart value;
-				while (!sharedWorkQueue.IsEmpty) {
-					// We fill up our work deque concurrently with other ThreadWorker	
-					while (sharedWorkQueue.TryPop(out value))
-						dDeque.PushBottom(value);
-					// Now we process our work
-					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
+			ThreadStart value;
+			// We fill up our work deque concurrently with other ThreadWorker	
+			while (sharedWorkQueue.TryPop(out value))
+				dDeque.PushBottom(value);
+			// Now we process our work
+			while (dDeque.PopBottom(out value) == PopResult.Succeed) {
+				if (value != null) {
+					value();
+				}
+			}
+			
+			// When we have finished, steal from other worker
+			ThreadWorker other;
+			// Repeat the operation a little so that we can let other things process.
+			for (int j = 0; j < maxRetry; j++) {
+				for (int i = 0; i < workerLength; i++) {
+					if ((other = others[i]) == null || other == this)
+						continue;
+					while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 						if (value != null) {
-							value();	
+							value();
 						}
 					}
 				}
-				// When we have finished, steal from other worker
-				ThreadWorker other;
-				// Repeat the operation a little so that we can let other things process.
-				for (int j = 0; j < maxRetry; j++) {
-					for (int i = 0; i < workerLength; i++) {
-						if ((other = others[i]) == null || other == this)
-							continue;
-						while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
-							if (value != null) {
-								value();	
-							}
-						}
-					}
-				}
-			// While we were stealing work may have been re-added to the workQueue
-			} while (!sharedWorkQueue.IsEmpty);
-			// If there is no more work, finish the method
-			// Just before the method dies, set the start flag
-			started = 0;
-			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId + " because of " + result.ToString());
+			}
+			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId);
 		}
 		
 		// Almost same as above but with an added predicate and treating one item at a time. 
@@ -129,14 +146,12 @@ namespace System.Threading.Tasks
 			while (!predicate()) {
 				ThreadStart value;
 				
-				if (!sharedWorkQueue.IsEmpty) {
-					// Dequeue only one item as we have restriction
-					if (sharedWorkQueue.TryPop(out value))
-						value();
-					// First check to see if we comply to predicate
-					if (predicate()) {
-						return;
-					}
+				// Dequeue only one item as we have restriction
+				if (sharedWorkQueue.TryPop(out value))
+					value();
+				// First check to see if we comply to predicate
+				if (predicate()) {
+					return;
 				}
 				
 				// Try to complete other work by stealing since our desired tasks may be in other worker
