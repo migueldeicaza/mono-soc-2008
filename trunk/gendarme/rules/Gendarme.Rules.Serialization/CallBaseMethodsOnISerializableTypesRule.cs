@@ -55,16 +55,15 @@ namespace Gendarme.Rules.Serialization {
 			if (method == null)
 				return; // Perhaps should report that doesn't exist the method (only with ctor).
 
-			bool foundBaseCall = false;
 			foreach (Instruction instruction in method.Body.Instructions) {
 				if (instruction.OpCode.FlowControl == FlowControl.Call) {
 					MethodReference operand = (MethodReference) instruction.Operand;
-					foundBaseCall |= methodSignature.Matches (operand) && type.Inherits (operand.DeclaringType.ToString ());
+					if (methodSignature.Matches (operand) && type.Inherits (operand.DeclaringType.ToString ()))
+						return;
 				}
 			}
 
-			if (!foundBaseCall)
-				Runner.Report (method, Severity.High, Confidence.High, String.Format ("The method {0} isn't calling its base method.", method));
+			Runner.Report (method, Severity.High, Confidence.High, String.Format ("The method {0} isn't calling its base method.", method));
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
