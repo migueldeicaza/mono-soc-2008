@@ -59,7 +59,7 @@ namespace Gendarme.Rules.Serialization {
 			foreach (Instruction instruction in method.Body.Instructions) {
 				if (instruction.OpCode.FlowControl == FlowControl.Call) {
 					MethodReference operand = (MethodReference) instruction.Operand;
-					foundBaseCall |= methodSignature.Matches (operand) && operand.DeclaringType.Equals (type.BaseType);
+					foundBaseCall |= methodSignature.Matches (operand) && type.Inherits (operand.DeclaringType.ToString ());
 				}
 			}
 
