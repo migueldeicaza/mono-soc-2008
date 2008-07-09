@@ -88,6 +88,38 @@ namespace Test.Rules.Serialization {
 		}
 
 		[Serializable]
+		class GoodDerivedOnlyInConstructor : Base {
+			int otherValue;
+
+			protected GoodDerivedOnlyInConstructor (SerializationInfo info, StreamingContext context) : base (info, context)
+			{
+				otherValue = info.GetInt32 ("otherValue");
+			}
+
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("otherValue", otherValue);
+			}
+		}
+
+		[Serializable]
+		class GoodDerivedOnlyInGetObjectData : Base {
+			int otherValue;
+
+			protected GoodDerivedOnlyInGetObjectData (SerializationInfo info, StreamingContext context) 
+			{
+				otherValue = info.GetInt32 ("otherValue");
+			}
+
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("otherValue", otherValue);
+				base.GetObjectData (info, context);
+			}
+		}
+
+
+		[Serializable]
 		class DefaultSerialization {
 		}
 
@@ -143,13 +175,25 @@ namespace Test.Rules.Serialization {
 		[Test]
 		public void FailOnBadDerivedTest ()
 		{
-			AssertRuleFailure<BadDerived> ();
+			AssertRuleFailure<BadDerived> (2);
 		}
 
 		[Test]
 		public void SuccessOnMultipleLevelDerivedTest ()
 		{
 			AssertRuleSuccess<ThirdGeneration> ();
+		}
+
+		[Test]
+		public void FailOnGoodDerivedOnlyInConstructorTest ()
+		{
+			AssertRuleFailure<GoodDerivedOnlyInConstructor> (1);
+		}
+
+		[Test]
+		public void FailOnGoodDerivedOnlyInGetObjectDataTest ()
+		{
+			AssertRuleFailure<GoodDerivedOnlyInGetObjectData> (1);
 		}
 	}
 }
