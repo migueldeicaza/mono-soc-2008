@@ -1,7 +1,7 @@
 <gendarme>
 	<ruleset name="net_2_0">
 		<!-- ALL -->	
-		<rules include="*" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="*" exclude="CheckNewExceptionWithoutThrowingRule" from="Gendarme.Rules.BadPractice.dll"/>
 
 		<rules include="BadRecursiveInvocationRule" from="Gendarme.Rules.Correctness.dll"/>
 		<rules include="DoNotCompareWithNaNRule" from="Gendarme.Rules.Correctness.dll"/>
@@ -19,6 +19,8 @@
 
 		<rules include="NewLineLiteralRule" from="Gendarme.Rules.Portability.dll"/>
 
+		<rules include="MarkAllNonSerializableFieldsRule" from="Gendarme.Rules.Serialization.dll"/>
+		<rules include="CallBaseMethodsOnISerializableTypesRule" from="Gendarme.Rules.Serialization.dll"/>
 		<!-- ONLY VISIBLES -->
 
 		<!-- ONLY PRIVATES -->
