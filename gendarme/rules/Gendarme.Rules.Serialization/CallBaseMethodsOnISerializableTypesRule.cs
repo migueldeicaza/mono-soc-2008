@@ -38,15 +38,15 @@ namespace Gendarme.Rules.Serialization {
 	[Solution ("Call the base method.")]
 	public class CallBaseMethodsOnISerializableTypesRule : Rule, ITypeRule {
 
-		private static bool InheritsFromISerializableImplementation (TypeReference type)
+		private static bool InheritsFromISerializableImplementation (TypeDefinition type)
 		{
-			TypeDefinition current = type.Resolve ();
+			TypeDefinition current = type.BaseType.Resolve ();
 			if (current == null || current.FullName == "System.Object")
 				return false;
 			if (current.IsSerializable && current.Implements ("System.Runtime.Serialization.ISerializable"))
 				return true;
 
-			return InheritsFromISerializableImplementation (current.BaseType);
+			return InheritsFromISerializableImplementation (current);
 		}
 
 		private void CheckCallingBaseMethod (TypeDefinition type, MethodSignature methodSignature)
@@ -69,7 +69,7 @@ namespace Gendarme.Rules.Serialization {
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			if (!InheritsFromISerializableImplementation (type.BaseType))
+			if (!InheritsFromISerializableImplementation (type))
 				return RuleResult.DoesNotApply;
 			
 			CheckCallingBaseMethod (type, MethodSignatures.SerializationConstructor);
