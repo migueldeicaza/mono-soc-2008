@@ -34,8 +34,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Serialization {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("You are overriding the GetObjectData method or serialization constructor but you aren't calling to the base methods, and perhaps you aren't serializing / deserializing the fields of the base type.")]
+	[Solution ("Call the base method.")]
 	public class CallBaseMethodsOnISerializableTypesRule : Rule, ITypeRule {
 
 		private static bool InheritsFromISerializableImplementation (TypeReference type)
