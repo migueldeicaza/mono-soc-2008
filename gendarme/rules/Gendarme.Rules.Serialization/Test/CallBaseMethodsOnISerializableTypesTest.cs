@@ -91,6 +91,31 @@ namespace Test.Rules.Serialization {
 		class DefaultSerialization {
 		}
 
+
+		[Serializable]
+		class Derived : Base {
+			protected Derived (SerializationInfo info, StreamingContext context) : base (info, context) 
+			{
+			}
+		}
+
+		//See the ArgumentException - SystemException - Exception
+		[Serializable]
+		class ThirdGeneration : Derived {
+			int otherValue;
+
+			protected ThirdGeneration (SerializationInfo info, StreamingContext context) : base (info, context)
+			{
+				otherValue = info.GetInt32 ("otherValue");
+			}
+
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				base.GetObjectData (info, context);
+				info.AddValue ("otherValue", otherValue);
+			}
+		}
+
 		[Test]
 		public void SkipOnCanonicalScenariosTest ()
 		{
@@ -119,6 +144,12 @@ namespace Test.Rules.Serialization {
 		public void FailOnBadDerivedTest ()
 		{
 			AssertRuleFailure<BadDerived> ();
+		}
+
+		[Test]
+		public void SuccessOnMultipleLevelDerivedTest ()
+		{
+			AssertRuleSuccess<ThirdGeneration> ();
 		}
 	}
 }
