@@ -64,7 +64,7 @@ namespace Gendarme.Rules.Serialization {
 			}
 
 			if (!foundBaseCall)
-				Runner.Report (method, Severity.High, Confidence.Low, String.Format ("The method {0} isn't calling its base method.", method));
+				Runner.Report (method, Severity.High, Confidence.High, String.Format ("The method {0} isn't calling its base method.", method));
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
