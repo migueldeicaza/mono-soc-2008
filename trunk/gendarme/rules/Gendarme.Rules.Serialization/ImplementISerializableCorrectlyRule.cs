@@ -38,12 +38,20 @@ namespace Gendarme.Rules.Serialization {
 	[Problem ("")]
 	[Solution ("")]
 	public class ImplementISerializableCorrectlyRule : Rule, ITypeRule {
+		static MethodSignature addValueSignature = new MethodSignature ("AddValue", "System.Void");
+	
+		public static bool IsCallingToSerializationInfoAddValue (Instruction instruction)
+		{
+			if (instruction == null || instruction.OpCode.FlowControl != FlowControl.Call)
+				return false; 
+			return addValueSignature.Matches ((MethodReference) instruction.Operand);
+		}
 
 		public static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
 		{
 			IList<FieldDefinition> result = new List<FieldDefinition> ();
 			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode == OpCodes.Ldfld)
+				if (instruction.OpCode == OpCodes.Ldfld && IsCallingToSerializationInfoAddValue (instruction.Next))
 					result.Add ((FieldDefinition) instruction.Operand);
 			}
 			return result;
