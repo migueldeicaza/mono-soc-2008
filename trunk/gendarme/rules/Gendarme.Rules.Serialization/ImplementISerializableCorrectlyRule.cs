@@ -44,7 +44,10 @@ namespace Gendarme.Rules.Serialization {
 		{
 			if (instruction == null || instruction.OpCode.FlowControl != FlowControl.Call)
 				return false; 
-			return addValueSignature.Matches ((MethodReference) instruction.Operand);
+			MethodReference method = (MethodReference) instruction.Operand;
+			return addValueSignature.Matches (method) && 
+				String.Compare (method.DeclaringType.FullName,
+				"System.Runtime.Serialization.SerializationInfo") == 0;
 		}
 
 		public static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
