@@ -26,16 +26,36 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Collections.Generic;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
+using Gendarme.Framework.Helpers;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Serialization {
 	public class ImplementISerializableCorrectlyRule : Rule, ITypeRule {
+
+		public static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
+		{
+			IList<FieldDefinition> result = new List<FieldDefinition> ();
+			foreach (Instruction instruction in method.Body.Instructions) {
+				if (instruction.OpCode == OpCodes.Ldfld)
+					result.Add ((FieldDefinition) instruction.Operand);
+			}
+			return result;
+		}
+		
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			if (!type.IsSerializable || !type.Implements ("System.Runtime.Serialization.ISerializable"))
 				return RuleResult.DoesNotApply;
+			IList<FieldDefinition> fieldsUsed = GetFieldsUsedIn (type.GetMethod (MethodSignatures.GetObjectData));
+
+			foreach (FieldDefinition field in type.Fields) {
+				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
+					Runner.Report (type, Severity.High, Confidence.Low);
+			}
 			return Runner.CurrentRuleResult;
 		}
 	}
