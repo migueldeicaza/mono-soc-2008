@@ -7,11 +7,13 @@ DISTCLEANFILES = Makefile.in TestResult.xml
 
 serialization_sources = \
 	MarkAllNonSerializableFieldsRule.cs \
-	CallBaseMethodsOnISerializableTypesRule.cs
+	CallBaseMethodsOnISerializableTypesRule.cs \
+	ImplementISerializableCorrectlyRule.cs
 
 serialization_test_sources = \
 	MarkAllNonSerializableFieldsTest.cs \
-	CallBaseMethodsOnISerializableTypesTest.cs
+	CallBaseMethodsOnISerializableTypesTest.cs \
+	ImplementISerializableCorrectlyTest.cs
 
 serialization_build_sources = $(addprefix $(srcdir)/, $(serialization_sources))
 serialization_test_build_sources = $(addprefix $(srcdir)/Test/, $(serialization_test_sources))
