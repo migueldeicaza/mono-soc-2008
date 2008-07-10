@@ -25,6 +25,9 @@
 //
 
 using System;
+using System.Collections;
+using System.IO;
+using System.Text;
 
 namespace Mono.Git.Core.Repository
 {
@@ -37,6 +40,7 @@ namespace Mono.Git.Core.Repository
 		private string description;
 		private string path;
 		private string template_path;
+		private ConfigValue[] values;
 		
 		public string Description
 		{
@@ -80,6 +84,53 @@ namespace Mono.Git.Core.Repository
 		
 		public Configuration ()
 		{ 
+		}
+		
+		public void AddConfigValues ()
+		{
+			string line;
+			string section = null;
+			
+			TextReader tr = new StreamReader (path);
+			
+			while ((line = tr.ReadLine()) != null) {
+				if (line.StartsWith ("[") && line.EndsWith ("]")) {
+					section = line;
+					line = tr.ReadLine ();
+				}
+				
+				// TODO: for now we are going to read the value and name as a whole
+				// the idea is:
+				//
+				// Remove all the text after "="(and "=" too) that's the name
+				// Remove all the text before "="(and "=" too) that's the value 
+				ConfigValue configValue = new ConfigValue (section, line, line);
+				
+				AddConfigValue (configValue);
+			}
+			
+			tr.Close ();
+		}
+		
+		public void AddConfigValue (string configSection, string configName, string configValue)
+		{
+			ConfigValue confValue = new ConfigValue (configSection, configName, configValue);
+			
+			if (values.Length == 0 || values == null) {
+				values = new ConfigValue[1];
+				return;
+			}
+			
+			ArrayList valuesArray = new ArrayList (values);
+			
+			valuesArray.Add (confValue);
+			
+			values = (ConfigValue[]) valuesArray.ToArray ();
+		}
+		
+		public void AddConfigValue (ConfigValue val)
+		{
+			AddConfigValue (val.Section, val.Name, val.Value);
 		}
 		
 		// These methods are used to get default configurations from C Git(mostly in UNIX systems)
