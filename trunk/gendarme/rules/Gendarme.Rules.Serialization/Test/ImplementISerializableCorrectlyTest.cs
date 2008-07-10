@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Runtime.Serialization;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -40,6 +41,39 @@ namespace Test.Rules.Serialization {
 		class AutomaticSerialization {
 		}
 
+		[Serializable]
+		class ImplementationWithNonSerialized : ISerializable {
+			int foo;
+			[NonSerialized]
+			string bar;
+
+			protected ImplementationWithNonSerialized (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", foo);
+			}
+		}
+
+		[Serializable]
+		class ImplementationWithoutNonSerialized : ISerializable {
+			int foo;
+			string bar;
+
+			protected ImplementationWithoutNonSerialized (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", foo);
+			}
+		}
+
 		[Test]
 		public void SkipOnCanonicalScenariosTest ()
 		{
@@ -50,6 +84,18 @@ namespace Test.Rules.Serialization {
 		public void SkipOnAutomaticSerializationTest ()
 		{
 			AssertRuleDoesNotApply<AutomaticSerialization> ();
+		}
+
+		[Test]
+		public void SuccessOnImplementationWithNonSerializedTest ()
+		{
+			AssertRuleSuccess<ImplementationWithNonSerialized> ();
+		}
+
+		[Test]
+		public void FailOnImplementationWithoutNonSerializedTest ()
+		{
+			AssertRuleFailure<ImplementationWithoutNonSerialized> (1);
 		}
 	}
 }
