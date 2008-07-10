@@ -74,6 +74,24 @@ namespace Test.Rules.Serialization {
 			}
 		}
 
+
+		[Serializable]
+		class TrickyImplementationWithoutNonSerialized : ISerializable {
+			int foo;
+			string bar;
+
+			protected TrickyImplementationWithoutNonSerialized (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", foo);
+				Console.WriteLine (bar);
+			}
+		}
+
 		[Test]
 		public void SkipOnCanonicalScenariosTest ()
 		{
@@ -96,6 +114,12 @@ namespace Test.Rules.Serialization {
 		public void FailOnImplementationWithoutNonSerializedTest ()
 		{
 			AssertRuleFailure<ImplementationWithoutNonSerialized> (1);
+		}
+
+		[Test]
+		public void FailOnTrickyImplementationWithoutNonSerializedTest () 
+		{
+			AssertRuleFailure<TrickyImplementationWithoutNonSerialized> ();
 		}
 	}
 }
