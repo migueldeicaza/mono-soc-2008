@@ -26,12 +26,30 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Serialization;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rules.Serialization {
 	[TestFixture]
 	public class ImplementISerializableCorrectlyTest : TypeRuleTestFixture<ImplementISerializableCorrectlyRule> {
+
+		[Serializable]
+		class AutomaticSerialization {
+		}
+
+		[Test]
+		public void SkipOnCanonicalScenariosTest ()
+		{
+			AssertRuleDoesNotApply (SimpleTypes.Class);
+		}
+
+		[Test]
+		public void SkipOnAutomaticSerializationTest ()
+		{
+			AssertRuleDoesNotApply<AutomaticSerialization> ();
+		}
 	}
 }
