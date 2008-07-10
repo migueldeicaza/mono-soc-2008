@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Collections.Generic;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
@@ -34,6 +35,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Serialization {
+	[Problem ("")]
+	[Solution ("")]
 	public class ImplementISerializableCorrectlyRule : Rule, ITypeRule {
 
 		public static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
@@ -54,7 +57,8 @@ namespace Gendarme.Rules.Serialization {
 
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
-					Runner.Report (type, Severity.High, Confidence.Low);
+					Runner.Report (type, Severity.High,
+					Confidence.Low, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
 			return Runner.CurrentRuleResult;
 		}
