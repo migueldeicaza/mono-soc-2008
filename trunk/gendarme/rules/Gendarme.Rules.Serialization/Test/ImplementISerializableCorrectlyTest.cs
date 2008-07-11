@@ -149,5 +149,44 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleFailure<ImplementationWithout2NonSerializedFields> (2);
 		}
+
+		[Serializable]
+		class SerializableWithoutVirtualMethod : ISerializable {
+			public void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
+		[Serializable]
+		sealed class SealedSerializableWithoutVirtualMethod : ISerializable {
+			public void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
+		[Serializable]
+		class SerializableWithVirtualMethod : ISerializable {
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
+		[Test]
+		public void FailOnSerializableWithoutVirtualMethodTest ()
+		{
+			AssertRuleFailure<SerializableWithoutVirtualMethod> (1);
+		}
+
+		[Test]
+		public void SuccessOnSealedSerializableWithoutVirtualMethodTest ()
+		{
+			AssertRuleSuccess<SealedSerializableWithoutVirtualMethod> ();
+		}
+
+		[Test]
+		public void SuccessOnSerializableWithVirtualMethodTest ()
+		{
+			AssertRuleSuccess<SerializableWithVirtualMethod> ();
+		}
 	}
 }
