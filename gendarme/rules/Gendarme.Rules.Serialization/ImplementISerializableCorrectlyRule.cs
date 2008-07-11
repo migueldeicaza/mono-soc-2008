@@ -57,17 +57,21 @@ namespace Gendarme.Rules.Serialization {
 			}
 			return result;
 		}
-		
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			if (!type.IsSerializable || !type.Implements ("System.Runtime.Serialization.ISerializable"))
 				return RuleResult.DoesNotApply;
-			IList<FieldDefinition> fieldsUsed = GetFieldsUsedIn (type.GetMethod (MethodSignatures.GetObjectData));
+			MethodDefinition getObjectData = type.GetMethod (MethodSignatures.GetObjectData);
+			IList<FieldDefinition> fieldsUsed = GetFieldsUsedIn (getObjectData);
 
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
 					Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
+
+			if (!type.IsSealed && getObjectData.IsFinal)
+				Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("If this class is going to be sealed, seal it; else you should make virtual the GetObjectData method."));
 			return Runner.CurrentRuleResult;
 		}
 	}
