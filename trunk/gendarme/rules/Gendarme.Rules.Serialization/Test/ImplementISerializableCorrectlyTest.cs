@@ -277,5 +277,24 @@ namespace Test.Rules.Serialization {
 			AssertRuleFailure<SerializableThroughPropertiesAndOneNonSerialized> (1);
 		}
 
+		[Serializable]
+		sealed class OperatingSystem : ISerializable {
+			private System.PlatformID _platform;
+			private Version _version;
+			private string _servicePack = String.Empty;
+			
+			public void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("_platform", _platform);
+				info.AddValue ("_version", _version);
+				info.AddValue ("_servicePack", _servicePack);
+			}
+		}
+		
+		[Test]
+		public void SuccessOnOperatingSystemTest ()
+		{
+			AssertRuleSuccess<OperatingSystem> ();
+		}
 	}
 }
