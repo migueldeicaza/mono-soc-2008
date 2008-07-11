@@ -114,7 +114,7 @@ namespace Gendarme.Rules.Serialization {
 		private void CheckExtensibilityFor (TypeDefinition type, MethodDefinition getObjectData)
 		{
 			if (!type.IsSealed && getObjectData.IsFinal)
-				Runner.Report (type, Severity.High, Confidence.Total, String.Format ("If this class is going to be sealed, seal it; else you should make virtual the GetObjectData method."));
+				Runner.Report (type, Severity.High, Confidence.Total, "If this class is going to be sealed, seal it; else you should make virtual the GetObjectData method.");
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
