@@ -48,19 +48,20 @@ namespace Gendarme.Rules.Serialization {
 			return addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0;
 		}
 
-		private static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
+		private static IList<FieldReference> GetFieldsUsedIn (MethodDefinition method)
 		{
-			IList<FieldDefinition> result = new List<FieldDefinition> ();
+			IList<FieldReference> result = new List<FieldReference> ();
+
 			foreach (Instruction instruction in method.Body.Instructions) {
 				if (instruction.OpCode == OpCodes.Ldfld && IsCallingToSerializationInfoAddValue (instruction.Next))
-					result.Add ((FieldDefinition) instruction.Operand);
+					result.Add ((FieldReference) instruction.Operand);
 			}
 			return result;
 		}
 
 		private void CheckUnusedFieldsIn (TypeDefinition type, MethodDefinition getObjectData)
 		{
-			IList<FieldDefinition> fieldsUsed = GetFieldsUsedIn (getObjectData);
+			IList<FieldReference> fieldsUsed = GetFieldsUsedIn (getObjectData);
 			
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
@@ -80,9 +81,10 @@ namespace Gendarme.Rules.Serialization {
 				return RuleResult.DoesNotApply;
 			
 			MethodDefinition getObjectData = type.GetMethod (MethodSignatures.GetObjectData);
-			CheckUnusedFieldsIn (type, getObjectData);
-			CheckExtensibilityFor (type, getObjectData);
-
+			if (getObjectData != null) {
+				CheckUnusedFieldsIn (type, getObjectData);
+				CheckExtensibilityFor (type, getObjectData);
+			}
 			return Runner.CurrentRuleResult;
 		}
 	}
