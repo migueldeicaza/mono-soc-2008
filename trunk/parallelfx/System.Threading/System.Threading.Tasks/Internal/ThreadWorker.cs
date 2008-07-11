@@ -30,10 +30,12 @@ namespace System.Threading.Tasks
 {
 	internal class ThreadWorker
 	{
+		static Random r = new Random();
+		
 		Thread workerThread;
 		readonly ThreadWorker[] others;
 		
-		readonly DynamicDeque<Task>    dDeque;
+		internal readonly DynamicDeque<Task>    dDeque;
 		//readonly OptimizedStack<Task> sharedWorkQueue;
 		readonly ConcurrentStack<Task> sharedWorkQueue;
 		
@@ -46,7 +48,6 @@ namespace System.Threading.Tasks
 		const int maxRetry = 5;
 		const int sleepTimeBeforeRetry = 50;
 		
-		//public ThreadWorker(ThreadWorker[] others, OptimizedStack<Task> sharedWorkQueue,
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    int maxStackSize, ThreadPriority priority):
 			this(others, sharedWorkQueue, true, maxStackSize, priority)
@@ -54,38 +55,37 @@ namespace System.Threading.Tasks
 			
 		}
 		
-		//public ThreadWorker(ThreadWorker[] others, OptimizedStack<Task> sharedWorkQueue,
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    bool createThread, int maxStackSize, ThreadPriority priority)
 		{
-			this.others = others;
-			this.dDeque = new DynamicDeque<Task>();
+			this.others          = others;
+			this.dDeque          = new DynamicDeque<Task>();
 			this.sharedWorkQueue = sharedWorkQueue;
+			this.workerLength    = others.Length;
+			this.isLocal         = !createThread;
 			
-			this.workerLength = others.Length;
-			this.stealingStart= (Array.FindIndex(others, delegate (ThreadWorker w) {
-				return w == this; }) + 1) % workerLength; 
+			// Find the stealing start index randomly (then the traversal
+			// will be done in Round-Robin fashion)
+			do {
+				this.stealingStart = r.Next(0, workerLength);
+			} while (others[stealingStart] == this);
 			
-			if (createThread) {
-				ThreadStart func = new ThreadStart(delegate {
-					while (started == 1) {
-						WorkerMethod();
-						Thread.Sleep(sleepTimeBeforeRetry);
-					}
-					// If there is no more work, finish the method
-					// Just before the method dies, set the start flag
-					started = 0;
-				});
-				if (maxStackSize == 0)
-					this.workerThread = new Thread(func);
-				else
-					this.workerThread = new Thread(func, maxStackSize);
-				this.workerThread.IsBackground = true;
-				this.workerThread.Priority = priority;
-			} else {
+			InitializeUnderlyingThread(maxStackSize, priority);
+		}
+		
+		void InitializeUnderlyingThread(int maxStackSize, ThreadPriority priority)
+		{
+			// Special case of the participant ThreadWorker
+			if (isLocal) {			
 				this.workerThread = Thread.CurrentThread;
-				isLocal = true;
+				return;
 			}
+			
+			this.workerThread = (maxStackSize == 0) ? new Thread(WorkerMethodWrapper) :
+					new Thread(WorkerMethodWrapper, maxStackSize);
+
+			this.workerThread.IsBackground = true;
+			this.workerThread.Priority = priority;
 		}
 		
 		public void Pulse()
@@ -110,14 +110,18 @@ namespace System.Threading.Tasks
 			started = 0;
 		}
 		
-		internal void WorkerMethod()
+		// This is the actual method called in the Thread
+		void WorkerMethodWrapper()
 		{
-			/* if sharedWorkQueue is not empty then repeatdly
-			* Dequeue from it until there is nothing else in it and add it do dDeque (other workers do the same on their thread)
-			* when it's empty do all the work in the local dDeque (other worker might steal from us). When our deque is empty 
-			* Steal from others by PopTop them and PushBottom the result to our deque. When it's done go back to the beginning.
-			* If every thing is empty then let the thread's method die. It can be started again by the Scheduler with Pulse.
-			*/
+			while (started == 1) {
+				WorkerMethod();
+				Thread.Sleep(sleepTimeBeforeRetry);
+			}
+		}
+		
+		// Main method, used to do all the logic of retrieving, processing and stealing work.
+		void WorkerMethod()
+		{
 			do {
 				Task value;
 				// We fill up our work deque concurrently with other ThreadWorker
@@ -127,6 +131,7 @@ namespace System.Threading.Tasks
 					// Now we process our work
 					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
 						if (value != null) {
+							value.worker = this;
 							value.threadStart();
 						}
 					}
@@ -141,7 +146,8 @@ namespace System.Threading.Tasks
 						int i = it % workerLength;
 						if ((other = others[i]) == null || other == this)
 							continue;
-						while (other.dDeque.PopTop(out value) == PopResult.Succeed) {
+						// Maybe make this steal more than one item at a time, see TODO.
+						if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 							if (value != null) {
 								value.threadStart();
 							}
@@ -188,9 +194,15 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		internal bool Finished {
+		public bool Finished {
 			get {
 				return started == 0;	
+			}
+		}
+		
+		public bool IsLocal {
+			get {
+				return isLocal;
 			}
 		}
 		

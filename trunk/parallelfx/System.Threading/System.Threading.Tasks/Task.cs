@@ -29,13 +29,19 @@ namespace System.Threading.Tasks
 {
 	public class Task: TaskBase, IDisposable, IAsyncResult
 	{
+		// With this attribute each thread has its own value so that it's correct for our Schedule code
+		// and for Parent and Creator properties. Though it may not be the value that Current should yield.
+		[System.ThreadStatic]
 		static Task current;
+		
+		internal ThreadWorker worker;
 		
 		WaitHandle asyncWaitHandle;
 		Exception exception;
 		bool  isCanceled;
+		bool respectParentCancellation;
 		bool isCompleted;
-		Task parent = current;
+		Task parent  = current;
 		Task creator = current;
 		TaskCreationOptions taskCreationOptions;
 		
@@ -53,12 +59,19 @@ namespace System.Threading.Tasks
 			this.tm = TaskManager.Current = tm;
 			this.action = action;
 			this.state = state;
+
+			// Process taskCreationOptions
+			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached))
+				parent = null;
+			
+			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 		}
 		
 		void Schedule()
 		{
 			threadStart = delegate {
-				if (!isCanceled) {
+				if (!isCanceled
+				    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 					current = this;
 					try {
 						InnerInvoke();
@@ -69,10 +82,25 @@ namespace System.Threading.Tasks
 				isCompleted = true;
 				// Call the event in the correct style
 				EventHandler tempCompleted = Completed;
-				if (tempCompleted != null)
-					tempCompleted(this, EventArgs.Empty);
+				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
 			};
-			tm.AddWork(this);
+			
+			// If worker is null it means it is a local one, revert to the old behavior
+			if (current == null || worker == null) {
+				tm.AddWork(this);
+			} else {
+				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
+				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
+				 * the correct Thread during the creation
+				 */
+				worker.dDeque.PushBottom(this);
+			}
+				
+		}
+
+		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)
+		{
+			return (opt & member) == member;
 		}
 		
 		public static Task Create(Action<object> action)
