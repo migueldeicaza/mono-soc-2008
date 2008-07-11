@@ -45,16 +45,20 @@ namespace Gendarme.Rules.Serialization {
 			if (instruction == null) 
 				return false; 
 			
-			//Skip the Box instruction.  It's done for the value
-			//types.
-			if (instruction.OpCode == OpCodes.Box)
-				instruction = instruction.Next;
+			//Advance towards the next call	
+			//Matches the cases of overloaded or boxed instructions
+			Instruction aux = (instruction);
+			while (aux != null) {
+				if (aux.OpCode.FlowControl == FlowControl.Call){
+					MethodReference method = (MethodReference) aux.Operand;
+					if (addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0)
+						return true;
+				}
+						
+				aux = aux.Next;
+			}
 
-			if (instruction.OpCode.FlowControl != FlowControl.Call)
-				return false;
-
-			MethodReference method = (MethodReference) instruction.Operand;
-			return addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0;
+			return false;
 		}
 
 		private static FieldReference GetReferenceThroughProperty (TypeReference current, Instruction instruction)
