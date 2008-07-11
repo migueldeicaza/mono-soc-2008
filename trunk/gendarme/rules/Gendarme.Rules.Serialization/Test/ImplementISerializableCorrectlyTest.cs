@@ -296,5 +296,21 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleSuccess<OperatingSystem> ();
 		}
+
+		[Serializable]
+		sealed class AddValueWithMoreParameters : ISerializable {
+			int foo;
+
+			public void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", foo, typeof (int));
+			}
+		}
+
+		[Test]
+		public void SuccessOnAddValueWithMoreParametersTest ()
+		{
+			AssertRuleSuccess<AddValueWithMoreParameters> ();
+		}
 	}
 }
