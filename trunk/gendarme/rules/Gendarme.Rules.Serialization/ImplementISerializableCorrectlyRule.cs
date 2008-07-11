@@ -42,8 +42,17 @@ namespace Gendarme.Rules.Serialization {
 	
 		private static bool IsCallingToSerializationInfoAddValue (Instruction instruction)
 		{
-			if (instruction == null || instruction.OpCode.FlowControl != FlowControl.Call)
+			if (instruction == null) 
 				return false; 
+			
+			//Skip the Box instruction.  It's done for the value
+			//types.
+			if (instruction.OpCode == OpCodes.Box)
+				instruction = instruction.Next;
+
+			if (instruction.OpCode.FlowControl != FlowControl.Call)
+				return false;
+
 			MethodReference method = (MethodReference) instruction.Operand;
 			return addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0;
 		}
@@ -82,7 +91,7 @@ namespace Gendarme.Rules.Serialization {
 
 			foreach (Instruction instruction in method.Body.Instructions) {
 				FieldReference reference = GetFieldReference (instruction, method);
-				if (reference != null && IsCallingToSerializationInfoAddValue (instruction.Next))
+				if (reference != null && IsCallingToSerializationInfoAddValue (instruction.Next)) 
 					result.Add (reference);
 			}
 			return result;
