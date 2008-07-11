@@ -96,6 +96,24 @@ namespace Test.Rules.Serialization {
 			}
 		}
 
+
+		[Serializable]
+		class ImplementationWithout2NonSerializedFields : ISerializable {
+			int foo;
+			string bar;
+			object myObject;
+
+			protected ImplementationWithout2NonSerializedFields (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", foo);
+			}
+		}
+
 		[Test]
 		public void SkipOnCanonicalScenariosTest ()
 		{
@@ -124,6 +142,12 @@ namespace Test.Rules.Serialization {
 		public void FailOnTrickyImplementationWithoutNonSerializedTest () 
 		{
 			AssertRuleFailure<TrickyImplementationWithoutNonSerialized> ();
+		}
+
+		[Test]
+		public void FailOnImplementationWithout2NonSerializedFieldsTest ()
+		{
+			AssertRuleFailure<ImplementationWithout2NonSerializedFields> (2);
 		}
 	}
 }
