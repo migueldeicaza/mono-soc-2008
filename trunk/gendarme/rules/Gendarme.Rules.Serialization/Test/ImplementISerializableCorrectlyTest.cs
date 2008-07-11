@@ -201,5 +201,25 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleSuccess<SerializableWithOverridenMethod> ();
 		}	
+
+		[Serializable]
+		class SerializableWithConstsAndStatic : ISerializable {
+			const int Result = 42;
+			static int Foo = 50;
+
+			protected SerializableWithConstsAndStatic (SerializationInfo info, StreamingContext context)
+			{
+			}
+
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
+		[Test]
+		public void SuccessOnSerializableWithConstsAndStaticTest ()
+		{
+			AssertRuleSuccess<SerializableWithConstsAndStatic> ();
+		}
 	}
 }
