@@ -171,6 +171,13 @@ namespace Test.Rules.Serialization {
 			}
 		}
 
+		[Serializable]
+		class SerializableWithOverridenMethod : SerializableWithVirtualMethod {
+			public override void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+			}
+		}
+
 		[Test]
 		public void FailOnSerializableWithoutVirtualMethodTest ()
 		{
@@ -188,5 +195,11 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleSuccess<SerializableWithVirtualMethod> ();
 		}
+
+		[Test]
+		public void SuccessOnSerializableWithOverridenMethodTest ()
+		{
+			AssertRuleSuccess<SerializableWithOverridenMethod> ();
+		}	
 	}
 }
