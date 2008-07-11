@@ -85,10 +85,14 @@ namespace Test.Rules.Serialization {
 				foo = info.GetInt32 ("foo");
 			}
 
+			private void AddValue (string name, object value)
+			{
+			}
+
 			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
 			{
 				info.AddValue ("foo", foo);
-				Console.WriteLine (bar);
+				AddValue ("bar", bar);
 			}
 		}
 
