@@ -224,7 +224,7 @@ namespace Test.Rules.Serialization {
 
 		[Serializable]
 		class SerializableThroughProperties : ISerializable {
-			int foo = 50;
+			int foo;
 
 			protected SerializableThroughProperties (SerializationInfo info, StreamingContext context)
 			{
@@ -248,5 +248,34 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleSuccess<SerializableThroughProperties> ();
 		}
+
+		[Serializable]
+		class SerializableThroughPropertiesAndOneNonSerialized : ISerializable {
+			int foo;
+			int bar;
+
+			protected SerializableThroughPropertiesAndOneNonSerialized (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+			
+			int Foo {
+				get {
+					return foo;
+				}
+			}
+			
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", Foo);
+			}
+		}
+
+		[Test]
+		public void FailOnSerializableThroughPropertiesAndOneNonSerializedTest ()
+		{
+			AssertRuleFailure<SerializableThroughPropertiesAndOneNonSerialized> (1);
+		}
+
 	}
 }
