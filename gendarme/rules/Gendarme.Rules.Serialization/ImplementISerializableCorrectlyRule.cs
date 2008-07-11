@@ -35,8 +35,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Serialization {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("Although you are implementing the ISerializable interface, there are some fields that aren't going to be serialized and aren't marked with the [NonSerialized] attribute.")]
+	[Solution ("Mark with the [NonSerialized] attribute the field. This helps developers to understand better your code, and perhaps to discover quickly some errors.")]
 	public class ImplementISerializableCorrectlyRule : Rule, ITypeRule {
 		static MethodSignature addValueSignature = new MethodSignature ("AddValue", "System.Void");
 	
