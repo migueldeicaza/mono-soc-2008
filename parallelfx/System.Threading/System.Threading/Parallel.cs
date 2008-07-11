@@ -38,23 +38,7 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
-			TaskManagerPolicy policy = TaskManager.Current.Policy;
-			int part = 40 / policy.IdealProcessors;
-			int pcount = (to - from) / part;
-			if (pcount == 0)
-				pcount = 1;
-			
-			int start = from;
-			Task[] tasks = new Task[pcount];
-			for (int i = 0; i < pcount; i++) {
-				int pstart = start + i * part;
-				int pend = (i == pcount - 1) ? to : pstart + part;
-				tasks[i] = Task.Create(delegate {
-					for (int j = pstart; j < pend; j += step)
-						action(j);
-				});
-			}
-			Task.WaitAll(tasks);
+			For(from, to, step, (int i, ParallelState s) => action(i));
 		}
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)
@@ -64,7 +48,9 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int, ParallelState> action)
 		{
-			int part = Environment.ProcessorCount * 2;
+			TaskManagerPolicy policy = TaskManager.Current.Policy;
+			int part = 40 / policy.IdealProcessors;
+			part = Math.Max(5, part);
 			int pcount = (to - from) / part;
 			if (pcount == 0)
 				pcount = 1;
