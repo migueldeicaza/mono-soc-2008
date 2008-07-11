@@ -221,5 +221,32 @@ namespace Test.Rules.Serialization {
 		{
 			AssertRuleSuccess<SerializableWithConstsAndStatic> ();
 		}
+
+		[Serializable]
+		class SerializableThroughProperties : ISerializable {
+			int foo = 50;
+
+			protected SerializableThroughProperties (SerializationInfo info, StreamingContext context)
+			{
+				foo = info.GetInt32 ("foo");
+			}
+			
+			int Foo {
+				get {
+					return foo;
+				}
+			}
+			
+			public virtual void GetObjectData (SerializationInfo info, StreamingContext context)
+			{
+				info.AddValue ("foo", Foo);
+			}
+		}
+
+		[Test]
+		public void SuccessOnSerializableThroughPropertiesTest ()
+		{
+			AssertRuleSuccess<SerializableThroughProperties> ();
+		}
 	}
 }
