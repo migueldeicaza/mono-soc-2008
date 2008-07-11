@@ -69,21 +69,21 @@ namespace Gendarme.Rules.Serialization {
 			return reference;
 		}
 
+		private static FieldReference GetFieldReference (Instruction instruction, MethodDefinition method)
+		{
+			if (instruction.OpCode == OpCodes.Ldfld)
+				return (FieldReference) instruction.Operand;
+			return GetReferenceThroughProperty (method.DeclaringType, instruction);
+		}
+
 		private static IList<FieldReference> GetFieldsUsedIn (MethodDefinition method)
 		{
 			IList<FieldReference> result = new List<FieldReference> ();
 
-			FieldReference reference = null;
 			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode == OpCodes.Ldfld)
-					reference = (FieldReference) instruction.Operand;
-				else
-					reference = GetReferenceThroughProperty (method.DeclaringType, instruction);
-
+				FieldReference reference = GetFieldReference (instruction, method);
 				if (reference != null && IsCallingToSerializationInfoAddValue (instruction.Next))
 					result.Add (reference);
-
-				reference = null;
 			}
 			return result;
 		}
