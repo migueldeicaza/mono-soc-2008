@@ -103,14 +103,14 @@ namespace Gendarme.Rules.Serialization {
 			
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized && !field.IsStatic)
-					Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
+					Runner.Report (type, Severity.High, Confidence.High, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
 		}
 
 		private void CheckExtensibilityFor (TypeDefinition type, MethodDefinition getObjectData)
 		{
 			if (!type.IsSealed && getObjectData.IsFinal)
-				Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("If this class is going to be sealed, seal it; else you should make virtual the GetObjectData method."));
+				Runner.Report (type, Severity.High, Confidence.Total, String.Format ("If this class is going to be sealed, seal it; else you should make virtual the GetObjectData method."));
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
