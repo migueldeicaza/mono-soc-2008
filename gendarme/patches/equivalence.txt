@@ -16,3 +16,5 @@ applyTo_implementation.patch -> 104709
 
 AvoidCallingProblematicMethodsRule -> r107128, r107129
 CallBaseMethodsOnISerializableTypesRule -> r107579, r107581
+//I need update the MarkAllSerializable ...
+ImplementISerializableCorrectlyRule -> r107752, r107753
