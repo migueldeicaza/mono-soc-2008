@@ -45,9 +45,7 @@ namespace Gendarme.Rules.Serialization {
 			if (instruction == null || instruction.OpCode.FlowControl != FlowControl.Call)
 				return false; 
 			MethodReference method = (MethodReference) instruction.Operand;
-			return addValueSignature.Matches (method) && 
-				String.Compare (method.DeclaringType.FullName,
-				"System.Runtime.Serialization.SerializationInfo") == 0;
+			return addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0;
 		}
 
 		public static IList<FieldDefinition> GetFieldsUsedIn (MethodDefinition method)
@@ -68,8 +66,7 @@ namespace Gendarme.Rules.Serialization {
 
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
-					Runner.Report (type, Severity.High,
-					Confidence.Low, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
+					Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
 			return Runner.CurrentRuleResult;
 		}
