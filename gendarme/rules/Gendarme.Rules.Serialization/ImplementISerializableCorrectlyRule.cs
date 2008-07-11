@@ -64,7 +64,7 @@ namespace Gendarme.Rules.Serialization {
 			IList<FieldReference> fieldsUsed = GetFieldsUsedIn (getObjectData);
 			
 			foreach (FieldDefinition field in type.Fields) {
-				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized)
+				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized && !field.IsStatic)
 					Runner.Report (type, Severity.High, Confidence.Normal, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
 		}
