@@ -107,7 +107,7 @@ namespace Gendarme.Rules.Serialization {
 			
 			foreach (FieldDefinition field in type.Fields) {
 				if (!fieldsUsed.Contains (field) && !field.IsNotSerialized && !field.IsStatic)
-					Runner.Report (type, Severity.High, Confidence.High, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
+					Runner.Report (type, Severity.Medium, Confidence.High, String.Format ("The field {0} isn't going to be serialized, please use the [NonSerialized] attribute.", field.Name));
 			}
 		}
 
