@@ -47,15 +47,15 @@ namespace Gendarme.Rules.Serialization {
 			
 			//Advance towards the next call	
 			//Matches the cases of overloaded or boxed instructions
-			Instruction aux = (instruction);
-			while (aux != null) {
-				if (aux.OpCode.FlowControl == FlowControl.Call){
-					MethodReference method = (MethodReference) aux.Operand;
+			Instruction current = (instruction);
+			while (current != null) {
+				if (current.OpCode.FlowControl == FlowControl.Call){
+					MethodReference method = (MethodReference) current.Operand;
 					if (addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0)
 						return true;
 				}
 						
-				aux = aux.Next;
+				current = current.Next;
 			}
 
 			return false;
@@ -74,9 +74,9 @@ namespace Gendarme.Rules.Serialization {
 				return null;//Where are you calling dude?
 
 			FieldReference reference = null;
-			foreach (Instruction targetInstruction in target.Body.Instructions) {
-				if (targetInstruction.OpCode == OpCodes.Ldfld)
-					reference = (FieldReference) targetInstruction.Operand;
+			foreach (Instruction each in target.Body.Instructions) {
+				if (each.OpCode == OpCodes.Ldfld)
+					reference = (FieldReference) each.Operand;
 			}
 			//Return the nearest to the ret instruction.
 			return reference;
