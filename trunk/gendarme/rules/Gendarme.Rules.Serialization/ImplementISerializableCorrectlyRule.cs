@@ -48,13 +48,42 @@ namespace Gendarme.Rules.Serialization {
 			return addValueSignature.Matches (method) && String.Compare (method.DeclaringType.FullName, "System.Runtime.Serialization.SerializationInfo") == 0;
 		}
 
+		private static FieldReference GetReferenceThroughProperty (TypeReference current, Instruction instruction)
+		{
+			if (instruction.OpCode.FlowControl != FlowControl.Call)
+				return null;
+			
+			MethodDefinition target = instruction.Operand as MethodDefinition;
+			if (target == null)
+				return null;
+
+			if (target.DeclaringType != current || !target.IsGetter || !target.HasBody)
+				return null;//Where are you calling dude?
+
+			FieldReference reference = null;
+			foreach (Instruction targetInstruction in target.Body.Instructions) {
+				if (targetInstruction.OpCode == OpCodes.Ldfld)
+					reference = (FieldReference) targetInstruction.Operand;
+			}
+			//Return the nearest to the ret instruction.
+			return reference;
+		}
+
 		private static IList<FieldReference> GetFieldsUsedIn (MethodDefinition method)
 		{
 			IList<FieldReference> result = new List<FieldReference> ();
 
+			FieldReference reference = null;
 			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode == OpCodes.Ldfld && IsCallingToSerializationInfoAddValue (instruction.Next))
-					result.Add ((FieldReference) instruction.Operand);
+				if (instruction.OpCode == OpCodes.Ldfld)
+					reference = (FieldReference) instruction.Operand;
+				else
+					reference = GetReferenceThroughProperty (method.DeclaringType, instruction);
+
+				if (reference != null && IsCallingToSerializationInfoAddValue (instruction.Next))
+					result.Add (reference);
+
+				reference = null;
 			}
 			return result;
 		}
