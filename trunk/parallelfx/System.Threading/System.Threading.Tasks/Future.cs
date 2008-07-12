@@ -30,27 +30,29 @@ namespace System.Threading.Tasks
 	{
 		public static Future<T> Create<T>()
 		{
-			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
+			return Create<T>(null, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function)
 		{
-			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
+			return Create<T>(function, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
 		{
-			return new Future<T>(TaskManager.Current, function, options);
+			return Create<T>(function, TaskManager.Current, options);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
 		{
-			return new Future<T>(tm, function, TaskCreationOptions.None);
+			return Create<T>(function, tm, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
-			return new Future<T>(tm, function, options);
+			Future<T> future = new Future<T>(tm, function, options, true);
+			
+			return future;
 		}
 	}
 	
@@ -58,11 +60,11 @@ namespace System.Threading.Tasks
 	{
 		T value;
 		int alreadySet;
-		Action action;
+		readonly Action func;
 		
 		public T Value {
 			get {
-				if (action != null)
+				if (func != null)
 					Wait();
 				return value;
 			}
@@ -75,41 +77,52 @@ namespace System.Threading.Tasks
 		}
 		
 		internal Future(TaskManager tm, Func<T> f, TaskCreationOptions options):
+			this(tm, f, options, false)
+		{	
+		}
+		
+		internal Future(TaskManager tm, Func<T> f, TaskCreationOptions options, bool scheduleNow):
 			base(tm, null, null, options)
 		{
-			this.action = delegate {
-				this.Value = f();	
+			func = delegate {
+				if (f != null) {
+					Value = f();
+				}
 			};
+			if (scheduleNow)
+				Schedule();
 		}
 		
 		protected override void InnerInvoke ()
 		{
-			action();
+			func();
 		}
 		
 		public static Future<T> Create<T>()
 		{
-			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
+			return Create<T>(null, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function)
 		{
-			return new Future<T>(TaskManager.Current, null, TaskCreationOptions.None);
+			return Create<T>(function, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
 		{
-			return new Future<T>(TaskManager.Current, function, options);
+			return Create<T>(function, TaskManager.Current, options);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
 		{
-			return new Future<T>(tm, function, TaskCreationOptions.None);
+			return Create<T>(function, tm, TaskCreationOptions.None);
 		}
 		
 		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
-			return new Future<T>(tm, function, options);
+			Future<T> future = new Future<T>(tm, function, options, true);
+			
+			return future;
 		}
 	}
 }

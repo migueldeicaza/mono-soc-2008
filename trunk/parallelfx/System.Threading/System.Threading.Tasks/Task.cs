@@ -34,7 +34,8 @@ namespace System.Threading.Tasks
 		[System.ThreadStatic]
 		static Task current;
 		
-		internal ThreadWorker worker;
+		[System.ThreadStatic]
+		internal static Action<Task> childWorkAdder;
 		
 		WaitHandle asyncWaitHandle;
 		Exception exception;
@@ -67,7 +68,7 @@ namespace System.Threading.Tasks
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 		}
 		
-		void Schedule()
+		protected void Schedule()
 		{
 			threadStart = delegate {
 				if (!isCanceled
@@ -76,6 +77,7 @@ namespace System.Threading.Tasks
 					try {
 						InnerInvoke();
 					} catch (Exception e) {
+						Console.WriteLine(e);
 						exception = e;
 					}
 				}
@@ -86,16 +88,16 @@ namespace System.Threading.Tasks
 			};
 			
 			// If worker is null it means it is a local one, revert to the old behavior
-			if (current == null || worker == null) {
+			if (current == null || childWorkAdder == null) {
+				//Console.WriteLine("Adding work Normally " + (current == null) + " " + (worker == null));
 				tm.AddWork(this);
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
 				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
 				 * the correct Thread during the creation
 				 */
-				worker.dDeque.PushBottom(this);
+				childWorkAdder(this);
 			}
-				
 		}
 
 		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)
@@ -136,19 +138,19 @@ namespace System.Threading.Tasks
 			return result;
 		}
 		
-		public Task ContinueWith(Action<Task> action)
+		public Task ContinueWith(Action<Task> a)
 		{
-			return ContinueWith(action, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+			return ContinueWith(a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
 		}
 		
-		public Task ContinueWith(Action<Task> action, TaskContinuationKind kind)
+		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind)
 		{
-			return ContinueWith(action, kind, TaskCreationOptions.None);
+			return ContinueWith(a, kind, TaskCreationOptions.None);
 		}
 		
-		public Task ContinueWith(Action<Task> action, TaskContinuationKind kind, TaskCreationOptions option)
+		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
-			Task continuation = new Task(TaskManager.Current, delegate { action(this); }, null, option);
+			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
 			if (isCompleted) {
 				continuation.Schedule();
 				return continuation;

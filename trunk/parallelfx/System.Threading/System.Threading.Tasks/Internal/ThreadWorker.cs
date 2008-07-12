@@ -33,20 +33,27 @@ namespace System.Threading.Tasks
 		static Random r = new Random();
 		
 		Thread workerThread;
-		readonly ThreadWorker[] others;
 		
+		readonly          ThreadWorker[]        others;
 		internal readonly DynamicDeque<Task>    dDeque;
-		//readonly OptimizedStack<Task> sharedWorkQueue;
-		readonly ConcurrentStack<Task> sharedWorkQueue;
+		readonly          ConcurrentStack<Task> sharedWorkQueue;
+		//readonly        OptimizedStack<Task>  sharedWorkQueue;
 		
 		// Flag to tell if workerThread is running
 		int started = 0; 
-		readonly bool isLocal;
-		readonly int workerLength;
-		readonly int stealingStart;
 		
-		const int maxRetry = 5;
-		const int sleepTimeBeforeRetry = 100;
+		readonly bool isLocal;
+		readonly int  workerLength;
+		readonly int  stealingStart;
+		const    int  maxRetry = 5;
+		
+		#region Sleep related fields
+		const int sleepTimeBeforeRetry = 1;
+		const int sleepMultiplier = 2;
+		const int sleepThreshold = 2000;
+		#endregion
+		
+		Action threadInitializer;
 		
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    int maxStackSize, ThreadPriority priority):
@@ -75,20 +82,20 @@ namespace System.Threading.Tasks
 		
 		void InitializeUnderlyingThread(int maxStackSize, ThreadPriority priority)
 		{
-			// Special case of the participant ThreadWorker
-			if (isLocal) {			
-				this.workerThread = Thread.CurrentThread;
-				return;
-			}
-			
-			this.workerThread = (maxStackSize == 0) ? new Thread(WorkerMethodWrapper) :
-					new Thread(WorkerMethodWrapper, maxStackSize);
-
-			this.workerThread.IsBackground = true;
-			this.workerThread.Priority = priority;
-			
-			this.started = 1;
-			this.workerThread.Start();
+			threadInitializer = delegate {
+				// Special case of the participant ThreadWorker
+				if (isLocal) {			
+					this.workerThread = Thread.CurrentThread;
+					return;
+				}
+				
+				this.workerThread = (maxStackSize == 0) ? new Thread(WorkerMethodWrapper) :
+						new Thread(WorkerMethodWrapper, maxStackSize);
+	
+				this.workerThread.IsBackground = true;
+				this.workerThread.Priority = priority;
+			};
+			threadInitializer();
 		}
 		
 		public void Pulse()
@@ -99,8 +106,7 @@ namespace System.Threading.Tasks
 				return;
 			if (!isLocal) {
 				if (this.workerThread.ThreadState != ThreadState.Unstarted) {
-					this.workerThread = new Thread(new ThreadStart(WorkerMethod));
-					this.workerThread.IsBackground = true;
+					threadInitializer();
 				}
 				workerThread.Start();
 			}
@@ -116,10 +122,19 @@ namespace System.Threading.Tasks
 		// This is the actual method called in the Thread
 		void WorkerMethodWrapper()
 		{
+			Task.childWorkAdder = (taskChild) => dDeque.PushBottom(taskChild);
+			int sleepTime = sleepTimeBeforeRetry;
+			// Main loop
 			while (started == 1) {
 				WorkerMethod();
-				Thread.Sleep(sleepTimeBeforeRetry);
+				Thread.Sleep(sleepTime);
+				sleepTime *= 5;
+				// If the Thread has been more sleeping than working shut it down
+				if (sleepTime > 2000)
+					break;
 			}
+			
+			started = 0;
 		}
 		
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
@@ -135,7 +150,6 @@ namespace System.Threading.Tasks
 					// Now we process our work
 					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
 						if (value != null) {
-							value.worker = this;
 							value.threadStart();
 						}
 					}
@@ -208,6 +222,12 @@ namespace System.Threading.Tasks
 		public bool IsLocal {
 			get {
 				return isLocal;
+			}
+		}
+		
+		public int Id {
+			get {
+				return workerThread.ManagedThreadId;
 			}
 		}
 		
