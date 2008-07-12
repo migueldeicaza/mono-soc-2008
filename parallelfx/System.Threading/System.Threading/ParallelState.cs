@@ -29,7 +29,7 @@ namespace System.Threading
 {
 	public class ParallelState
 	{
-		bool isStopped;
+		int isStopped = 0;
 		Task[] tasks;
 		
 		internal ParallelState(Task[] tasks)
@@ -39,18 +39,20 @@ namespace System.Threading
 		
 		public bool IsStopped {
 			get {
-				return isStopped;
+				return isStopped == 1;
 			}
 		}
 		
 		public void Stop()
 		{
-			foreach (var t in tasks) {
-				if (t == null)
-					continue;
-				t.Cancel();
+			int result = Interlocked.Exchange(ref isStopped, 1);
+			if (result == 0) {
+				foreach (var t in tasks) {
+					if (t == null)
+						continue;
+					t.Cancel();
+				}
 			}
-			isStopped = true;
 		}
 	}
 	
