@@ -128,9 +128,9 @@ namespace System.Threading.Tasks
 			while (started == 1) {
 				WorkerMethod();
 				Thread.Sleep(sleepTime);
-				sleepTime *= 5;
+				sleepTime *= sleepMultiplier;
 				// If the Thread has been more sleeping than working shut it down
-				if (sleepTime > 2000)
+				if (sleepTime > sleepThreshold)
 					break;
 			}
 			
