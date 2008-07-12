@@ -98,7 +98,7 @@ namespace System.Threading.Tasks
 			participant.WorkerMethod(predicate);
 		}
 		
-		bool isPulsable = true;
+		bool isPulsable = false;
 		public void PulseAll()
 		{
 			if (isPulsable) {

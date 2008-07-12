@@ -46,7 +46,7 @@ namespace System.Threading.Tasks
 		readonly int stealingStart;
 		
 		const int maxRetry = 5;
-		const int sleepTimeBeforeRetry = 50;
+		const int sleepTimeBeforeRetry = 100;
 		
 		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    int maxStackSize, ThreadPriority priority):
@@ -86,6 +86,9 @@ namespace System.Threading.Tasks
 
 			this.workerThread.IsBackground = true;
 			this.workerThread.Priority = priority;
+			
+			this.started = 1;
+			this.workerThread.Start();
 		}
 		
 		public void Pulse()
@@ -126,8 +129,9 @@ namespace System.Threading.Tasks
 				Task value;
 				// We fill up our work deque concurrently with other ThreadWorker
 				while (!sharedWorkQueue.IsEmpty) {
-					while (sharedWorkQueue.TryPop(out value))
+					while (sharedWorkQueue.TryPop(out value)) {
 						dDeque.PushBottom(value);
+					}
 					// Now we process our work
 					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
 						if (value != null) {
@@ -179,7 +183,8 @@ namespace System.Threading.Tasks
 				
 				// Try to complete other work by stealing since our desired tasks may be in other worker
 				ThreadWorker other;
-				for (int i = 0; i < workerLength; i++) {
+				for (int it = stealingStart; it < stealingStart + workerLength; it++) {
+					int i = it % workerLength;
 					if ((other = others[i]) == null || other == this)
 						continue;
 					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {

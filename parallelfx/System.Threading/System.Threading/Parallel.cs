@@ -143,16 +143,18 @@ namespace System.Threading
 		
 		public static void Invoke(params Action[] actions)
 		{
-			foreach (Action a in actions) {
-				Task.Create(_ => a());
-			}
+			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
+				return Task.Create(_ => a());
+			});
+			Task.WaitAll(ts);
 		}
 		
 		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
-			foreach (Action a in actions) {
-				Task.Create(_ => a(), tm, tco);
-			}
+			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
+				return Task.Create(_ => a(), tm, tco);
+			});
+			Task.WaitAll(ts);
 		}
 	}
 }
