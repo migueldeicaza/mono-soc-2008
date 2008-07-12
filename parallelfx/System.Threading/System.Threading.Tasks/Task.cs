@@ -77,7 +77,6 @@ namespace System.Threading.Tasks
 					try {
 						InnerInvoke();
 					} catch (Exception e) {
-						Console.WriteLine(e);
 						exception = e;
 					}
 				}
@@ -89,7 +88,6 @@ namespace System.Threading.Tasks
 			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null) {
-				//Console.WriteLine("Adding work Normally " + (current == null) + " " + (worker == null));
 				tm.AddWork(this);
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
