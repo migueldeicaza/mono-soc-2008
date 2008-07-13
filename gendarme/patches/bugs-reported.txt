@@ -1,1 +1,2 @@
 https://bugzilla.novell.com/show_bug.cgi?id=401325
+https://bugzilla.novell.com/show_bug.cgi?id=408738
