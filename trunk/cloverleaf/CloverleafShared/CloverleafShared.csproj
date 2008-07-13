@@ -107,6 +107,14 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Mono.Cecil.Pdb.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Zeroconf, Version=2.0.0.76, Culture=neutral, PublicKeyToken=e60c4f4a95e1099e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Mono.Zeroconf.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Zeroconf.Providers.Bonjour, Version=2.0.0.76, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Mono.Zeroconf.Providers.Bonjour.dll</HintPath>
+    </Reference>
     <Reference Include="Nini, Version=1.1.0.0, Culture=neutral, PublicKeyToken=691faec150a7fa7b, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Nini.dll</HintPath>
@@ -150,6 +158,7 @@
     <Compile Include="Remote\AppTest\RemoteStdOutDisplay.Designer.cs">
       <DependentUpon>RemoteStdOutDisplay.cs</DependentUpon>
     </Compile>
+    <Compile Include="Remote\CloverleafLocator.cs" />
     <Compile Include="Remote\WebTest\RemoteWebSelector.cs">
       <SubType>Form</SubType>
     </Compile>

@@ -34,11 +34,11 @@ using System.Drawing;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows.Forms;
 using System.Net;
 
 using Tamir.SharpSsh;
-
 using ICSharpCode.SharpZipLib.Zip;
 
 namespace CloverleafShared.Remote.AppTest
@@ -47,6 +47,8 @@ namespace CloverleafShared.Remote.AppTest
     {
         String solutionDirectory;
         List<ProjectInfo> projectList;
+        CloverleafLocator serviceLocator;
+        Dictionary<String, String> serviceIPDict;
 
         public RemoteAppSelector(String slnDirectory, List<ProjectInfo> projList)
         {
@@ -64,6 +66,8 @@ namespace CloverleafShared.Remote.AppTest
             }
             cboLocalIPs.SelectedIndex = 0;
             PopulateList();
+
+            zeroconfBackgroundWorker.RunWorkerAsync();
         }
 
         void PopulateList()
@@ -181,11 +185,6 @@ namespace CloverleafShared.Remote.AppTest
 
         }
 
-        private void lstAvailableHosts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
         private void formtextboxes_TextChanged(object sender, EventArgs e)
         {
             if (lstLaunchItems.SelectedItem != null && txtHostName.Text.Length > 0
@@ -193,6 +192,62 @@ namespace CloverleafShared.Remote.AppTest
                 cmdOK.Enabled = true;
             else
                 cmdOK.Enabled = false;
+        }
+
+        private void zeroconfBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            serviceLocator = new CloverleafLocator();
+
+            serviceLocator.Go();
+            System.Threading.Thread.Sleep(500);
+            serviceIPDict = serviceLocator.ServiceIPDictionary;
+        }
+
+        private void zeroconfBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            lblHostBoxFluff.Text = "Available Hosts:";
+
+            lstAvailableHosts.Items.Clear();
+
+            for (Dictionary<String, String>.Enumerator en =
+                    serviceIPDict.GetEnumerator(); en.MoveNext() == true; )
+            {
+                lstAvailableHosts.Items.Add(en.Current.Key);
+            }
+
+            lstAvailableHosts.Enabled = true;
+            cmdRecheck.Enabled = true;
+        }
+
+        private void cmdRecheck_Click(object sender, EventArgs e)
+        {
+            lblHostBoxFluff.Text = "Searching for Services...";
+            lstAvailableHosts.Items.Clear();
+            lstAvailableHosts.Enabled = false;
+            cmdRecheck.Enabled = false;
+            zeroconfBackgroundWorker.RunWorkerAsync();
+        }
+
+        private void lstAvailableHosts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (serviceIPDict.ContainsKey(lstAvailableHosts.SelectedItem.ToString()) == true)
+            {
+                txtHostName.Text = serviceIPDict[lstAvailableHosts.SelectedItem.ToString()];
+            }
+
+            Int32 octetCount = -1;
+            foreach (Object o in cboLocalIPs.Items)
+            {
+                String foo = o.ToString();
+
+                Int32 bar = CloverleafLocator.NumberOfSimilarOctets(txtHostName.Text, foo);
+
+                if (bar > octetCount)
+                {
+                    cboLocalIPs.SelectedItem = o;
+                    octetCount = bar;
+                }
+            }
         }
     }
 }
