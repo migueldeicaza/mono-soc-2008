@@ -46,6 +46,8 @@ namespace CloverleafShared.Remote.WebTest
     public partial class RemoteWebSelector : Form
     {
         String projectDirectory;
+        CloverleafLocator serviceLocator;
+        Dictionary<String, String> serviceIPDict;
 
         public RemoteWebSelector(String projDir)
         {
@@ -54,6 +56,8 @@ namespace CloverleafShared.Remote.WebTest
 
             txtHostName.Text = CloverleafEnvironment.RemoteServerHost;
             lblLocalPath.Text = projectDirectory;
+
+            zeroconfBackgroundWorker.RunWorkerAsync();
         }
 
         private void cmdOK_Click(object sender, EventArgs e)
@@ -165,11 +169,7 @@ namespace CloverleafShared.Remote.WebTest
 
         }
 
-        private void lstAvailableHosts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
+        
         private void formtextboxes_TextChanged(object sender, EventArgs e)
         {
             if (txtHostName.Text.Length > 0
@@ -182,6 +182,56 @@ namespace CloverleafShared.Remote.WebTest
         private void lblLocalPath_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void zeroconfBackgroundWorker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            serviceLocator = new CloverleafLocator();
+
+            serviceLocator.Go();
+            System.Threading.Thread.Sleep(500);
+            serviceIPDict = serviceLocator.ServiceIPDictionary;
+        }
+
+        private void zeroconfBackgroundWorker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            lblHostBoxFluff.Text = "Available Hosts:";
+
+            lstAvailableHosts.Items.Clear();
+
+            for (Dictionary<String, String>.Enumerator en =
+                    serviceIPDict.GetEnumerator(); en.MoveNext() == true; )
+            {
+                lstAvailableHosts.Items.Add(en.Current.Key);
+            }
+
+            lstAvailableHosts.Enabled = true;
+            cmdRecheck.Enabled = true;
+        }
+
+        private void cmdRecheck_Click(object sender, EventArgs e)
+        {
+            
+            lblHostBoxFluff.Text = "Available Hosts:";
+
+            lstAvailableHosts.Items.Clear();
+
+            for (Dictionary<String, String>.Enumerator en =
+                    serviceIPDict.GetEnumerator(); en.MoveNext() == true; )
+            {
+                lstAvailableHosts.Items.Add(en.Current.Key);
+            }
+
+            lstAvailableHosts.Enabled = true;
+            cmdRecheck.Enabled = true;
+        }
+
+        private void lstAvailableHosts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (serviceIPDict.ContainsKey(lstAvailableHosts.SelectedItem.ToString()) == true)
+            {
+                txtHostName.Text = serviceIPDict[lstAvailableHosts.SelectedItem.ToString()];
+            }
         }
     }
 }

@@ -164,6 +164,19 @@ namespace CloverleafShared
                 iniFile.Save(iniFileName);
             }
         }
+
+        /// <summary>
+        /// The number of seconds to wait before killing a thread that's doing
+        /// a Zeroconf poll, for remote web and app development.
+        /// </summary>
+        public static Int32 ZeroconfPollTimeout
+        {
+            get
+            {
+                return iniFile.Configs["RemoteTests"].GetInt("timeout", 15);
+            }
+        }
+
         /// <summary>
         /// Create a new configuration.
         /// </summary>

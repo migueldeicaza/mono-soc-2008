@@ -65,7 +65,7 @@ namespace CloverleafShared.Remote.AppTest
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label2 = new System.Windows.Forms.Label();
             this.lstAvailableHosts = new System.Windows.Forms.ListBox();
-            this.label3 = new System.Windows.Forms.Label();
+            this.lblHostBoxFluff = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.txtHostName = new System.Windows.Forms.TextBox();
             this.label6 = new System.Windows.Forms.Label();
@@ -76,6 +76,8 @@ namespace CloverleafShared.Remote.AppTest
             this.label8 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.cboLocalIPs = new System.Windows.Forms.ComboBox();
+            this.zeroconfBackgroundWorker = new System.ComponentModel.BackgroundWorker();
+            this.cmdRecheck = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -137,6 +139,7 @@ namespace CloverleafShared.Remote.AppTest
             // 
             // lstAvailableHosts
             // 
+            this.lstAvailableHosts.Enabled = false;
             this.lstAvailableHosts.FormattingEnabled = true;
             this.lstAvailableHosts.Location = new System.Drawing.Point(12, 160);
             this.lstAvailableHosts.Name = "lstAvailableHosts";
@@ -144,16 +147,15 @@ namespace CloverleafShared.Remote.AppTest
             this.lstAvailableHosts.TabIndex = 6;
             this.lstAvailableHosts.SelectedIndexChanged += new System.EventHandler(this.lstAvailableHosts_SelectedIndexChanged);
             // 
-            // label3
+            // lblHostBoxFluff
             // 
-            this.label3.AutoSize = true;
-            this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label3.Location = new System.Drawing.Point(12, 144);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(486, 13);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Available Hosts (Zeroconf server browser currently disabled, please enter a host " +
-                "IP):";
+            this.lblHostBoxFluff.AutoSize = true;
+            this.lblHostBoxFluff.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblHostBoxFluff.Location = new System.Drawing.Point(12, 144);
+            this.lblHostBoxFluff.Name = "lblHostBoxFluff";
+            this.lblHostBoxFluff.Size = new System.Drawing.Size(148, 13);
+            this.lblHostBoxFluff.TabIndex = 7;
+            this.lblHostBoxFluff.Text = "Searching for Services...";
             // 
             // label4
             // 
@@ -247,6 +249,22 @@ namespace CloverleafShared.Remote.AppTest
             this.cboLocalIPs.Size = new System.Drawing.Size(369, 21);
             this.cboLocalIPs.TabIndex = 17;
             // 
+            // zeroconfBackgroundWorker
+            // 
+            this.zeroconfBackgroundWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.zeroconfBackgroundWorker_DoWork);
+            this.zeroconfBackgroundWorker.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.zeroconfBackgroundWorker_RunWorkerCompleted);
+            // 
+            // cmdRecheck
+            // 
+            this.cmdRecheck.Enabled = false;
+            this.cmdRecheck.Location = new System.Drawing.Point(657, 131);
+            this.cmdRecheck.Name = "cmdRecheck";
+            this.cmdRecheck.Size = new System.Drawing.Size(75, 23);
+            this.cmdRecheck.TabIndex = 20;
+            this.cmdRecheck.Text = "Recheck";
+            this.cmdRecheck.UseVisualStyleBackColor = true;
+            this.cmdRecheck.Click += new System.EventHandler(this.cmdRecheck_Click);
+            // 
             // RemoteAppSelector
             // 
             this.AcceptButton = this.cmdOK;
@@ -255,6 +273,7 @@ namespace CloverleafShared.Remote.AppTest
             this.CancelButton = this.cmdCancel;
             this.ClientSize = new System.Drawing.Size(744, 555);
             this.ControlBox = false;
+            this.Controls.Add(this.cmdRecheck);
             this.Controls.Add(this.label9);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.cboLocalIPs);
@@ -265,7 +284,7 @@ namespace CloverleafShared.Remote.AppTest
             this.Controls.Add(this.label6);
             this.Controls.Add(this.txtHostName);
             this.Controls.Add(this.label4);
-            this.Controls.Add(this.label3);
+            this.Controls.Add(this.lblHostBoxFluff);
             this.Controls.Add(this.lstAvailableHosts);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.cmdOK);
@@ -292,7 +311,7 @@ namespace CloverleafShared.Remote.AppTest
         private System.Windows.Forms.Button cmdOK;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.ListBox lstAvailableHosts;
-        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label lblHostBoxFluff;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox txtHostName;
         private System.Windows.Forms.Label label6;
@@ -303,5 +322,7 @@ namespace CloverleafShared.Remote.AppTest
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.ComboBox cboLocalIPs;
+        private System.ComponentModel.BackgroundWorker zeroconfBackgroundWorker;
+        private System.Windows.Forms.Button cmdRecheck;
     }
 }

@@ -295,4 +295,7 @@ its directory (such as media files), these files will not be transferred over. V
 you take advantage of these to copy them to the binary directory after a build completes if it is not possible to put these resources into a resource file.
 (This method is also the preferred method as recommended by Microsoft.)</value>
   </data>
+  <metadata name="zeroconfBackgroundWorker.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
 </root>
