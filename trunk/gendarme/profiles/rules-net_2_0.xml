@@ -1,26 +1,81 @@
 <gendarme>
 	<ruleset name="net_2_0">
-		<!-- ALL -->	
-		<rules include="*" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="AvoidCallingProblematicMethodsRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="CheckNewExceptionWithoutThrowingRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="CheckNewThreadWithoutStartRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="CloneMethodShouldNotReturnNullValue" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="ConstructorShouldNotCallVirtualMethodsRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="DisableDebuggingCodeRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="EqualsShouldHandleNullArgRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="GetEntryAssemblyMayReturnNullRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="ObsoleteMessageShouldNotBeEmptyRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="ReplaceIncompleteOddnessCheckRule" from="Gendarme.Rules.BadPractice.dll"/>
+		<rules include="ToStringReturnsNullRule" from="Gendarme.Rules.BadPractice.dll"/>
 
-		<rules include="BadRecursiveInvocationRule" from="Gendarme.Rules.Correctness.dll"/>
-		<rules include="DoNotCompareWithNaNRule" from="Gendarme.Rules.Correctness.dll"/>
-		<rules include="UseValueInPropertySetterRule" from="Gendarme.Rules.Correctness.dll"/>
-		
 		<rules include="DoNotLockOnThisOrTypesRule" from="Gendarme.Rules.Concurrency.dll"/>
 		<rules include="DoNotLockOnWeakIdentityObjectsRule" from="Gendarme.Rules.Concurrency.dll"/>
+		<rules include="DoNotUseLockedRegionOutsideMethodRule" from="Gendarme.Rules.Concurrency.dll"/>
+		<rules include="NonConstantStaticFieldsShouldNotBeVisibleRule" from="Gendarme.Rules.Concurrency.dll"/>
 		<rules include="WriteStaticFieldFromInstanceMehtodRule" from="Gendarme.Rules.Concurrency.dll"/>
 
-		<rules include="RemoveUnusedLocalVariablesRule" from="Gendarme.Rules.Performance.dll"/>
-		<rules include="MathMinMaxCandidateRule" from="Gendarme.Rules.Performance.dll"/>
-		<rules include="UseTypeEmptyTypesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="BadRecursiveInvocationRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="CallingEqualsWithNullArgRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="DoNotCompareWithNaNRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="DoNotRoundIntegersRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="FloatComparisonRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="ReviewDoubleAssignmentRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="ReviewSelfAssignmentRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="ReviewUselessControlFlowRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="ReviewUseOfInt64BitsToDoubleRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="ReviewUseOfModuloOneRule" from="Gendarme.Rules.Correctness.dll"/>
+		<rules include="UseValueInPropertySetterRule" from="Gendarme.Rules.Correctness.dll"/>
+
+		<rules include="DisposableFieldsShouldBeDisposedRule" from="Gendarme.Rules.Design.dll"/>		
+		<rules include="DisposableTypesShouldHaveFinalizerRule" from="Gendarme.Rules.Design.dll"/>
+		<rules include="FinalizersShouldBeProtectedRule" from="Gendarme.Rules.Design.dll"/>
+		<rules include="MainShouldNotBePublicRule" from="Gendarme.Rules.Design.dll"/>
+
+		<rules include="AvoidArgumentExceptionDefaultConstructorRule" from="Gendarme.Rules.Exceptions.dll"/>
+		<rules include="DoNotDestroyStackTraceRule" from="Gendarme.Rules.Exceptions.dll"/>
+
+		<rules include="DoNotCastIntPtrToInt32Rule" from="Gendarme.Rules.Interoperability.dll"/>
+		<rules include="GetLastErrorMustBeCalledRightAfterPInvokeRule" from="Gendarme.Rules.Interoperability.dll"/>
+		<rules include="MarshalStringsInPInvokeDeclarationsRule" from="Gendarme.Rules.Interoperability.dll"/>
+		<rules include="PInvokeShouldNotBeVisibleRule" from="Gendarme.Rules.Interoperability.dll"/>
+		<rules include="UseManagedAlternativesToPInvokeRule" from="Gendarme.Rules.Interoperability.dll"/>
+
+		<rules include="AvoidComplexMethodsRule" from="Gendarme.Rules.Maintainability.dll"/>
+
+		<rules include="AvoidLargeNumberOfLocalVariablesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidRepetitiveCastsRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidGetTypeWherePossibleRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUncalledPrivateCodeRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUninstantiatedInternalClassesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUneededCallsOnStringRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUneededUnboxingRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUnsealedUninheritedInternalClassesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUnusedParametersRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="AvoidUnusedPrivateFieldsRule" from="Gendarme.Rules.Performance.dll"/>
 		<rules include="CompareWithStringEmptyEfficientlyRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="ConsiderCustomAccessorsForNonVisibleEventsRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="DontIgnoreMethodResultRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="IDisposableWithDestructorWithoutSupressFinalizerRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="MathMinMaxCandidateRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="RemoveUnusedLocalVariablesRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="UseIsOperatorRule" from="Gendarme.Rules.Performance.dll"/>
 		<rules include="UseStringEmptyRule" from="Gendarme.Rules.Performance.dll"/>
+		<rules include="UseTypeEmptyTypesRule" from="Gendarme.Rules.Performance.dll"/>
 
 		<rules include="NewLineLiteralRule" from="Gendarme.Rules.Portability.dll"/>
 
-		<rules include="MarkAllNonSerializableFieldsRule" from="Gendarme.Rules.Serialization.dll"/>
+		<rules include="ArrayFieldsShouldNotBeReadOnlyRule" from="Gendarme.Rules.Security.dll"/>
+		<rules include="StaticConstructorsShouldBePrivateRule" from="Gendarme.Rules.Security.dll"/>
+
 		<rules include="CallBaseMethodsOnISerializableTypesRule" from="Gendarme.Rules.Serialization.dll"/>
+		<rules include="ImplementISerializableCorrectlyRule" from="Gendarme.Rules.Serialization.dll"/>
+		<rules include="MarkAllNonSerializableFieldsRule" from="Gendarme.Rules.Serialization.dll"/>
+		<rules include="UseCorrectSignatureForSerializationMethodsRule" from="Gendarme.Rules.Serialization.dll"/>
+
 		<!-- ONLY VISIBLES -->
 
 		<!-- ONLY PRIVATES -->
