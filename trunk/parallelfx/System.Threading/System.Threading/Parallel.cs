@@ -39,7 +39,7 @@ namespace System.Threading
 			part = Math.Max(5, part);
 			
 			return part;*/
-			return 5;
+			return 10;
 		}
 		
 		static void HandleExceptions(IEnumerable<Task> tasks)
@@ -64,6 +64,25 @@ namespace System.Threading
 		{
 			For(from, to, 1, action);
 		}
+		
+		/*public static void For(int from, int to, int step, Action<int, ParallelState> action)
+		{
+			TaskManagerPolicy policy = TaskManager.Current.Policy;
+			int spawnCount = policy.IdealProcessors;
+			int breakPoint = (to - from) / spawnCount;
+			int iterate = 0;
+			Task[] tasks = new Task[spawnCount];
+			Task[][] childTasks
+			
+			for (int i = 0; i < spawnCount; i++) {
+				int start = from + i * iterate;
+				int end = (i == spawnCount - 1) ? to : start + breakPoint;
+				tasks[i] = Task.Create(_ => ForInternal(start, end, step, action));
+				iterate += breakPoint;
+			}
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
+		}*/
 		
 		public static void For(int from, int to, int step, Action<int, ParallelState> action)
 		{
@@ -90,6 +109,47 @@ namespace System.Threading
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
 		}
+		
+		/*public static void For(int from, int to, int step, Action<int, ParallelState> action)
+		{
+			int part = GetBestSlice();
+			int pcount = (to - from) / part;
+			if (pcount == 0) {
+				pcount = 1;
+				part = to - from;
+			}
+			
+			int start = from;
+			Task[] tasks = new Task[pcount];
+			
+			ParallelState state = new ParallelState(tasks);
+			
+			int iG = 0;
+			Action taskSpawner = () => {
+				int i = Interlocked.Increment(ref iG);
+				if (i < pcount) {
+					tasks[i] = Task.Create(delegate {
+						int pstart = start + i * part;
+						int pend = (i == pcount - 1) ? to : pstart + part;
+						for (int j = pstart; j < pend && !state.IsStopped; j += step)
+							action(j, state);
+						taskSpawner();
+					});
+				}
+			};
+			taskSpawner();
+			
+			/*for (int i = 0; i < pcount && !state.IsStopped; i++) {
+				int pstart = start + i * part;
+				int pend = (i == pcount - 1) ? to : pstart + part;
+				tasks[i] = Task.Create(delegate {
+					for (int j = pstart; j < pend && !state.IsStopped; j += step)
+						action(j, state);
+				});
+			}
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
+		}*/
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
@@ -124,7 +184,7 @@ namespace System.Threading
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			int sliceCount = GetBestSlice();
+			/*int sliceCount = GetBestSlice();
 			int start = 0;
 			IEnumerable<TSource> slice;
 			List<Task> tasks = new List<Task>();
@@ -140,7 +200,9 @@ namespace System.Threading
 				}));
 			}
 			Task.WaitAll(tasks.ToArray());
-			HandleExceptions(tasks);
+			HandleExceptions(tasks);*/
+			TSource[] temp = enumerable.ToArray();
+			For(0, temp.Length, (i) => action(temp[i]));
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, ParallelState> action)
@@ -179,6 +241,12 @@ namespace System.Threading
 		
 		public static void Invoke(params Action[] actions)
 		{
+			if (actions.Length == 0)
+				throw new ArgumentException("actions is empty");
+			// Execute it directly
+			if (actions.Length == 1)
+				actions[0]();
+			
 			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
 				return Task.Create((o) => a());
 			});
@@ -188,6 +256,12 @@ namespace System.Threading
 		
 		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
+			if (actions.Length == 0)
+				throw new ArgumentException("actions is empty");
+			// Execute it directly
+			if (actions.Length == 1)
+				actions[0]();
+			
 			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
 				return Task.Create((o) => a(), tm, tco);
 			});

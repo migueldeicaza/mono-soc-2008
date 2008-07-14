@@ -49,13 +49,14 @@ namespace System.Threading
 		{
 		}
 		
-		public AggregateException(IEnumerable<Exception> innerExceptions): this(null, innerExceptions)
+		public AggregateException(IEnumerable<Exception> innerExceptions): this(string.Empty, innerExceptions)
 		{
 		}
 		
-		public AggregateException(string message, IEnumerable<Exception> innerExceptions): this(message)
+		public AggregateException(string message, IEnumerable<Exception> inner):
+			this(GetFormattedMessage(message, inner))
 		{
-			this.innerExceptions = new List<Exception>(innerExceptions);
+			this.innerExceptions = new List<Exception>(inner);
 		}
 		
 		public AggregateException Flatten(params AggregateException[] exceptions)
@@ -85,6 +86,20 @@ namespace System.Threading
 			get {
 				return innerExceptions.AsReadOnly();
 			}
+		}
+		
+		const string baseMessage = "Exception(s) occurred while inside the Parallel loop. {0}.";
+		static string GetFormattedMessage(string customMessage, IEnumerable<Exception> inner)
+		{
+			System.Text.StringBuilder finalMessage = new System.Text.StringBuilder(string.Format(baseMessage, customMessage));
+			foreach (Exception e in inner) {
+				finalMessage.Append(Environment.NewLine);
+				finalMessage.Append("[ ");
+				finalMessage.Append(e.ToString());
+				finalMessage.Append(" ]");
+				finalMessage.Append(Environment.NewLine);
+			}
+			return finalMessage.ToString();
 		}
 	}
 }

@@ -41,12 +41,12 @@ namespace System.Threading.Tasks
 			workers = new ThreadWorker[maxWorker];
 			
 			participant = new LazyInit<ThreadWorker>(delegate {
-				return new ThreadWorker(workers, workQueue, false, 0, ThreadPriority.Normal);
+				return new ThreadWorker(this, workers, workQueue, false, 0, ThreadPriority.Normal);
 			});
 			
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
-				workers[i] = new ThreadWorker(workers, workQueue, maxStackSize, priority);
+				workers[i] = new ThreadWorker(this, workers, workQueue, maxStackSize, priority);
 			}
 		}
 		
