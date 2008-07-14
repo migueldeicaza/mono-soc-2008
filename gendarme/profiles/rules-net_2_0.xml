@@ -79,5 +79,37 @@
 		<!-- ONLY VISIBLES -->
 
 		<!-- ONLY PRIVATES -->
+		<rules include="AvoidConstructorsInStaticTypesRule" from="Gendarme.Rules.Correctness.dll" applyTo="nonvisible"/>
+		<rules include="MethodCanBeMadeStaticRule" from="Gendarme.Rules.Correctness.dll" applyTo="nonvisible"/>
+
+		<rules include="AbstractTypesShouldNotHavePublicConstructorsRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="AttributeArgumentsShouldHaveAccessorsRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="AvoidEmptyInterfaceRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="AvoidVisibleNestedTypesRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="AvoidPropertiesWithoutGetAccessorRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="AvoidPublicInstanceFieldsRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="ConsiderConvertingMethodToPropertyRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="DoNotDeclareProtectedFieldsInSealedTypeRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="EnsureSymmetryForOverloadedOperatorsRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="EnumsShouldDefinieAZeroValueRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="EnumsShouldUseInt32Rule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="FlagsShouldNotDefineAZeroValueRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="ImplementEqualsAndGetHashCodeInPairRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="MissingAttributeUsageOnCustomAttributeRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="OperatorEqualsShouldBeOverloadedRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="OverrideEqualsMethodRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="ProvideAlternativeNamesForOperatorOverloadsRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="TypesShouldBeInsideNamespacesRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="TypesWithDisposableFieldsShouldBeDisposableRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="TypesWithNativeFieldsShouldBeDisposableRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+		<rules include="UsingCloneWithoutImplementingICloneableRule" from="Gendarme.Rules.Design.dll" applyTo="nonvisible"/>
+
+		<rules include="*" from="Gendarme.Rules.Naming.dll" applyTo="nonvisible"/>
+
+		<rules include="AvoidLargeStructuresRule" from="Gendarme.Rules.Performance.dll" applyTo="nonvisible"/>
+		<rules include="AvoidReturningArraysOnPropertiesRule" from="Gendarme.Rules.Performance.dll" applyTo="nonvisible"/>
+		<rules include="EmptyDestructorRule" from="Gendarme.Rules.Performance.dll" applyTo="nonvisible"/>
+		<rules include="ImplementEqualsTypeRule" from="Gendarme.Rules.Performance.dll" applyTo="nonvisible"/>
+		<rules include="OverrideValueTypeDefaultsRule" from="Gendarme.Rules.Performance.dll" applyTo="nonvisible"/>
 	</ruleset>
 </gendarme>
