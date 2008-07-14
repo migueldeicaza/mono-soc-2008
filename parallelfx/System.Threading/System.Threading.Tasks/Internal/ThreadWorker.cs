@@ -34,6 +34,7 @@ namespace System.Threading.Tasks
 		
 		Thread workerThread;
 		
+		readonly          IScheduler            sched;
 		readonly          ThreadWorker[]        others;
 		internal readonly DynamicDeque<Task>    dDeque;
 		readonly          ConcurrentStack<Task> sharedWorkQueue;
@@ -55,16 +56,17 @@ namespace System.Threading.Tasks
 		
 		Action threadInitializer;
 		
-		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
+		public ThreadWorker(IScheduler sched, ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    int maxStackSize, ThreadPriority priority):
-			this(others, sharedWorkQueue, true, maxStackSize, priority)
+			this(sched, others, sharedWorkQueue, true, maxStackSize, priority)
 		{
 			
 		}
 		
-		public ThreadWorker(ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
+		public ThreadWorker(IScheduler sched, ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    bool createThread, int maxStackSize, ThreadPriority priority)
 		{
+			this.sched           = sched;
 			this.others          = others;
 			this.dDeque          = new DynamicDeque<Task>();
 			this.sharedWorkQueue = sharedWorkQueue;
@@ -96,6 +98,7 @@ namespace System.Threading.Tasks
 				this.workerThread.Priority = priority;
 			};
 			threadInitializer();
+			//Pulse();
 		}
 		
 		public void Pulse()
@@ -122,7 +125,10 @@ namespace System.Threading.Tasks
 		// This is the actual method called in the Thread
 		void WorkerMethodWrapper()
 		{
-			Task.childWorkAdder = (taskChild) => dDeque.PushBottom(taskChild);
+			Task.childWorkAdder = (t) => { 
+				dDeque.PushBottom(t);
+				sched.PulseAll();
+			};
 			int sleepTime = sleepTimeBeforeRetry;
 			// Main loop
 			while (started == 1) {
