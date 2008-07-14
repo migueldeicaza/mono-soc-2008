@@ -56,7 +56,6 @@
     <Compile Include="AppService.Designer.cs">
       <DependentUpon>AppService.cs</DependentUpon>
     </Compile>
-    <Compile Include="CloverleafEnvironment.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
