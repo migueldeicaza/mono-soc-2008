@@ -4,12 +4,21 @@ MONO_PREFIX=/home/nestor/opt/mono
 PATH=$MONO_PREFIX/bin:$PATH
 
 MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
-FAST_MONO_ASSEMBLIES=$MONO_ASSEMBLIES/mscorlib.dll
+
+DESTINATION_DIR=`date +%m-%d-%Y`
+mkdir $DESTINATION_DIR
+CLASSLIB_DIR=$DESTINATION_DIR/classlib
+mkdir $CLASSLIB_DIR
+TOOLS_DIR=$DESTINATION_DIR/tools
+mkdir $TOOLS_DIR
+
+CLASSLIB_FILE=`date +%m-%d-%Y`-classlib_2_0.xml
+TOOLS_FILE=`date +%m-%d-%Y`-tools_2_0.xml
 
 export MONO_OPTIONS=--debug
 
-gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date \
-+%m-%d-%Y`-classlib_2_0.xml $MONO_ASSEMBLIES/Accessibility.dll \
+gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$CLASSLIB_DIR/$CLASSLIB_FILE \
+$MONO_ASSEMBLIES/Accessibility.dll \
 $MONO_ASSEMBLIES/ByteFX.Data.dll $MONO_ASSEMBLIES/Commons.Xml.Relaxng.dll \
 $MONO_ASSEMBLIES/cscompmgd.dll  $MONO_ASSEMBLIES/CustomMarshalers.dll \
 $MONO_ASSEMBLIES/I18N*.dll \
@@ -36,7 +45,37 @@ $MONO_ASSEMBLIES/System.Messaging.dll $MONO_ASSEMBLIES/System.Runtime*.dll \
 $MONO_ASSEMBLIES/System.Security.dll $MONO_ASSEMBLIES/System.ServiceProcess.dll \
 $MONO_ASSEMBLIES/System.Transactions.dll $MONO_ASSEMBLIES/System.Web*.dll \
 $MONO_ASSEMBLIES/System.Windows.Forms.dll $MONO_ASSEMBLIES/System.Xml.dll 
+
 #System.Xml.Linq.dll excluded\
 #Mono.C5.dll excluded
 
-gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=`date +%m-%d-%Y`-tools_2_0.xml $MONO_ASSEMBLIES/*.exe
+gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$TOOLS_DIR/$TOOLS_FILE \
+$MONO_ASSEMBLIES/al.exe \
+$MONO_ASSEMBLIES/gmcs.exe \
+$MONO_ASSEMBLIES/httpcfg.exe \
+$MONO_ASSEMBLIES/installutil.exe \
+$MONO_ASSEMBLIES/mconfig.exe \
+$MONO_ASSEMBLIES/mkbundle.exe \
+$MONO_ASSEMBLIES/mono-api-info.exe \
+$MONO_ASSEMBLIES/monop.exe \
+$MONO_ASSEMBLIES/mono-service.exe \
+$MONO_ASSEMBLIES/nunit-console.exe \
+$MONO_ASSEMBLIES/resgen.exe \
+$MONO_ASSEMBLIES/sgen.exe \
+$MONO_ASSEMBLIES/wsdl.exe \
+$MONO_ASSEMBLIES/xbuild.exe \
+$MONO_ASSEMBLIES/xsd.exe
+#ilasm.exe excluded
+
+pushd $CLASSLIB_DIR
+mono ../../../reporter/reporter.exe $CLASSLIB_FILE
+popd
+
+pushd $TOOLS_DIR
+mono ../../../reporter/reporter.exe $TOOLS_FILE
+popd
+
+cp gendarme.xsl $CLASSLIB_DIR
+cp gendarme.xsl $TOOLS_DIR
+cp master.xsl $CLASSLIB_DIR
+cp master.xsl $TOOLS_DIR
