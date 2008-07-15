@@ -159,9 +159,9 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 
-		public bool Remove (T item)
+		public bool Remove (out T item)
 		{
-			throw new InvalidOperationException("Cannot remove on a Stack");
+			return TryPop(out item);
 		}
 		
 		object syncRoot = new object();

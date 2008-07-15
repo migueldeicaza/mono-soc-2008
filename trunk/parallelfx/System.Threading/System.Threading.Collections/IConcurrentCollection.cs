@@ -31,7 +31,7 @@ namespace System.Threading.Collections
 	public interface IConcurrentCollection<T>: IEnumerable<T>, ICollection, IEnumerable
 	{
 		bool Add(T item);
-		bool Remove(T item);
+		bool Remove(out T item);
 		T[] ToArray();
 	}
 }
