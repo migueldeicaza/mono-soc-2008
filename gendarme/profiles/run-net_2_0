@@ -3,7 +3,7 @@
 MONO_PREFIX=/home/nestor/opt/mono
 PATH=$MONO_PREFIX/bin:$PATH
 
-MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
+MONO_ASSEMBLIES=/home/nestor/devel/mono-project/mcs/class/lib/net_2_0
 
 DESTINATION_DIR=`date +%m-%d-%Y`
 CLASSLIB_DIR=$DESTINATION_DIR/classlib
@@ -60,20 +60,15 @@ function run_gendarme_tools {
 	gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$TOOLS_DIR/$TOOLS_FILE \
 	$MONO_ASSEMBLIES/al.exe \
 	$MONO_ASSEMBLIES/gmcs.exe \
-	$MONO_ASSEMBLIES/httpcfg.exe \
-	$MONO_ASSEMBLIES/installutil.exe \
-	$MONO_ASSEMBLIES/mconfig.exe \
 	$MONO_ASSEMBLIES/mkbundle.exe \
 	$MONO_ASSEMBLIES/mono-api-info.exe \
 	$MONO_ASSEMBLIES/monop.exe \
 	$MONO_ASSEMBLIES/mono-service.exe \
 	$MONO_ASSEMBLIES/nunit-console.exe \
 	$MONO_ASSEMBLIES/resgen.exe \
-	$MONO_ASSEMBLIES/sgen.exe \
 	$MONO_ASSEMBLIES/wsdl.exe \
-	$MONO_ASSEMBLIES/xbuild.exe \
-	$MONO_ASSEMBLIES/xsd.exe
-	#ilasm.exe excluded
+	$MONO_ASSEMBLIES/xsd.exe #\
+#	$MONO_ASSEMBLIES/ilasm.exe
 }
 
 function create_custom_reports {
