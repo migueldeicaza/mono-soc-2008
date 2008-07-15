@@ -60,7 +60,7 @@ namespace System.Threading.Tasks
 	{
 		T value;
 		int alreadySet;
-		readonly Action func;
+		Action func;
 		
 		public T Value {
 			get {
@@ -96,6 +96,8 @@ namespace System.Threading.Tasks
 		protected override void InnerInvoke ()
 		{
 			func();
+			// Same reason as in Task.InnerInvoke
+			func = null;
 		}
 		
 		public static Future<T> Create<T>()

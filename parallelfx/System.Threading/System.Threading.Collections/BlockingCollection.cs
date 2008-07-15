@@ -28,7 +28,7 @@ using System.Collections.Generic;
 
 namespace System.Threading.Collections
 {
-	public class BlockingCollection<T>: IEnumerable<T>, ICollection, IEnumerable, IDisposable
+	public class BlockingCollection<T>/*: IEnumerable<T>, ICollection, IEnumerable, IDisposable*/
 	{
 		readonly IConcurrentCollection<T> underlyingColl;
 		readonly int upperBound;
@@ -73,7 +73,7 @@ namespace System.Threading.Collections
 		
 		public bool Remove(out T item)
 		{
-			return underlyingColl.Remove(item);
+			return underlyingColl.Remove(out item);
 		}
 		
 		public void CompleteAdding()

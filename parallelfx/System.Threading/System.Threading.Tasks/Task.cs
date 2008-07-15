@@ -84,6 +84,7 @@ namespace System.Threading.Tasks
 				// Call the event in the correct style
 				EventHandler tempCompleted = Completed;
 				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
+				
 			};
 			
 			// If worker is null it means it is a local one, revert to the old behavior
@@ -187,6 +188,9 @@ namespace System.Threading.Tasks
 		protected virtual void InnerInvoke()
 		{
 			action(state);
+			// Set action to null so that the GC can collect the delegate and thus
+			// any big object references that the user might have captured in a anonymous method
+			action = null;
 		}
 		
 		#region Cancel and Wait related methods
