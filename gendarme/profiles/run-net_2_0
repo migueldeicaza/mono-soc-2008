@@ -6,79 +6,96 @@ PATH=$MONO_PREFIX/bin:$PATH
 MONO_ASSEMBLIES=$MONO_PREFIX/lib/mono/2.0
 
 DESTINATION_DIR=`date +%m-%d-%Y`
-if [ -n $DESTINATION_DIR ]; then
-	rm -fr $DESTINATION_DIR
-fi
-mkdir $DESTINATION_DIR
 CLASSLIB_DIR=$DESTINATION_DIR/classlib
-mkdir $CLASSLIB_DIR
 TOOLS_DIR=$DESTINATION_DIR/tools
-mkdir $TOOLS_DIR
 
 CLASSLIB_FILE=`date +%m-%d-%Y`-classlib_2_0.xml
 TOOLS_FILE=`date +%m-%d-%Y`-tools_2_0.xml
 
 export MONO_OPTIONS=--debug
 
-gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$CLASSLIB_DIR/$CLASSLIB_FILE \
-$MONO_ASSEMBLIES/Accessibility.dll \
-$MONO_ASSEMBLIES/ByteFX.Data.dll $MONO_ASSEMBLIES/Commons.Xml.Relaxng.dll \
-$MONO_ASSEMBLIES/cscompmgd.dll  $MONO_ASSEMBLIES/CustomMarshalers.dll \
-$MONO_ASSEMBLIES/I18N*.dll \
-$MONO_ASSEMBLIES/IBM.Data.DB2.dll $MONO_ASSEMBLIES/ICSharpCode.SharpZipLib.dll \
-$MONO_ASSEMBLIES/Microsoft.Build.*.dll \
-$MONO_ASSEMBLIES/Microsoft.JScript.dll $MONO_ASSEMBLIES/Microsoft.VisualC.dll \
-$MONO_ASSEMBLIES/Microsoft.Vsa.dll $MONO_ASSEMBLIES/Mono.Cairo.dll \
-$MONO_ASSEMBLIES/Mono.CompilerServices.SymbolWriter.dll \
-$MONO_ASSEMBLIES/Mono.Data*.dll \
-$MONO_ASSEMBLIES/Mono.GetOptions.dll \
-$MONO_ASSEMBLIES/Mono.Http.dll \
-$MONO_ASSEMBLIES/Mono.Posix.dll \
-$MONO_ASSEMBLIES/Mono.Security*.dll \
-$MONO_ASSEMBLIES/Mono.WebBrowser.dll \
-$MONO_ASSEMBLIES/Mono.Web.dll \
-$MONO_ASSEMBLIES/mscorlib.dll \
-$MONO_ASSEMBLIES/Novell.Directory.Ldap.dll $MONO_ASSEMBLIES/Npgsql.dll \
-$MONO_ASSEMBLIES/PEAPI.dll $MONO_ASSEMBLIES/System.Configuration*.dll \
-$MONO_ASSEMBLIES/System.Core.dll $MONO_ASSEMBLIES/System.Data*.dll \
-$MONO_ASSEMBLIES/System.Design.dll $MONO_ASSEMBLIES/System.DirectoryServices.dll \
-$MONO_ASSEMBLIES/System.dll $MONO_ASSEMBLIES/System.Drawing*.dll \
-$MONO_ASSEMBLIES/System.EnterpriseServices.dll $MONO_ASSEMBLIES/System.Management.dll \
-$MONO_ASSEMBLIES/System.Messaging.dll $MONO_ASSEMBLIES/System.Runtime*.dll \
-$MONO_ASSEMBLIES/System.Security.dll $MONO_ASSEMBLIES/System.ServiceProcess.dll \
-$MONO_ASSEMBLIES/System.Transactions.dll $MONO_ASSEMBLIES/System.Web*.dll \
-$MONO_ASSEMBLIES/System.Windows.Forms.dll $MONO_ASSEMBLIES/System.Xml.dll 
+function create_directory_tree {
+	if [ -n $DESTINATION_DIR ]; then
+		rm -fr $DESTINATION_DIR
+	fi
+	mkdir $DESTINATION_DIR
+	mkdir $CLASSLIB_DIR
+	mkdir $TOOLS_DIR
+}
 
-#System.Xml.Linq.dll excluded\
-#Mono.C5.dll excluded
+function run_gendarme_classlib {
+	gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$CLASSLIB_DIR/$CLASSLIB_FILE \
+	$MONO_ASSEMBLIES/Accessibility.dll \
+	$MONO_ASSEMBLIES/ByteFX.Data.dll $MONO_ASSEMBLIES/Commons.Xml.Relaxng.dll \
+	$MONO_ASSEMBLIES/cscompmgd.dll  $MONO_ASSEMBLIES/CustomMarshalers.dll \
+	$MONO_ASSEMBLIES/I18N*.dll \
+	$MONO_ASSEMBLIES/IBM.Data.DB2.dll $MONO_ASSEMBLIES/ICSharpCode.SharpZipLib.dll \
+	$MONO_ASSEMBLIES/Microsoft.Build.*.dll \
+	$MONO_ASSEMBLIES/Microsoft.JScript.dll $MONO_ASSEMBLIES/Microsoft.VisualC.dll \
+	$MONO_ASSEMBLIES/Microsoft.Vsa.dll $MONO_ASSEMBLIES/Mono.Cairo.dll \
+	$MONO_ASSEMBLIES/Mono.CompilerServices.SymbolWriter.dll \
+	$MONO_ASSEMBLIES/Mono.Data*.dll \
+	$MONO_ASSEMBLIES/Mono.GetOptions.dll \
+	$MONO_ASSEMBLIES/Mono.Http.dll \
+	$MONO_ASSEMBLIES/Mono.Posix.dll \
+	$MONO_ASSEMBLIES/Mono.Security*.dll \
+	$MONO_ASSEMBLIES/Mono.WebBrowser.dll \
+	$MONO_ASSEMBLIES/Mono.Web.dll \
+	$MONO_ASSEMBLIES/mscorlib.dll \
+	$MONO_ASSEMBLIES/Novell.Directory.Ldap.dll $MONO_ASSEMBLIES/Npgsql.dll \
+	$MONO_ASSEMBLIES/PEAPI.dll $MONO_ASSEMBLIES/System.Configuration*.dll \
+	$MONO_ASSEMBLIES/System.Core.dll $MONO_ASSEMBLIES/System.Data*.dll \
+	$MONO_ASSEMBLIES/System.Design.dll $MONO_ASSEMBLIES/System.DirectoryServices.dll \
+	$MONO_ASSEMBLIES/System.dll $MONO_ASSEMBLIES/System.Drawing*.dll \
+	$MONO_ASSEMBLIES/System.EnterpriseServices.dll $MONO_ASSEMBLIES/System.Management.dll \
+	$MONO_ASSEMBLIES/System.Messaging.dll $MONO_ASSEMBLIES/System.Runtime*.dll \
+	$MONO_ASSEMBLIES/System.Security.dll $MONO_ASSEMBLIES/System.ServiceProcess.dll \
+	$MONO_ASSEMBLIES/System.Transactions.dll $MONO_ASSEMBLIES/System.Web*.dll \
+	$MONO_ASSEMBLIES/System.Windows.Forms.dll $MONO_ASSEMBLIES/System.Xml.dll 
+	#System.Xml.Linq.dll excluded\
+	#Mono.C5.dll excluded
+}
 
-gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$TOOLS_DIR/$TOOLS_FILE \
-$MONO_ASSEMBLIES/al.exe \
-$MONO_ASSEMBLIES/gmcs.exe \
-$MONO_ASSEMBLIES/httpcfg.exe \
-$MONO_ASSEMBLIES/installutil.exe \
-$MONO_ASSEMBLIES/mconfig.exe \
-$MONO_ASSEMBLIES/mkbundle.exe \
-$MONO_ASSEMBLIES/mono-api-info.exe \
-$MONO_ASSEMBLIES/monop.exe \
-$MONO_ASSEMBLIES/mono-service.exe \
-$MONO_ASSEMBLIES/nunit-console.exe \
-$MONO_ASSEMBLIES/resgen.exe \
-$MONO_ASSEMBLIES/sgen.exe \
-$MONO_ASSEMBLIES/wsdl.exe \
-$MONO_ASSEMBLIES/xbuild.exe \
-$MONO_ASSEMBLIES/xsd.exe
-#ilasm.exe excluded
+function run_gendarme_tools {
+	gendarme --config=rules-net_2_0.xml --set=net_2_0 --xml=$TOOLS_DIR/$TOOLS_FILE \
+	$MONO_ASSEMBLIES/al.exe \
+	$MONO_ASSEMBLIES/gmcs.exe \
+	$MONO_ASSEMBLIES/httpcfg.exe \
+	$MONO_ASSEMBLIES/installutil.exe \
+	$MONO_ASSEMBLIES/mconfig.exe \
+	$MONO_ASSEMBLIES/mkbundle.exe \
+	$MONO_ASSEMBLIES/mono-api-info.exe \
+	$MONO_ASSEMBLIES/monop.exe \
+	$MONO_ASSEMBLIES/mono-service.exe \
+	$MONO_ASSEMBLIES/nunit-console.exe \
+	$MONO_ASSEMBLIES/resgen.exe \
+	$MONO_ASSEMBLIES/sgen.exe \
+	$MONO_ASSEMBLIES/wsdl.exe \
+	$MONO_ASSEMBLIES/xbuild.exe \
+	$MONO_ASSEMBLIES/xsd.exe
+	#ilasm.exe excluded
+}
 
-pushd $CLASSLIB_DIR
-mono ../../../reporter/reporter.exe $CLASSLIB_FILE
-popd
+function create_custom_reports {
+	pushd $CLASSLIB_DIR
+	mono ../../../reporter/reporter.exe $CLASSLIB_FILE
+	popd
+	
+	pushd $TOOLS_DIR
+	mono ../../../reporter/reporter.exe $TOOLS_FILE
+	popd
+}
 
-pushd $TOOLS_DIR
-mono ../../../reporter/reporter.exe $TOOLS_FILE
-popd
+function copy_stylesheets {
+	cp gendarme.xsl $CLASSLIB_DIR
+	cp gendarme.xsl $TOOLS_DIR
+	cp master.xsl $CLASSLIB_DIR
+	cp master.xsl $TOOLS_DIR
+}
 
-cp gendarme.xsl $CLASSLIB_DIR
-cp gendarme.xsl $TOOLS_DIR
-cp master.xsl $CLASSLIB_DIR
-cp master.xsl $TOOLS_DIR
+#Executing
+create_directory_tree
+run_gendarme_classlib
+run_gendarme_tools
+create_custom_reports
+copy_stylesheets
