@@ -41,7 +41,7 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
 		static MethodSignature formatSignature = new MethodSignature ("Format", "System.String");
-		static Regex formatterRegex = new Regex ("{[0-63]}");
+		static Regex formatterRegex = new Regex ("{[0-63](:[a-z|A-Z]*)*}");
 
 		private static IEnumerable<Instruction> GetCallsToStringFormat (MethodDefinition method)
 		{
@@ -67,16 +67,19 @@ namespace Gendarme.Rules.Correctness {
 			return formatterRegex.Matches (loaded).Count;
 		}
 
-		private static int CountElementsPushed (MethodDefinition method, Instruction start, Instruction end)
+		private static int CountElementsInTheStack (MethodDefinition method, Instruction start, Instruction end)
 		{
 			Instruction current = start;
 			int counter = 0;
 			while (end != current) {
 				counter += current.GetPushCount ();
-				//if we are calling some method, we pop the
-				//arguments
-				if (current.OpCode.FlowControl == FlowControl.Call)
-					counter -= current.GetPopCount (method);
+				counter -= current.GetPopCount (method);
+				//If we are creating a new array, probabily the call is wrong?
+				//TODO:Check this a bit more, and try to change
+				//this dirty hack
+				if (current.OpCode == OpCodes.Newarr)
+					return -1;
+
 				current = current.Next;
 			}
 			return counter;
@@ -97,7 +100,8 @@ namespace Gendarme.Rules.Correctness {
 					int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
 					//start counting skipping the ldstr
 					//instruction which adds 1 to the counter
-					int elementsPushed = CountElementsPushed (method, loadString.Next, call);
+					int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
+					//Console.WriteLine ("{0} ex - {1} pu- {2} method", expectedParameters, elementsPushed, method.Name);
 					if (elementsPushed != expectedParameters)
 						Runner.Report (method, call, Severity.Critical, Confidence.Low, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
 				}
