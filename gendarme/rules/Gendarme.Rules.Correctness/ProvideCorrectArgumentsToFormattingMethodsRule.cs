@@ -40,7 +40,8 @@ namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
-		static MethodSignature formatSignature = new MethodSignature ("Format");
+		static MethodSignature formatSignature = new MethodSignature ("Format", "System.String");
+		static Regex formatterRegex = new Regex ("{[0-63]}");
 
 		private static IEnumerable<Instruction> GetCallsToStringFormat (MethodDefinition method)
 		{
@@ -63,10 +64,10 @@ namespace Gendarme.Rules.Correctness {
 
 		private static int GetExpectedParameters (string loaded)
 		{
-			return new Regex ("{[0-63]}").Matches (loaded).Count;
+			return formatterRegex.Matches (loaded).Count;
 		}
 
-		private static int CountElementsInStack (Instruction start, Instruction end)
+		private static int CountElementsPushed (Instruction start, Instruction end)
 		{
 			Instruction current = start;
 			int counter = 0;
@@ -89,11 +90,12 @@ namespace Gendarme.Rules.Correctness {
 			foreach (Instruction call in callsToStringFormat) {
 				Instruction loadString = GetLoadStringInstruction (call);
 				if (loadString != null) {
-					string loaded = (string) loadString.Operand;
-					int expectedParameters = GetExpectedParameters (loaded);
-					int elementsPushed = CountElementsInStack (loadString.Next, call);
+					int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
+					//start counting skipping the ldstr
+					//instruction which adds 1 to the counter
+					int elementsPushed = CountElementsPushed (loadString.Next, call);
 					if (elementsPushed != expectedParameters)
-						Runner.Report (method, call, Severity.Critical, Confidence.Low);
+						Runner.Report (method, call, Severity.Critical, Confidence.Low, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
 				}
 
 			}
