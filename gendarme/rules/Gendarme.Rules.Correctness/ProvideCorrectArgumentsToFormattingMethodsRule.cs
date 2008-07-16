@@ -26,7 +26,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+using System.Linq;
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
+using Gendarme.Framework.Helpers;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -34,24 +40,63 @@ namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
+		static MethodSignature formatSignature = new MethodSignature ("Format");
 
-		public bool ContainsCallToStringFormat (MethodDefinition method)
+		private static IEnumerable<Instruction> GetCallsToStringFormat (MethodDefinition method)
 		{
-			foreach (Instruction instruction in method.Body.Instructions) {
-				if (instruction.OpCode.FlowControl == FlowControl.Call)
-					return true;
+			return from Instruction instruction in method.Body.Instructions
+			where (instruction.OpCode.FlowControl == FlowControl.Call) && 
+				formatSignature.Matches ((MethodReference) instruction.Operand)	
+			select instruction;
+		}
+
+		private static Instruction GetLoadStringInstruction (Instruction call)
+		{
+			Instruction current = call;
+			while (current != null) {
+				if (current.OpCode == OpCodes.Ldstr)
+					return current;
+				current = current.Previous;	
 			}
-			return false;
+			return null;
+		}
+
+		private static int GetExpectedParameters (string loaded)
+		{
+			return new Regex ("{[0-63]}").Matches (loaded).Count;
+		}
+
+		private static int CountElementsInStack (Instruction start, Instruction end)
+		{
+			Instruction current = start;
+			int counter = 0;
+			while (end != current) {
+				counter += current.GetPushCount ();
+				current = current.Next;
+			}
+			return counter;
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody)
 				return RuleResult.DoesNotApply;
-			
-			if (!ContainsCallToStringFormat (method))
+
+			IEnumerable<Instruction> callsToStringFormat = GetCallsToStringFormat (method);	
+			if (callsToStringFormat.Count () == 0)
 				return RuleResult.DoesNotApply;
 
+			foreach (Instruction call in callsToStringFormat) {
+				Instruction loadString = GetLoadStringInstruction (call);
+				if (loadString != null) {
+					string loaded = (string) loadString.Operand;
+					int expectedParameters = GetExpectedParameters (loaded);
+					int elementsPushed = CountElementsInStack (loadString.Next, call);
+					if (elementsPushed != expectedParameters)
+						Runner.Report (method, call, Severity.Critical, Confidence.Low);
+				}
+
+			}
 			return Runner.CurrentRuleResult;
 		}
 	}
