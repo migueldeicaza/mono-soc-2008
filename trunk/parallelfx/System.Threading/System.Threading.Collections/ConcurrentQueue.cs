@@ -139,7 +139,7 @@ namespace System.Threading.Collections
 		public void Clear()
 		{
 			count = 0;
-			tail  = head;
+			tail = head = new Node();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator ()

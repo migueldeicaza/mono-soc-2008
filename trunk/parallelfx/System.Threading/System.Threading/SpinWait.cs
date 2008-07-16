@@ -38,7 +38,6 @@ namespace System.Threading
 		static readonly bool isWindows = (osName != 4) && (osName != 128);
 		
 		int ntime;
-
 		public void SpinOnce() 
 		{
 			// On a single-CPU system, spinning does no good

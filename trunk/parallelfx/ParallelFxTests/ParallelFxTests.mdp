@@ -20,12 +20,25 @@
     <File name="System.Threading.Tasks" subtype="Directory" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskTest.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/OptimizedStackTests.cs" subtype="Code" buildaction="Nothing" />
+    <File name="ParallelTestHelper.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading" subtype="Directory" buildaction="Compile" />
+    <File name="System.Threading/ParallelTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Collections/BlockingCollectionTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/RayTracerHelper.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Collections/ParallelConcurrentQueueTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Collections/ParallelConcurrentStackTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="bin/Debug" subtype="Directory" buildaction="Compile" />
+    <File name="deps/raytracer-output.xml" subtype="Code" buildaction="EmbedAsResource" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-    <ProjectReference type="Gac" localcopy="True" refto="nunit.core, Version=2.2.9.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
-    <ProjectReference type="Gac" localcopy="True" refto="nunit.framework, Version=2.2.9.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
     <ProjectReference type="Project" localcopy="True" refto="System.Threading" />
-    <ProjectReference type="Gac" localcopy="True" refto="nunit.mocks, Version=2.2.8.0, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77" />
+    <ProjectReference type="Gac" localcopy="True" refto="System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Gac" localcopy="True" refto="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Assembly" localcopy="True" refto="deps/nunit.core.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="deps/nunit.fixtures.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="deps/nunit.framework.dll" />
+    <ProjectReference type="Assembly" localcopy="True" refto="deps/nunit.mocks.dll" />
   </References>
+  <GtkDesignInfo gtkVersion="2.12.2" />
 </Project>

@@ -69,16 +69,16 @@ namespace ParallelFxTests
 		{
 			int achieved = 0;
 			tasks[0] = Task.Create(delegate {
-				int value = Interlocked.Increment(ref achieved);
+				Interlocked.Increment(ref achieved);
 			});
 			InitWithDelegate(delegate {
 				Thread.Sleep(1000);
-				int value = Interlocked.Increment(ref achieved);
+				Interlocked.Increment(ref achieved);
 			}, 1);
 			int index = Task.WaitAny(tasks);
-			Assert.IsTrue(achieved == 1, "#1, value : " + achieved.ToString());
-			Assert.IsTrue(index >= 0, "#2");
-			Assert.IsTrue(index < max, "#3");
+			Assert.AreNotEqual(0, achieved, "#1");
+			Assert.GreaterOrEqual(index, 0, "#2");
+			Assert.Less(index, max, "#3");
 		}
 		
 		[TestAttribute]
@@ -87,7 +87,7 @@ namespace ParallelFxTests
 			int achieved = 0;
 			InitWithDelegate(delegate { Interlocked.Increment(ref achieved); });
 			Task.WaitAll(tasks);
-			Assert.IsTrue(achieved == max, "#1, value : " + achieved.ToString());
+			Assert.AreEqual(max, achieved, "#1");
 		}
 	}
 }
