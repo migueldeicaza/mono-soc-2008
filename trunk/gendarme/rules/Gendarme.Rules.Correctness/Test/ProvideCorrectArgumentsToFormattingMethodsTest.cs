@@ -55,7 +55,12 @@ namespace Test.Rules.Correctness {
 		
 			public void MethodWithGoodFormatting (object value)
 			{
-				string myString = String.Format ("The value {0} isn't valid", value);
+				string myString = String.Format ("The value {0} isn't valid: {1}", value);
+			}
+
+			public void MethodWithGoodFormatingAndThreeParams (object value1, object value2, object value3)
+			{
+				string myString = String.Format ("{0} {1} {2}", value1, value2, value3);
 			}
 		}
 
@@ -69,6 +74,12 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormattingTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormatting");
+		}
+		
+		[Test]
+		public void SuccessOnMethodWithGoodFormatingAndThreeParamsTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormatingAndThreeParams");
 		}
 	}
 }
