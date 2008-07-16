@@ -1,1 +1,4 @@
-SUBDIRS = Gendarme.Rules.BadPractice Gendarme.Rules.Serialization
+SUBDIRS = \
+	Gendarme.Rules.BadPractice \
+	Gendarme.Rules.Serialization \
+	Gendarme.Rules.Correctness
