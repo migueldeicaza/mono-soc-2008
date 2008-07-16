@@ -29,8 +29,21 @@
 using Gendarme.Rules.Correctness;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rules.Correctness {
+	[TestFixture]
 	public class ProvideCorrectArgumentsToFormattingMethodsTest : MethodRuleTestFixture<ProvideCorrectArgumentsToFormattingMethodsRule> {
+		[Test]
+		public void SkipOnBodylessMethodsTest ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.ExternalMethod);
+		}
+
+		[Test]
+		public void SkipOnEmptyMethodTest ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
 	}
 }

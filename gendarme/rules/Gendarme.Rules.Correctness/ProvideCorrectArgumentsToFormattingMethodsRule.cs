@@ -28,13 +28,30 @@
 
 using Gendarme.Framework;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
+
+		public bool ContainsCallToStringFormat (MethodDefinition method)
+		{
+			foreach (Instruction instruction in method.Body.Instructions) {
+				if (instruction.OpCode.FlowControl == FlowControl.Call)
+					return true;
+			}
+			return false;
+		}
+
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
+			if (!method.HasBody)
+				return RuleResult.DoesNotApply;
+			
+			if (!ContainsCallToStringFormat (method))
+				return RuleResult.DoesNotApply;
+
 			return Runner.CurrentRuleResult;
 		}
 	}
