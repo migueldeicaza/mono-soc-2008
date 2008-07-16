@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Correctness;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -44,6 +45,30 @@ namespace Test.Rules.Correctness {
 		public void SkipOnEmptyMethodTest ()
 		{
 			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
+		
+		class FormattingCases {
+			public void MethodWithBadFormatting (object value)
+			{
+				string myString = String.Format ("The value {0} isn't valid");
+			}
+		
+			public void MethodWithGoodFormatting (object value)
+			{
+				string myString = String.Format ("The value {0} isn't valid", value);
+			}
+		}
+
+		[Test]
+		public void FailOnMethodWithBadFormattingTest ()
+		{
+			AssertRuleFailure<FormattingCases> ("MethodWithBadFormatting", 1);
+		}
+
+		[Test]
+		public void SuccessOnMethodWithGoodFormattingTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormatting");
 		}
 	}
 }
