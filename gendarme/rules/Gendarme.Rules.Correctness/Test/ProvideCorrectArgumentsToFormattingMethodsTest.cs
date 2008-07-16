@@ -67,6 +67,11 @@ namespace Test.Rules.Correctness {
 			{
 				String.Format ("{0} {1}", value1.ToString (), value2.ToString ());	
 			}
+
+			public void MethodWithGoodFormattingAndDateTimes (DateTime dateTime)
+			{
+				String.Format("'{0:HH:mm:ss}'", dateTime);
+			}
 		}
 
 		[Test]
@@ -91,6 +96,12 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormattingAndSomeCallsTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingAndSomeCalls");
+		}
+
+		[Test]
+		public void SuccessOnMethodWithGoodFormattingAndDateTimesTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingAndDateTimes");
 		}
 	}
 }
