@@ -67,12 +67,16 @@ namespace Gendarme.Rules.Correctness {
 			return formatterRegex.Matches (loaded).Count;
 		}
 
-		private static int CountElementsPushed (Instruction start, Instruction end)
+		private static int CountElementsPushed (MethodDefinition method, Instruction start, Instruction end)
 		{
 			Instruction current = start;
 			int counter = 0;
 			while (end != current) {
 				counter += current.GetPushCount ();
+				//if we are calling some method, we pop the
+				//arguments
+				if (current.OpCode.FlowControl == FlowControl.Call)
+					counter -= current.GetPopCount (method);
 				current = current.Next;
 			}
 			return counter;
@@ -93,7 +97,7 @@ namespace Gendarme.Rules.Correctness {
 					int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
 					//start counting skipping the ldstr
 					//instruction which adds 1 to the counter
-					int elementsPushed = CountElementsPushed (loadString.Next, call);
+					int elementsPushed = CountElementsPushed (method, loadString.Next, call);
 					if (elementsPushed != expectedParameters)
 						Runner.Report (method, call, Severity.Critical, Confidence.Low, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
 				}
