@@ -25,6 +25,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace System.Threading.Collections
 {
@@ -34,8 +35,11 @@ namespace System.Threading.Collections
 		readonly int upperBound;
 		readonly Func<bool> isFull;
 		
+		const int blockingTime = 100;
+		
 		bool isComplete;
 		
+		#region ctors
 		public BlockingCollection():
 			this(new ConcurrentQueue<T>(), -1)
 		{
@@ -56,25 +60,93 @@ namespace System.Threading.Collections
 			this.underlyingColl = underlyingColl;
 			this.upperBound     = upperBound;
 			if (upperBound == -1)
-				isFull = () => false;
+				isFull = delegate { return false; };
 			else
-				isFull = () => underlyingColl.Count >= upperBound;
+				isFull = delegate { return underlyingColl.Count >= upperBound; };
 		}
+		#endregion
 		
+		#region Add & Remove (+ Try)
 		public void Add(T item)
 		{
 			while (isFull()) {
 				if (isComplete)
-					throw new InvalidOperationException("The BlockingCollection<(Of <(T>)>) has been marked as complete with regards to additions.");
-				Thread.Sleep(100);
+					throw new InvalidOperationException("The BlockingCollection<T> has been marked as complete with regards to additions.");
+				Block();
 			}
+			// Extra check. The status might have changed after Block() or if isFull() is always false
+			if (isComplete)
+				throw new InvalidOperationException("The BlockingCollection<T> has been marked as complete with regards to additions.");
+
 			underlyingColl.Add(item);
 		}
 		
-		public bool Remove(out T item)
+		public T Remove()
+		{
+			while (underlyingColl.Count == 0) {
+				if (isComplete)
+					throw new OperationCanceledException("The BlockingCollection<T> is empty and has been marked as complete with regards to additions.");
+				Block();
+			}
+			
+			T item;
+			underlyingColl.Remove(out item);
+			
+			return item;
+		}
+		
+		public bool TryAdd(out T item)
+		{
+			if (isComplete || isFull()) {
+				item = default(T);
+				return false;
+			}
+			return underlyingColl.Add(item);
+		}
+		
+		public bool TryAdd(out T item, TimeSpan ts)
+		{
+			return TryAdd(out item, (int)ts.TotalMilliseconds);
+		}
+		
+		public bool TryAdd(out T item, int millisecondsTimeout)
+		{
+			Stopwatch sw = Stopwatch.StartNew();
+			while (isFull()) {
+				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
+					item = default(T);
+					sw.Stop();
+					return false;
+				}
+				Block();
+			}
+			return underlyingColl.Add(item);
+		}
+		
+		public bool TryRemove(out T item)
 		{
 			return underlyingColl.Remove(out item);
 		}
+		
+		public bool TryRemove(out T item, TimeSpan ts)
+		{
+			return TryRemove(out item, (int)ts.TotalMilliseconds);
+		}
+		
+		public bool TryRemove(out T item, int millisecondsTimeout)
+		{
+			Stopwatch sw = Stopwatch.StartNew();
+			while (underlyingColl.Count == 0) {
+				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
+					item = default(T);
+					return false;
+				}
+					
+				Block();
+			}
+			return underlyingColl.Remove(out item);
+		}
+		#endregion
 		
 		public void CompleteAdding()
 		{
@@ -112,6 +184,12 @@ namespace System.Threading.Collections
 		public T[] ToArray()
 		{
 			return underlyingColl.ToArray();
+		}
+		
+		// Method used to stall the thread for a limited period of time before retrying an operation
+		void Block()
+		{
+			Thread.Sleep(blockingTime);
 		}
 		
 		public int BoundedCapacity {

@@ -270,11 +270,13 @@ namespace System.Threading.Tasks
 			int indexFirstFinished = -1;
 			
 			foreach (Task t in tasks) {
-				t.Completed += delegate (object sender, EventArgs e) { 
+				t.Completed += delegate (object sender, EventArgs e) {
 					int result = Interlocked.Increment(ref numFinished);
-					if (result == 0) {
+					// Check if we are the first to have finished
+					if (result == 1) {
 						Task target = (Task)sender;
-						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+						// Normally CAS isn't necessary but who knows
+						Interlocked.CompareExchange(ref indexFirstFinished, Array.FindIndex(tasks, (elem) => elem == target), -1);
 					}
 				};	
 			}
@@ -299,9 +301,10 @@ namespace System.Threading.Tasks
 			foreach (Task t in tasks) {
 				t.Completed += delegate (object sender, EventArgs e) { 
 					int result = Interlocked.Increment(ref numFinished);
-					if (result == 0) {
+					if (result == 1) {
 						Task target = (Task)sender;
-						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+						// Normally CAS isn't necessary but who knows
+						Interlocked.CompareExchange(ref indexFirstFinished, Array.FindIndex(tasks, (elem) => elem == target), -1);
 					}
 				};	
 			}

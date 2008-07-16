@@ -48,14 +48,14 @@ namespace ParallelFxTests
 		[Test]
 		public void CountTestCase()
 		{
-			Assert.IsTrue(queue.Count == 10, "#1");
+			Assert.AreEqual(10, queue.Count, "#1");
 			int value;
 			queue.TryPeek(out value);
 			queue.TryDequeue(out value);
 			queue.TryDequeue(out value);
-			Assert.IsTrue(queue.Count == 8, "#2");
+			Assert.AreEqual(8, queue.Count, "#2");
 			queue.Clear();
-			Assert.IsTrue(queue.Count == 0, "#3");
+			Assert.AreEqual(0, queue.Count, "#3");
 			Assert.IsTrue(queue.IsEmpty, "#4");
 		}
 		
@@ -67,7 +67,7 @@ namespace ParallelFxTests
 			foreach (int i in queue) {
 				s += i;
 			}
-			Assert.IsTrue(s == "0123456789", "#1 : " + s);
+			Assert.AreEqual("0123456789", s, "#1 : " + s);
 		}
 		
 		[Test()]
@@ -75,15 +75,15 @@ namespace ParallelFxTests
 		{
 			int value;
 			queue.TryPeek(out value);
-			Assert.IsTrue(value == 0, "#1 : " + value);
+			Assert.AreEqual(0, value, "#1 : " + value);
 			queue.TryDequeue(out value);
-			Assert.IsTrue(value == 0, "#2 : " + value);
+			Assert.AreEqual(0, value, "#2 : " + value);
 			queue.TryDequeue(out value);
-			Assert.IsTrue(value == 1, "#3 : " + value);
+			Assert.AreEqual(1, value, "#3 : " + value);
 			queue.TryPeek(out value);
-			Assert.IsTrue(value == 2, "#4 : " + value);
+			Assert.AreEqual(2, value, "#4 : " + value);
 			queue.TryPeek(out value);
-			Assert.IsTrue(value == 2, "#5 : " + value);
+			Assert.AreEqual(2, value, "#5 : " + value);
 		}
 		
 		[Test()]
@@ -91,10 +91,10 @@ namespace ParallelFxTests
 		{
 			int value;
 			queue.TryPeek(out value);
-			Assert.IsTrue(value == 0, "#1");
+			Assert.AreEqual(0, value, "#1");
 			queue.TryDequeue(out value);
 			queue.TryDequeue(out value);
-			Assert.IsTrue(value == 1, "#2 : " + value);
+			Assert.AreEqual(1, value, "#2 : " + value);
 		}
 		
 		[Test()]
@@ -116,13 +116,13 @@ namespace ParallelFxTests
 			foreach (int i in array) {
 				s += i;
 			}
-			Assert.IsTrue(s == "0123456789", "#1 : " + s);
+			Assert.AreEqual("0123456789", s, "#1 : " + s);
 			queue.CopyTo(array, 0);
 			s = string.Empty;
 			foreach (int i in array) {
 				s += i;
 			}
-			Assert.IsTrue(s == "0123456789", "#2 : " + s);
+			Assert.AreEqual("0123456789", s, "#2 : " + s);
 		}
 	}
 }

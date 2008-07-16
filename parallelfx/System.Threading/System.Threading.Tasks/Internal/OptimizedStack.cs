@@ -218,7 +218,7 @@ namespace System.Threading.Tasks
 			return false;
 		}
 		
-		int rr = 0;
+		int rr = -1;
 		int GetPos(ThreadInfo p)
 		{
 			int temp = Interlocked.Increment(ref rr);
