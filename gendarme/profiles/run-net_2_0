@@ -68,7 +68,7 @@ function run_gendarme_tools {
 	$MONO_ASSEMBLIES/resgen.exe \
 	$MONO_ASSEMBLIES/wsdl.exe \
 	$MONO_ASSEMBLIES/xsd.exe #\
-#	$MONO_ASSEMBLIES/ilasm.exe
+	#$MONO_ASSEMBLIES/ilasm.exe
 }
 
 function create_custom_reports {
