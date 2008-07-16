@@ -32,6 +32,7 @@ namespace System.Threading.Tasks
 	internal class Scheduler: IScheduler
 	{
 		ConcurrentStack<Task> workQueue;
+		//ConcurrentStack<Task>[] workBuffers;
 		ThreadWorker[] workers;
 		
 		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
@@ -56,6 +57,11 @@ namespace System.Threading.Tasks
 			workQueue.Push(t);
 			// Wake up some worker if they were asleep
 			PulseAll();
+		}
+		
+		public void AddWorkRoundRobin(Task t)
+		{
+			
 		}
 		
 		public void ParticipateUntil(Task task)

@@ -31,6 +31,7 @@ namespace System.Threading.Tasks
 	internal interface IScheduler
 	{
 		void AddWork(Task t);
+		void AddWorkRoundRobin(Task t);
 		void ParticipateUntil(Task task);
 		bool ParticipateUntil(Task task, Func<bool> predicate);
 		void ParticipateUntil(Func<bool> predicate);

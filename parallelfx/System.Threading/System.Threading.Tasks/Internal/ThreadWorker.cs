@@ -50,8 +50,7 @@ namespace System.Threading.Tasks
 		
 		#region Sleep related fields
 		const int sleepTimeBeforeRetry = 1;
-		const int sleepMultiplier = 2;
-		const int sleepThreshold = 2000;
+		const int sleepThreshold = 100000;
 		#endregion
 		
 		Action threadInitializer;
@@ -98,7 +97,6 @@ namespace System.Threading.Tasks
 				this.workerThread.Priority = priority;
 			};
 			threadInitializer();
-			//Pulse();
 		}
 		
 		public void Pulse()
@@ -129,14 +127,13 @@ namespace System.Threading.Tasks
 				dDeque.PushBottom(t);
 				sched.PulseAll();
 			};
-			int sleepTime = sleepTimeBeforeRetry;
+			int sleepTime = 0;
 			// Main loop
 			while (started == 1) {
 				WorkerMethod();
-				Thread.Sleep(sleepTime);
-				sleepTime *= sleepMultiplier;
+				Thread.Sleep(sleepTimeBeforeRetry);
 				// If the Thread has been more sleeping than working shut it down
-				if (sleepTime > sleepThreshold)
+				if (sleepTime++ > sleepThreshold)
 					break;
 			}
 			
@@ -146,7 +143,9 @@ namespace System.Threading.Tasks
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
 		void WorkerMethod()
 		{
+			bool hasStolenFromOther;
 			do {
+				hasStolenFromOther = false;
 				Task value;
 				// We fill up our work deque concurrently with other ThreadWorker
 				while (!sharedWorkQueue.IsEmpty) {
@@ -172,13 +171,14 @@ namespace System.Threading.Tasks
 							continue;
 						// Maybe make this steal more than one item at a time, see TODO.
 						if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
+							hasStolenFromOther = true;
 							if (value != null) {
 								value.threadStart();
 							}
 						}
 					}
 				}
-			} while (!sharedWorkQueue.IsEmpty);
+			} while (!sharedWorkQueue.IsEmpty || hasStolenFromOther);
 			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId);
 		}
 		
