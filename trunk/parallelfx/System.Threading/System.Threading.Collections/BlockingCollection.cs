@@ -28,7 +28,7 @@ using System.Collections.Generic;
 
 namespace System.Threading.Collections
 {
-	public class BlockingCollection<T>/*: IEnumerable<T>, ICollection, IEnumerable, IDisposable*/
+	public class BlockingCollection<T>: IEnumerable<T>, ICollection, IEnumerable, IDisposable
 	{
 		readonly IConcurrentCollection<T> underlyingColl;
 		readonly int upperBound;
@@ -81,7 +81,7 @@ namespace System.Threading.Collections
 			isComplete = true;
 		}
 		
-		public void CopyTo(T[] array, int index)
+		public void CopyTo(Array array, int index)
 		{
 			underlyingColl.CopyTo(array, index);
 		}
@@ -92,6 +92,21 @@ namespace System.Threading.Collections
 			while (underlyingColl.Remove(out item)) {
 				yield return item;
 			}
+		}
+		
+		IEnumerator IEnumerable.GetEnumerator ()
+		{
+			return ((IEnumerable)underlyingColl).GetEnumerator();
+		}
+		
+		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
+		{
+			return ((IEnumerable<T>)underlyingColl).GetEnumerator();
+		}
+		
+		public void Dispose()
+		{
+			
 		}
 		
 		public T[] ToArray()
@@ -120,6 +135,18 @@ namespace System.Threading.Collections
 		public bool IsCompleted {
 			get {
 				return isComplete && underlyingColl.Count == 0;
+			}
+		}
+		
+		public object SyncRoot {
+			get {
+				return underlyingColl.SyncRoot;
+			}
+		}
+		
+		public bool IsSynchronized {
+			get {
+				return underlyingColl.IsSynchronized;
 			}
 		}
 	}

@@ -212,7 +212,8 @@ namespace System.Threading
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int> action)
 		{
-			throw new NotImplementedException();
+			TSource[] temp = enumerable.ToArray();
+			For(0, temp.Length, (i) => action(temp[i], i));
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int, ParallelState> action)
@@ -267,6 +268,14 @@ namespace System.Threading
 			});
 			Task.WaitAll(ts);
 			HandleExceptions(ts);
+		}
+		
+		internal static void SpawnBestNumber(Action action)
+		{
+			TaskManagerPolicy policy = TaskManager.Current.Policy;
+			int num = policy.IdealProcessors * policy.IdealThreadsPerProcessor;
+			for (int i = 0; i < num; i++)
+				Task.Create(_ => action());
 		}
 	}
 }
