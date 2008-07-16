@@ -55,7 +55,7 @@ namespace Test.Rules.Correctness {
 		
 			public void MethodWithGoodFormatting (object value)
 			{
-				string myString = String.Format ("The value {0} isn't valid: {1}", value);
+				string myString = String.Format ("The value {0} isn't valid", value);
 			}
 
 			public void MethodWithGoodFormatingAndThreeParams (object value1, object value2, object value3)
