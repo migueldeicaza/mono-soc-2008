@@ -35,12 +35,14 @@ namespace System.Linq
 		Func<IEnumerator<T>> getEnumerator;
 		// Dop is Degree of Parallelism. It corresponds to the ideal number of threads
 		// that should be used to compute the query.
-		int dop;
+		int  dop;
+		bool isLast;
 		
 		// For ctor 2
+		Action                action;
 		BlockingCollection<T> bColl;
 		// For ctor 3
-		int from, to, step;
+		int from, count;
 		// For ctor 1
 		IEnumerable<T> uEnumerable;
 		IEnumerator<T> uEnumerator;
@@ -82,17 +84,34 @@ namespace System.Linq
 		}
 		
 		// Comes from the return of ParallelEnumerable extension method
-		public ParallelEnumerable(BlockingCollection<T> bColl, int dop): this(dop)
+		public ParallelEnumerable(Action action, BlockingCollection<T> bColl, int dop): this(dop)
 		{
+			this.action = action;
 			this.bColl = bColl;
 			getEnumerator = GetEnumeratorFromBlockingCollection;
 		}
 				
 		IEnumerator<T> GetEnumeratorFromBlockingCollection()
 		{
+			if (isLast) {
+				Parallel.SpawnBestNumber(delegate {
+					while (!bColl.IsAddingComplete)
+						action();
+				}, dop);
+			}
+			// HACK: Yikes !
 			while (!bColl.IsCompleted) {
-				foreach (T item in bColl.GetConsumingEnumerable())
-					yield return item;
+				if (!isLast) {
+					T element;
+					do {
+						action();
+					} while (!bColl.TryRemove(out element) && !bColl.IsCompleted);
+					if (!bColl.IsCompleted)
+						yield return element;
+				} else {
+					foreach (T item in bColl.GetConsumingEnumerable())
+						yield return item;
+				}
 			}
 		}
 		
@@ -100,16 +119,15 @@ namespace System.Linq
 		public ParallelEnumerable(int dop)
 		{
 			this.dop = dop;
+			this.isLast = true;
 		}
 		
-		public static ParallelEnumerable<int> GetRangeParallelEnumerable(int from, int to, int step, int dop)
+		public static ParallelEnumerable<int> GetRangeParallelEnumerable(int from, int count, int dop)
 		{
 			//HACK: rather ugly
 			ParallelEnumerable<int> temp = new ParallelEnumerable<int>(dop);
 			temp.from = from;
-			temp.to = to;
-			temp.step = step;
-			
+			temp.count = count;
 			temp.getEnumerator = temp.GetEnumeratorFromRange;
 			
 			return temp;
@@ -118,11 +136,11 @@ namespace System.Linq
 		IEnumerator<int> GetEnumeratorFromRange()
 		{
 			int counter = from;
+			int value;
 			do {
-				int value = Interlocked.Add(ref counter, step) - step;
+				value = Interlocked.Increment(ref counter) - 1;
 				yield return value;
-			} while (counter < to);
-			
+			} while (value < (from + count - 1));
 		}
 		
 		public IEnumerator<T> GetEnumerator(bool enablePipelining)
@@ -135,6 +153,15 @@ namespace System.Linq
 		public int Dop {
 			get {
 				return dop;
+			}
+		}
+		
+		public bool IsLast {
+			get {
+				return isLast;
+			}
+			set {
+				isLast = value;
 			}
 		}
 		
