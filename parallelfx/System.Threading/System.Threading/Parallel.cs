@@ -73,7 +73,7 @@ namespace System.Threading
 			
 			Action<object> workerMethod = delegate {
 				int index;
-				while ((index = Interlocked.Add(ref currentIndex, step)) < to) {
+				while ((index = Interlocked.Add(ref currentIndex, step)) < to && !state.IsStopped) {
 					action (index, state);
 				}
 			};
@@ -119,41 +119,62 @@ namespace System.Threading
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			/*int sliceCount = GetBestSlice();
-			int start = 0;
-			IEnumerable<TSource> slice;
-			List<Task> tasks = new List<Task>();
-			
-			while (!(slice = enumerable.Skip(start).Take(sliceCount)).SequenceEqual(Enumerable.Empty<TSource>())) {
-				IEnumerable<TSource> sliceTemp = slice;
-				start += sliceCount;
-				
-				tasks.Add(Task.Create(delegate {
-					foreach (TSource elem in sliceTemp) {
-						action(elem);
-					}
-				}));
-			}
-			Task.WaitAll(tasks.ToArray());
-			HandleExceptions(tasks);*/
-			TSource[] temp = enumerable.ToArray();
-			For(0, temp.Length, (i) => action(temp[i]));
+			ForEach(enumerable, (e, index, state) => action(e));
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, ParallelState> action)
 		{
-			throw new NotImplementedException();
+			ForEach(enumerable, (e, index, state) => action(e, state));
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int> action)
 		{
-			TSource[] temp = enumerable.ToArray();
-			For(0, temp.Length, (i) => action(temp[i], i));
+			ForEach(enumerable, (e, index, state) => action(e, index));
 		}
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource, int, ParallelState> action)
 		{
-			throw new NotImplementedException();
+			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
+			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
+			// most collection.
+			SpinLock sl = new SpinLock(false);
+			
+			int num = GetBestWorkerNumber();
+
+			Task[] tasks = new Task[num];
+			ParallelState state = new ParallelState(tasks);
+			
+			IEnumerator<TSource> enumerator = enumerable.GetEnumerator();
+			int currentIndex = 0;
+			bool isFinished = false;
+			
+			Action<object> workerMethod = delegate {
+				int index = -1;
+				TSource element = default(TSource);
+				
+				while (!isFinished && !state.IsStopped) {
+					try {
+						sl.Enter();
+						// From here it's thread-safe
+						index      = currentIndex++;
+						isFinished = !enumerator.MoveNext();
+						if (isFinished) return;
+						element = enumerator.Current;
+						// End of thread-safety
+					} finally {
+						sl.Exit();
+					}
+					
+					action(element, index, state);
+				}
+			};
+			
+			for (int i = 0; i < num; i++) {
+				tasks[i] = Task.Create(workerMethod);
+			}
+			
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector,
