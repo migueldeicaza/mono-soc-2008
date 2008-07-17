@@ -1,4 +1,7 @@
 <gendarme>
+	<ruleset name="testing">
+		<rules include="ProvideCorrectArgumentsToFormattingMethodsRule" from="Gendarme.Rules.Correctness.dll"/>
+	</ruleset>
 	<ruleset name="net_2_0">
 		<rules include="AvoidCallingProblematicMethodsRule" from="Gendarme.Rules.BadPractice.dll"/>
 		<rules include="CheckNewExceptionWithoutThrowingRule" from="Gendarme.Rules.BadPractice.dll"/>
