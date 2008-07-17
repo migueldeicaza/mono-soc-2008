@@ -26,10 +26,38 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.IO;
+using System.Xml.Linq;
 using NUnit.Framework;
 
 namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class GenerateDefectsPerAssemblyAndSeverityActionTest {
+		static readonly string xmlFile = "Test/Fakes/Mono.Security.xml";
+	
+
+		private void GetProcessedDocument ()
+		{
+			XDocument document = XDocument.Load (xmlFile);
+			Assert.IsNotNull (document);
+
+			document = new FilterBySeverityAction ().Process (document);
+			Assert.IsNotNull (document);
+		}
+
+		[TestFixtureSetUp]
+		public void FixtureSetUp ()
+		{
+			GetProcessedDocument ();
+		}
+
+		[TestFixtureTearDown]
+		public void FixtureTearDown ()
+		{
+			foreach (string file in Directory.GetFiles (Directory.GetCurrentDirectory (), "*.xml")) 
+				File.Delete (file);
+		}
+
+
 	}
 }
