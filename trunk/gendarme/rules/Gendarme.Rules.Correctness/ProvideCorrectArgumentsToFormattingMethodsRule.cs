@@ -41,7 +41,7 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
 		static MethodSignature formatSignature = new MethodSignature ("Format", "System.String");
-		static Regex formatterRegex = new Regex ("{[0-63]((:|-)[a-z|A-Z]*)*}");
+		static Regex formatterRegex = new Regex ("{[0-63]((:|-| )?[a-z|A-Z]*)*}");
 
 		private static IEnumerable<Instruction> GetCallsToStringFormat (MethodDefinition method)
 		{
