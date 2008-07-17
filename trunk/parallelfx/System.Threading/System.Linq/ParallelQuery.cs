@@ -23,16 +23,21 @@
 //
 
 using System;
+using System.Collections.Generic;
 
 namespace System.Threading.Linq
 {
 	
-	
-	public class ParallelQuery
+	public static class ParallelQuery
 	{
-		
-		public ParallelQuery()
+		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
 		{
+			return new ParallelEnumerable<T>(source, -1);
+		}
+		
+		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
+		{
+			return new ParallelEnumerable<T>(source, dop);
 		}
 	}
 }
