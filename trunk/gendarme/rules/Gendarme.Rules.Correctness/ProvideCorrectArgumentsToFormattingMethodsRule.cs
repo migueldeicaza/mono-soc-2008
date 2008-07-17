@@ -119,7 +119,7 @@ namespace Gendarme.Rules.Correctness {
 					//instruction which adds 1 to the counter
 					int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
 					//Console.WriteLine ("{0} ex - {1} pu- {2} method", expectedParameters, elementsPushed, method.Name);
-					if (elementsPushed != expectedParameters)
+					if (elementsPushed < expectedParameters)
 						Runner.Report (method, call, Severity.Critical, Confidence.Low, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
 				}
 
