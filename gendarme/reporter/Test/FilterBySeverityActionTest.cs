@@ -33,16 +33,20 @@ using NUnit.Framework;
 namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class GenerateDefectsPerAssemblyAndSeverityActionTest {
-		static readonly string xmlFile = "Test/Fakes/Mono.Security.xml";
-	
+		XDocument critical, high, medium, low;
 
 		private void GetProcessedDocument ()
 		{
-			XDocument document = XDocument.Load (xmlFile);
+			XDocument document = XDocument.Load ("Test/Fakes/Mono.Security.xml");
 			Assert.IsNotNull (document);
 
 			document = new FilterBySeverityAction ().Process (document);
 			Assert.IsNotNull (document);
+
+			critical = XDocument.Load ("Mono.Security.Critical.xml");
+			high = XDocument.Load ("Mono.Security.High.xml");
+			medium = XDocument.Load ("Mono.Security.Medium.xml");
+			low = XDocument.Load ("Mono.Security.Low.xml");
 		}
 
 		[TestFixtureSetUp]
@@ -58,6 +62,13 @@ namespace Gendarme.Reporter.Test {
 				File.Delete (file);
 		}
 
-
+		[Test]
+		public void AllDocumentsExistsTest ()
+		{
+			Assert.IsNotNull (critical);
+			Assert.IsNotNull (high);
+			Assert.IsNotNull (medium);
+			Assert.IsNotNull (low);
+		}
 	}
 }

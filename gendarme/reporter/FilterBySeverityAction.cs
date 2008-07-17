@@ -26,12 +26,23 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Linq;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class FilterBySeverityAction : IAction {
 		public XDocument Process (XDocument document)
 		{
+			string assemblyName = (from file in document.Root.Element ("files").Elements ()
+				select file.Attribute ("Name").Value.Split
+				(',')[0]).First ();
+
+			new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName)).Process (document);
+			new WriteToFileAction (String.Format ("{0}.High.xml", assemblyName)).Process (document);
+			new WriteToFileAction (String.Format ("{0}.Medium.xml", assemblyName)).Process (document);
+			new WriteToFileAction (String.Format ("{0}.Low.xml", assemblyName)).Process (document);
+
 			return document;
 		}
 	}
