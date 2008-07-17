@@ -1,5 +1,5 @@
 //
-// Unit tests for Gendarme.Reporter.GenerateDefectsPerAssemblyAndSeverityAction
+// Gendarme.Reporter.FilterBySeverityAction class
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -26,10 +26,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-using NUnit.Framework;
+using System.Xml.Linq;
 
-namespace Gendarme.Reporter.Test {
-	[TestFixture]
-	public class GenerateDefectsPerAssemblyAndSeverityActionTest {
+namespace Gendarme.Reporter {
+	public class FilterBySeverity : IAction {
+		public XDocument Process (XDocument document)
+		{
+			return document;
+		}
 	}
 }
