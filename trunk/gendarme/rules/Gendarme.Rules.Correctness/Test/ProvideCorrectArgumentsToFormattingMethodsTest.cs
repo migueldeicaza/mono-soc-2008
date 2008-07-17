@@ -77,6 +77,11 @@ namespace Test.Rules.Correctness {
 			{
 				String.Format("'{0:yyyy-MM-dd HH:mm:ss}'", dateTime);
 			}
+
+			public void MethodWithGoodFormattingAndRepeatedIndexes (object value)
+			{
+				String.Format ("{0} - {0}", value);
+			}
 		}
 
 		[Test]
@@ -113,6 +118,12 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormattingAndDateTimesTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingAndDateTimes");
+		}
+
+		[Test]
+		public void SuccessOnMethodWithGoodFormattingAndRepeatedIndexesTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingAndRepeatedIndexes");
 		}
 	}
 }
