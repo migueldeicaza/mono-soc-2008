@@ -238,8 +238,7 @@ namespace System.Threading
 		
 		internal static void SpawnBestNumber(Action action, int dop, bool wait)
 		{
-			TaskManagerPolicy policy = TaskManager.Current.Policy;
-			int num = dop == -1 ? policy.IdealProcessors * policy.IdealThreadsPerProcessor : dop;
+			int num = dop == -1 ? GetBestWorkerNumber() : dop;
 			Task[] tasks = new Task[num];
 			for (int i = 0; i < num; i++)
 				tasks[i] = Task.Create(_ => action());
