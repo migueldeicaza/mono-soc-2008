@@ -82,6 +82,11 @@ namespace Test.Rules.Correctness {
 			{
 				String.Format ("{0} - {0}", value);
 			}
+
+			public void MethodWithSpecialCharacters (object value)
+			{
+				String.Format ("The {2} '{0}' is not valid in the locked list for this section.  The following {3} can be locked: '{1}'", value, value, value, value);
+			}
 		}
 
 		[Test]
@@ -124,6 +129,12 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormattingAndRepeatedIndexesTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingAndRepeatedIndexes");
+		}
+
+		[Test]
+		public void SuccessOnMethodWithSpecialCharactersTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithSpecialCharacters");
 		}
 	}
 }
