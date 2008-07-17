@@ -37,8 +37,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Correctness {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("You are calling to a Format method without the correct arguments.  This could throw an unexpected FormatException.")]
+	[Solution ("Pass the correct arguments to the formatting method.")]
 	public class ProvideCorrectArgumentsToFormattingMethodsRule : Rule, IMethodRule {
 		static MethodSignature formatSignature = new MethodSignature ("Format", "System.String");
 		static Regex formatterRegex = new Regex ("{");
