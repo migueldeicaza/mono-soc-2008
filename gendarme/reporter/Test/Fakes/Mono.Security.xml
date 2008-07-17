@@ -2,7 +2,7 @@
 <?xml-stylesheet type='text/xsl' href='gendarme.xsl'?>
 <gendarme-output date="18/06/2008 11:49:22">
   <files>
-    <file Name="Name=&quot;Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756&quot;">/home/nestor/opt/mono/lib/mono/2.0/Mono.Security.dll</file>
+    <file Name="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756&quot;">/home/nestor/opt/mono/lib/mono/2.0/Mono.Security.dll</file>
   </files>
   <rules>
     <rule Name="CloneMethodShouldNotReturnNullRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CloneMethodShouldNotReturnNullRule">Gendarme.Rules.BadPractice.CloneMethodShouldNotReturnNullRule</rule>
