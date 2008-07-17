@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml-stylesheet type='text/xsl' href='gendarme.xsl'?>
+<gendarme-output date="18/06/2008 11:49:22">
+  <files>
+    <file Name="Name=&quot;Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756&quot;">/home/nestor/opt/mono/lib/mono/2.0/Mono.Security.dll</file>
+  </files>
+  <rules>
+    <rule Name="CloneMethodShouldNotReturnNullRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CloneMethodShouldNotReturnNullRule">Gendarme.Rules.BadPractice.CloneMethodShouldNotReturnNullRule</rule>
+    <rule Name="EqualsShouldHandleNullArgRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#EqualsShouldHandleNullArgRule">Gendarme.Rules.BadPractice.EqualsShouldHandleNullArgRule</rule>
+    <rule Name="ToStringReturnsNullRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ToStringReturnsNullRule">Gendarme.Rules.BadPractice.ToStringReturnsNullRule</rule>
+    <rule Name="GetEntryAssemblyMayReturnNullRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#GetEntryAssemblyMayReturnNullRule">Gendarme.Rules.BadPractice.GetEntryAssemblyMayReturnNullRule</rule>
+    <rule Name="ConstructorShouldNotCallVirtualMethodsRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ConstructorShouldNotCallVirtualMethodsRule">Gendarme.Rules.BadPractice.ConstructorShouldNotCallVirtualMethodsRule</rule>
+    <rule Name="CheckNewExceptionWithoutThrowingRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CheckNewExceptionWithoutThrowingRule">Gendarme.Rules.BadPractice.CheckNewExceptionWithoutThrowingRule</rule>
+    <rule Name="CheckNewThreadWithoutStartRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#CheckNewThreadWithoutStartRule">Gendarme.Rules.BadPractice.CheckNewThreadWithoutStartRule</rule>
+    <rule Name="DisableDebuggingCodeRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#DisableDebuggingCodeRule">Gendarme.Rules.BadPractice.DisableDebuggingCodeRule</rule>
+    <rule Name="ObsoleteMessagesShouldNotBeEmptyRule" Type="Type" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ObsoleteMessagesShouldNotBeEmptyRule">Gendarme.Rules.BadPractice.ObsoleteMessagesShouldNotBeEmptyRule</rule>
+    <rule Name="BadRecursiveInvocationRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Correctness#BadRecursiveInvocationRule">Gendarme.Rules.Correctness.BadRecursiveInvocationRule</rule>
+    <rule Name="DoNotCompareWithNaNRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Correctness#DoNotCompareWithNaNRule">Gendarme.Rules.Correctness.DoNotCompareWithNaNRule</rule>
+    <rule Name="UseValueInPropertySetterRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Correctness#UseValueInPropertySetterRule">Gendarme.Rules.Correctness.UseValueInPropertySetterRule</rule>
+    <rule Name="DoNotLockOnThisOrTypesRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Concurrency#DoNotLockOnThisOrTypesRule">Gendarme.Rules.Concurrency.DoNotLockOnThisOrTypesRule</rule>
+    <rule Name="DoNotLockOnWeakIdentityObjectsRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Concurrency#DoNotLockOnWeakIdentityObjectsRule">Gendarme.Rules.Concurrency.DoNotLockOnWeakIdentityObjectsRule</rule>
+    <rule Name="RemoveUnusedLocalVariablesRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#RemoveUnusedLocalVariablesRule">Gendarme.Rules.Performance.RemoveUnusedLocalVariablesRule</rule>
+    <rule Name="MathMinMaxCandidateRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#MathMinMaxCandidateRule">Gendarme.Rules.Performance.MathMinMaxCandidateRule</rule>
+    <rule Name="UseTypeEmptyTypesRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#UseTypeEmptyTypesRule">Gendarme.Rules.Performance.UseTypeEmptyTypesRule</rule>
+    <rule Name="UseStringEmptyRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#UseStringEmptyRule">Gendarme.Rules.Performance.UseStringEmptyRule</rule>
+    <rule Name="NewLineLiteralRule" Type="Method" Uri="http://www.mono-project.com/Gendarme.Rules.Portability#NewLineLiteralRule">Gendarme.Rules.Portability.NewLineLiteralRule</rule>
+  </rules>
+  <results>
+    <rule Name="ConstructorShouldNotCallVirtualMethodsRule" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ConstructorShouldNotCallVirtualMethodsRule">
+      <problem>Some constructors calls virtual methods which won't be known before runtime.</problem>
+      <solution>Avoid calling virtual methods from constructors or seal the the type.</solution>
+      <target Name="Mono.Security.Protocol.Tls.RSASslSignatureFormatter" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Tls.RSASslSignatureFormatter::.ctor(System.Security.Cryptography.AsymmetricAlgorithm)" Source="debugging symbols unavailable, IL offset 0x0008">Calling a virtual method, 'System.Void Mono.Security.Protocol.Tls.RSASslSignatureFormatter::SetKey(System.Security.Cryptography.AsymmetricAlgorithm)' from System.Void Mono.Security.Protocol.Tls.RSASslSignatureFormatter::.ctor(System.Security.Cryptography.AsymmetricAlgorithm).</defect>
+      </target>
+      <target Name="Mono.Security.Protocol.Tls.SslHandshakeHash" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Tls.SslHandshakeHash::.ctor(System.Byte[])" Source="debugging symbols unavailable, IL offset 0x004b">Calling a virtual method, 'System.Void Mono.Security.Protocol.Tls.SslHandshakeHash::Initialize()' from System.Void Mono.Security.Protocol.Tls.SslHandshakeHash::.ctor(System.Byte[]).</defect>
+      </target>
+      <target Name="Mono.Security.Cryptography.SHA224Managed" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Cryptography.SHA224Managed::.ctor()" Source="debugging symbols unavailable, IL offset 0x0020">Calling a virtual method, 'System.Void Mono.Security.Cryptography.SHA224Managed::Initialize()' from System.Void Mono.Security.Cryptography.SHA224Managed::.ctor().</defect>
+      </target>
+      <target Name="Mono.Security.Protocol.Ntlm.Type3Message" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Ntlm.Type3Message::.ctor(System.Byte[])" Source="debugging symbols unavailable, IL offset 0x0009">Calling a virtual method, 'System.Void Mono.Security.Protocol.Ntlm.Type3Message::Decode(System.Byte[])' from System.Void Mono.Security.Protocol.Ntlm.Type3Message::.ctor(System.Byte[]).</defect>
+      </target>
+      <target Name="Mono.Security.Cryptography.MD4Managed" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Cryptography.MD4Managed::.ctor()" Source="debugging symbols unavailable, IL offset 0x0046">Calling a virtual method, 'System.Void Mono.Security.Cryptography.MD4Managed::Initialize()' from System.Void Mono.Security.Cryptography.MD4Managed::.ctor().</defect>
+      </target>
+      <target Name="Mono.Security.Protocol.Tls.RSASslSignatureDeformatter" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Tls.RSASslSignatureDeformatter::.ctor(System.Security.Cryptography.AsymmetricAlgorithm)" Source="debugging symbols unavailable, IL offset 0x0008">Calling a virtual method, 'System.Void Mono.Security.Protocol.Tls.RSASslSignatureDeformatter::SetKey(System.Security.Cryptography.AsymmetricAlgorithm)' from System.Void Mono.Security.Protocol.Tls.RSASslSignatureDeformatter::.ctor(System.Security.Cryptography.AsymmetricAlgorithm).</defect>
+      </target>
+      <target Name="Mono.Security.Cryptography.HMAC" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Cryptography.HMAC::.ctor()" Source="debugging symbols unavailable, IL offset 0x0049">Calling a virtual method, 'System.Void Mono.Security.Cryptography.HMAC::Initialize()' from System.Void Mono.Security.Cryptography.HMAC::.ctor().</defect>
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Cryptography.HMAC::.ctor(System.String,System.Byte[])" Source="debugging symbols unavailable, IL offset 0x006e">Calling a virtual method, 'System.Void Mono.Security.Cryptography.HMAC::Initialize()' from System.Void Mono.Security.Cryptography.HMAC::.ctor(System.String,System.Byte[]).</defect>
+      </target>
+      <target Name="Mono.Security.Protocol.Ntlm.Type2Message" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Ntlm.Type2Message::.ctor(System.Byte[])" Source="debugging symbols unavailable, IL offset 0x0015">Calling a virtual method, 'System.Void Mono.Security.Protocol.Ntlm.Type2Message::Decode(System.Byte[])' from System.Void Mono.Security.Protocol.Ntlm.Type2Message::.ctor(System.Byte[]).</defect>
+      </target>
+      <target Name="Mono.Security.X509.X509Extension" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.X509.X509Extension::.ctor(Mono.Security.ASN1)" Source="debugging symbols unavailable, IL offset 0x010f">Calling a virtual method, 'System.Void Mono.Security.X509.X509Extension::Decode()' from System.Void Mono.Security.X509.X509Extension::.ctor(Mono.Security.ASN1).</defect>
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.X509.X509Extension::.ctor(Mono.Security.X509.X509Extension)" Source="debugging symbols unavailable, IL offset 0x0079">Calling a virtual method, 'System.Void Mono.Security.X509.X509Extension::Decode()' from System.Void Mono.Security.X509.X509Extension::.ctor(Mono.Security.X509.X509Extension).</defect>
+      </target>
+      <target Name="Mono.Security.Protocol.Ntlm.Type1Message" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Protocol.Ntlm.Type1Message::.ctor(System.Byte[])" Source="debugging symbols unavailable, IL offset 0x0009">Calling a virtual method, 'System.Void Mono.Security.Protocol.Ntlm.Type1Message::Decode(System.Byte[])' from System.Void Mono.Security.Protocol.Ntlm.Type1Message::.ctor(System.Byte[]).</defect>
+      </target>
+      <target Name="Mono.Security.Cryptography.MD2Managed" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="High" Confidence="High" Location="System.Void Mono.Security.Cryptography.MD2Managed::.ctor()" Source="debugging symbols unavailable, IL offset 0x003b">Calling a virtual method, 'System.Void Mono.Security.Cryptography.MD2Managed::Initialize()' from System.Void Mono.Security.Cryptography.MD2Managed::.ctor().</defect>
+      </target>
+    </rule>
+    <rule Name="DisableDebuggingCodeRule" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#DisableDebuggingCodeRule">
+      <problem>This method include calls to Console.WriteLine inside an assembly not compiled for console application (e.g. /target:exe).</problem>
+      <solution>If this code is used for debugging purpose then either use the Debug or Trace types or disable the code manually (e.g. using a preprocessor).</solution>
+      <target Name="System.Boolean Mono.Security.Authenticode.AuthenticodeFormatter::Timestamp(System.String)" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Low" Confidence="Normal" Location="System.Boolean Mono.Security.Authenticode.AuthenticodeFormatter::Timestamp(System.String)" Source="debugging symbols unavailable, IL offset 0x01bf">System.Void System.Console::WriteLine(System.Object)</defect>
+      </target>
+      <target Name="System.Boolean Mono.Security.Authenticode.AuthenticodeFormatter::Sign(System.String)" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Low" Confidence="Normal" Location="System.Boolean Mono.Security.Authenticode.AuthenticodeFormatter::Sign(System.String)" Source="debugging symbols unavailable, IL offset 0x00a2">System.Void System.Console::WriteLine(System.Object)</defect>
+      </target>
+    </rule>
+    <rule Name="NewLineLiteralRule" Uri="http://www.mono-project.com/Gendarme.Rules.Portability#NewLineLiteralRule">
+      <problem>The method use some literal values for new lines (e.g. \r\n) which aren't portable across operating systems.</problem>
+      <solution>Replace literals with Environment.NewLine.</solution>
+      <target Name="System.Void Mono.Xml.MiniParser::Parse(Mono.Xml.MiniParser/IReader,Mono.Xml.MiniParser/IHandler)" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Low" Confidence="High" Location="System.Void Mono.Xml.MiniParser::Parse(Mono.Xml.MiniParser/IReader,Mono.Xml.MiniParser/IHandler)" Source="debugging symbols unavailable, IL offset 0x0091">Found string: "&lt;&gt;/?=&amp;'"![ ]	\r\n"</defect>
+      </target>
+    </rule>
+    <rule Name="ToStringReturnsNullRule" Uri="http://www.mono-project.com/Gendarme.Rules.BadPractice#ToStringReturnsNullRule">
+      <problem>This type contains a ToString () method that could returns null.</problem>
+      <solution>Return an empty string or other appropriate string rather than returning null.</solution>
+      <target Name="Mono.Security.X509.Extensions.SubjectKeyIdentifierExtension" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Medium" Confidence="Normal" Location="System.String Mono.Security.X509.Extensions.SubjectKeyIdentifierExtension::ToString()" Source="debugging symbols unavailable, IL offset 0x000c" />
+      </target>
+    </rule>
+    <rule Name="UseStringEmptyRule" Uri="http://www.mono-project.com/Gendarme.Rules.Performance#UseStringEmptyRule">
+      <problem>The method uses literal "" instead of String.Empty.</problem>
+      <solution>Change the empty string for String.Empty.</solution>
+      <target Name="System.String Mono.Math.BigInteger::ToString(System.UInt32,System.String)" Assembly="Mono.Security, Version=2.0.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756">
+        <defect Severity="Medium" Confidence="High" Location="System.String Mono.Math.BigInteger::ToString(System.UInt32,System.String)" Source="debugging symbols unavailable, IL offset 0x0059" />
+      </target>
+    </rule>
+  </results>
+</gendarme-output>
