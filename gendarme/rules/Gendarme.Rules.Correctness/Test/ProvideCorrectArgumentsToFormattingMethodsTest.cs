@@ -106,6 +106,11 @@ namespace Test.Rules.Correctness {
 				string val = "Foo";
 				String.Format (message);
 			}
+
+			public void MethodWithoutParameters ()
+			{
+				String.Format ("I forget include parameters.");
+			}
 		}
 
 		[Test]
@@ -172,6 +177,12 @@ namespace Test.Rules.Correctness {
 		public void FailOnMethodWithBadFormattingLoadingFromLocalTest ()
 		{
 			AssertRuleFailure<FormattingCases> ("MethodWithBadFormattingLoadingFromLocal", 1);
+		}
+
+		[Test]
+		public void FailOnMethodWithoutParametersTest ()
+		{
+			AssertRuleFailure<FormattingCases> ("MethodWithoutParameters", 1);
 		}
 	}
 }
