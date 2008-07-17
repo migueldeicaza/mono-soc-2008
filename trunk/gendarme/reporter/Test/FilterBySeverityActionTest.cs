@@ -70,5 +70,42 @@ namespace Gendarme.Reporter.Test {
 			Assert.IsNotNull (medium);
 			Assert.IsNotNull (low);
 		}
+
+		//TODO: It's dupe, extract to common.
+		private int CountDefects (XDocument document)
+		{
+			int counter = 0;
+			
+			foreach (XElement rule in document.Root.Element ("results").Elements ()) 
+				foreach (XElement target in rule.Elements ("target")) 
+					foreach (XElement defect in target.Elements ("defect")) 
+						counter++;
+			
+			return counter;
+		}
+
+		[Test]
+		public void AmountOfDefectsInCriticalTest ()
+		{
+			Assert.AreEqual (0, CountDefects (critical));
+		}
+
+		[Test]
+		public void AmountOfDefectsInHighTest ()
+		{
+			Assert.AreEqual (13, CountDefects (high));
+		}
+		
+		[Test]
+		public void AmountOfDefectsInMediumTest ()
+		{
+			Assert.AreEqual (2, CountDefects (medium));
+		}
+
+		[Test]
+		public void AmountOfDefectsInLowTest ()
+		{
+			Assert.AreEqual (3, CountDefects (low));
+		}
 	}
 }
