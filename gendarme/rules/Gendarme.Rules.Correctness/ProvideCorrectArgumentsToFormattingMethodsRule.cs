@@ -71,15 +71,25 @@ namespace Gendarme.Rules.Correctness {
 		{
 			Instruction current = start;
 			int counter = 0;
+			bool newarrDetected = false;
 			while (end != current) {
-				counter += current.GetPushCount ();
-				counter -= current.GetPopCount (method);
-				//If we are creating a new array, probabily the call is wrong?
-				//TODO:Check this a bit more, and try to change
-				//this dirty hack
-				if (current.OpCode == OpCodes.Newarr)
-					return -1;
-
+				if (newarrDetected) {
+					//Count only the stelem instructions if
+					//there are a newarr instruction.
+					if (current.OpCode == OpCodes.Stelem_Ref)
+						counter++;
+				}
+				else {
+					//Count with the stack
+					counter += current.GetPushCount ();
+					counter -= current.GetPopCount (method);
+				}
+				//If there are a newarr we need an special
+				//behaviour
+				if (current.OpCode == OpCodes.Newarr) {
+					newarrDetected = true;
+					counter = 0;
+				}
 				current = current.Next;
 			}
 			return counter;
