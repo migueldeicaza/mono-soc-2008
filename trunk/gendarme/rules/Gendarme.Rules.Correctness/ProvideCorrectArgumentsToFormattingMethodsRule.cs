@@ -64,10 +64,10 @@ namespace Gendarme.Rules.Correctness {
 
 		private static int GetExpectedParameters (string loaded)
 		{
-			IList<string> results = new List<string> ();
+			IList<char> results = new List<char> ();
 			foreach (Match match in formatterRegex.Matches (loaded)) {
-				string numberedIndex = loaded[match.Index + 1].ToString ();
-				if (!results.Contains (numberedIndex))
+				char numberedIndex = loaded[match.Index + 1];
+				if (!results.Contains (numberedIndex) && Char.IsDigit (numberedIndex))
 					results.Add (numberedIndex);
 			}
 
