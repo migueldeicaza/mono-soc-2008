@@ -88,8 +88,7 @@ namespace Test.Rules.Correctness {
 				String.Format ("The {2} '{0}' is not valid in the locked list for this section.  The following {3} can be locked: '{1}'", value, value, value, value);
 			}
 
-			public void
-			MethodWithGoodFormattingButWithMultipleBrackets (int height, int width)
+			public void MethodWithGoodFormattingButWithMultipleBrackets (int height, int width)
 			{
 				String.Format ("{{Width={0}, Height={1}}}", width, height);
 			}

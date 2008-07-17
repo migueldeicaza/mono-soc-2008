@@ -115,6 +115,13 @@ namespace Gendarme.Rules.Correctness {
 				Instruction loadString = GetLoadStringInstruction (call);
 				if (loadString != null) {
 					int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
+					if (expectedParameters == 0) {
+						//We are calling a method in
+						//order to retrieve the
+						//formatting string, by the
+						//moment we don't report.
+						continue;
+					}
 					//start counting skipping the ldstr
 					//instruction which adds 1 to the counter
 					int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
