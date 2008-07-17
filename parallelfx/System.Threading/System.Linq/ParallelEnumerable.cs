@@ -31,13 +31,19 @@ namespace System.Threading.Linq
 {
 	public static class ParallelEnumerable
 	{
-		public static IParallelEnumerable<TResult> Select<TSource, TResult>(IParallelEnumerable<TSource> source,
+		static int Dop<T>(this IParallelEnumerable<T> source)
+		{
+			ParallelEnumerable<T> temp = source as ParallelEnumerable<T>;
+			return temp == null ? -1 : temp.Dop;
+		}
+		
+		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, TResult> selector)
 		{
 			return Select(source, (TSource e, int index) => selector(e));
 		}
 		
-		public static IParallelEnumerable<TResult> Select<TSource, TResult>(IParallelEnumerable<TSource> source,
+		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
 			BlockingCollection<TResult> resultBuffer = new BlockingCollection<TResult>();
@@ -49,15 +55,13 @@ namespace System.Threading.Linq
 				// Technically it's not exact, we might get preempted
 				int i = Interlocked.Increment(ref index);
 				while (feedEnum.MoveNext()) {
-					//try {
+					// TODO: need to throw possible Exception stored in Task when the processing is finished
 					resultBuffer.Add(selector(feedEnum.Current, i));
-					// TODO: see how standard Linq react to Exception
-					//} catch {}
 				}
 				resultBuffer.CompleteAdding();
-			});
+			}, source.Dop());
 			
-			return new ParallelEnumerable<TResult>(resultBuffer);
+			return new ParallelEnumerable<TResult>(resultBuffer, source.Dop());
 		}
 	}
 }

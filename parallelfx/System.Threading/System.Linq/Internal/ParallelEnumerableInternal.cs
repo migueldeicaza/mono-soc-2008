@@ -33,7 +33,10 @@ namespace System.Threading.Linq
 	internal class ParallelEnumerable<T>: IParallelEnumerable<T>
 	{
 		Func<IEnumerator<T>> getEnumerator;
-	
+		// Dop is Degree of Parallelism. It corresponds to the ideal number of threads
+		// that should be used to compute the query.
+		int dop;
+		
 		// For ctor 2
 		BlockingCollection<T> bColl;
 		// For ctor 3
@@ -44,7 +47,7 @@ namespace System.Threading.Linq
 		SpinLock sl = new SpinLock(false);
 		
 		// Will use chunk partitionning, used by AsParallel()
-		public ParallelEnumerable(IEnumerable<T> uEnumerable)
+		public ParallelEnumerable(IEnumerable<T> uEnumerable, int dop): this(dop)
 		{
 			this.uEnumerable = uEnumerable;
 			this.uEnumerator = uEnumerable.GetEnumerator();
@@ -79,7 +82,7 @@ namespace System.Threading.Linq
 		}
 		
 		// Comes from the return of ParallelEnumerable extension method
-		public ParallelEnumerable(BlockingCollection<T> bColl)
+		public ParallelEnumerable(BlockingCollection<T> bColl, int dop): this(dop)
 		{
 			this.bColl = bColl;
 			getEnumerator = GetEnumeratorFromBlockingCollection;
@@ -94,14 +97,15 @@ namespace System.Threading.Linq
 		}
 		
 		// Will use range partitionning
-		public ParallelEnumerable()
+		public ParallelEnumerable(int dop)
 		{
+			this.dop = dop;
 		}
 		
-		public static ParallelEnumerable<int> GetRangeParallelEnumerable(int from, int to, int step)
+		public static ParallelEnumerable<int> GetRangeParallelEnumerable(int from, int to, int step, int dop)
 		{
 			//HACK: rather ugly
-			ParallelEnumerable<int> temp = new ParallelEnumerable<int>();
+			ParallelEnumerable<int> temp = new ParallelEnumerable<int>(dop);
 			temp.from = from;
 			temp.to = to;
 			temp.step = step;
@@ -126,6 +130,12 @@ namespace System.Threading.Linq
 			// Don't care about Pipelining for the moment
 			// Just a matter of calling Task.WaitAll in the correct place
 			return getEnumerator();
+		}
+		
+		public int Dop {
+			get {
+				return dop;
+			}
 		}
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
