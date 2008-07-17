@@ -64,7 +64,14 @@ namespace Gendarme.Rules.Correctness {
 
 		private static int GetExpectedParameters (string loaded)
 		{
-			return formatterRegex.Matches (loaded).Count;
+			IList<string> results = new List<string> ();
+			foreach (Match match in formatterRegex.Matches (loaded)) {
+				string numberedIndex = loaded[match.Index + 1].ToString ();
+				if (!results.Contains (numberedIndex))
+					results.Add (numberedIndex);
+			}
+
+			return results.Count;
 		}
 
 		private static int CountElementsInTheStack (MethodDefinition method, Instruction start, Instruction end)
