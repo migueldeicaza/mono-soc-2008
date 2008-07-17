@@ -55,7 +55,7 @@ namespace Gendarme.Rules.Correctness {
 		{
 			Instruction current = call;
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldstr)
+				if (current.OpCode == OpCodes.Ldstr && GetExpectedParameters ((string)current.Operand) != 0)
 					return current;
 				current = current.Previous;	
 			}
