@@ -63,6 +63,11 @@ namespace Test.Rules.Correctness {
 				String.Format ("{0} {1} {2}", value1, value2, value3);
 			}
 
+			public void MethodWithGoodFormatingAndFiveParams (object value1, object value2, object value3, object value4, object value5)
+			{
+				String.Format ("{0} {1} {2} {3} {4}", value1, value2, value3, value4, value5);
+			}
+
 			public void MethodWithGoodFormattingAndSomeCalls (object value1, object value2)
 			{
 				String.Format ("{0} {1}", value1.ToString (), value2.ToString ());	
@@ -90,6 +95,12 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormatingAndThreeParamsTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormatingAndThreeParams");
+		}
+		
+		[Test]
+		public void SuccessOnMethodWithGoodFormatingAndFiveParamsTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormatingAndFiveParams");
 		}
 
 		[Test]
