@@ -58,6 +58,7 @@ namespace Gendarme.Rules.Correctness {
 			Instruction farest = null;
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldstr) {
+					//skip strings until get a "valid" one
 					if (GetExpectedParameters ((string)current.Operand) != 0)
 						return current;
 					else 
@@ -68,6 +69,7 @@ namespace Gendarme.Rules.Correctness {
 			return farest;
 		}
 
+		//TODO: It only works with 0 - 9 digits, no more than 10.
 		private static int GetExpectedParameters (string loaded)
 		{
 			IList<char> results = new List<char> ();
@@ -108,6 +110,31 @@ namespace Gendarme.Rules.Correctness {
 			return counter;
 		}
 
+		private void CheckCallToFormatter (Instruction call, MethodDefinition method)
+		{
+			Instruction loadString = GetLoadStringInstruction (call);
+			if (loadString == null) 
+				return;
+
+			int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
+			int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
+			
+			//There aren't parameters, and isn't a string with {
+			//characters
+			if (elementsPushed == 0 && expectedParameters == 0) {
+				Runner.Report (method, call, Severity.Low, Confidence.Normal, "You are calling String.Format without arguments, you can remove the call to String.Format");
+				return;
+			}
+			
+			//It's likely you are calling a method for getting the
+			//formatting string.
+			if (expectedParameters == 0)
+				return;
+			
+			if (elementsPushed < expectedParameters)
+				Runner.Report (method, call, Severity.Critical, Confidence.Normal, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
+		}
+
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody)
@@ -117,30 +144,9 @@ namespace Gendarme.Rules.Correctness {
 			if (callsToStringFormat.Count () == 0)
 				return RuleResult.DoesNotApply;
 
-			foreach (Instruction call in callsToStringFormat) {
-				Instruction loadString = GetLoadStringInstruction (call);
-				if (loadString != null) {
-					int expectedParameters = GetExpectedParameters ((string) loadString.Operand);
-					//start counting skipping the ldstr
-					//instruction which adds 1 to the counter
-					int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
-					if (elementsPushed == 0 && expectedParameters == 0) {
-						Runner.Report (method, call, Severity.Low, Confidence.High, "You are calling String.Format without arguments, you can remove the call to String.Format");
-						continue;
-					}
+			foreach (Instruction call in callsToStringFormat) 
+				CheckCallToFormatter (call, method);
 
-					if (expectedParameters == 0) {
-						// You are calling a method in
-						// order to get the formatting
-						// string.
-						continue;
-					}
-
-					if (elementsPushed < expectedParameters)
-						Runner.Report (method, call, Severity.Critical, Confidence.High, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
-				}
-
-			}
 			return Runner.CurrentRuleResult;
 		}
 	}
