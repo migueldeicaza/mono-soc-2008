@@ -25,9 +25,8 @@
 using System;
 using System.Collections.Generic;
 
-namespace System.Threading.Linq
+namespace System.Linq
 {
-	
 	public static class ParallelQuery
 	{
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)

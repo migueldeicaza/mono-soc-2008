@@ -26,7 +26,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Threading.Linq
+namespace System.Linq
 {
 	public interface IParallelEnumerable<T>: IEnumerable<T>, IParallelEnumerable, IEnumerable
 	{

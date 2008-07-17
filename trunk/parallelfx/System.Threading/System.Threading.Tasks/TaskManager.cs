@@ -97,7 +97,7 @@ namespace System.Threading.Tasks
 		}
 		
 		// May be used if we want to feed a big bunch of Tasks without waking up Workers
-		internal bool IsInhibited {
+		/*internal bool IsInhibited {
 			set {
 				if (value)
 					sched.InhibitPulse();
@@ -106,6 +106,6 @@ namespace System.Threading.Tasks
 					sched.PulseAll();
 				}
 			}
-		}
+		}*/
 	}
 }

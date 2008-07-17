@@ -275,8 +275,7 @@ namespace System.Threading.Tasks
 					// Check if we are the first to have finished
 					if (result == 1) {
 						Task target = (Task)sender;
-						// Normally CAS isn't necessary but who knows
-						Interlocked.CompareExchange(ref indexFirstFinished, Array.FindIndex(tasks, (elem) => elem == target), -1);
+						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
 					}
 				};	
 			}
@@ -303,8 +302,7 @@ namespace System.Threading.Tasks
 					int result = Interlocked.Increment(ref numFinished);
 					if (result == 1) {
 						Task target = (Task)sender;
-						// Normally CAS isn't necessary but who knows
-						Interlocked.CompareExchange(ref indexFirstFinished, Array.FindIndex(tasks, (elem) => elem == target), -1);
+						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
 					}
 				};	
 			}

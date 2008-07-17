@@ -27,7 +27,7 @@ using System.Threading;
 using System.Collections.Generic;
 using System.Threading.Collections;
 
-namespace System.Threading.Linq
+namespace System.Linq
 {
 	public static class ParallelEnumerable
 	{
@@ -35,6 +35,26 @@ namespace System.Threading.Linq
 		{
 			ParallelEnumerable<T> temp = source as ParallelEnumerable<T>;
 			return temp == null ? -1 : temp.Dop;
+		}
+		
+		static ParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
+		                                                    Action<BlockingCollection<TResult>, int, TSource> action)
+		{
+			BlockingCollection<TResult> resultBuffer = new BlockingCollection<TResult>();
+			IEnumerator<TSource> feedEnum = source.GetEnumerator();
+			int index = -1;
+			
+			Parallel.SpawnBestNumber(delegate {
+				// Technically it's not exact, we might get preempted
+				int i = Interlocked.Increment(ref index);
+				while (feedEnum.MoveNext()) {
+					// TODO: need to throw possible Exception stored in Task when the processing is finished
+					action(resultBuffer, i, feedEnum.Current);
+				}
+				resultBuffer.CompleteAdding();
+			}, source.Dop());
+			
+			return new ParallelEnumerable<TResult>(resultBuffer, source.Dop());
 		}
 		
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
@@ -46,22 +66,24 @@ namespace System.Threading.Linq
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
-			BlockingCollection<TResult> resultBuffer = new BlockingCollection<TResult>();
-			IEnumerator<TSource> feedEnum = source.GetEnumerator();
-			int index = -1;
-			
-			//TODO: Consider using an Enumerator inside the anonymous method
-			Parallel.SpawnBestNumber(delegate {
-				// Technically it's not exact, we might get preempted
-				int i = Interlocked.Increment(ref index);
-				while (feedEnum.MoveNext()) {
-					// TODO: need to throw possible Exception stored in Task when the processing is finished
-					resultBuffer.Add(selector(feedEnum.Current, i));
-				}
-				resultBuffer.CompleteAdding();
-			}, source.Dop());
-			
-			return new ParallelEnumerable<TResult>(resultBuffer, source.Dop());
+			return Process<TSource, TResult>(source, delegate (BlockingCollection<TResult> resultBuffer, int i, TSource e) {
+				resultBuffer.Add(selector(e, i));
+			});
+		}
+		
+		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
+		                                                                    Func<TSource, bool> predicate)
+		{
+			return Where(source, (TSource e, int index) => predicate(e));
+		}
+		
+		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
+		                                                                    Func<TSource, int, bool> predicate)
+		{
+			return Process<TSource, TSource>(source, delegate (BlockingCollection<TSource> resultBuffer, int i, TSource e) {
+				if (predicate(e, i))
+					resultBuffer.Add(e);
+			});
 		}
 	}
 }

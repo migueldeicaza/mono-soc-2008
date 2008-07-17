@@ -1,4 +1,4 @@
-// IScheduler.cs
+// ParallelEnumerableTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,19 +24,46 @@
 
 using System;
 using System.Threading;
+using System.Linq;
+
 using System.Collections.Generic;
 
-namespace System.Threading.Tasks
+using NUnit.Framework;
+
+namespace ParallelFxTests
 {
-	internal interface IScheduler
+	
+	[TestFixtureAttribute]
+	public class ParallelEnumerableTests
 	{
-		void AddWork(Task t);
-		void AddWorkRoundRobin(Task t);
-		void ParticipateUntil(Task task);
-		bool ParticipateUntil(Task task, Func<bool> predicate);
-		void ParticipateUntil(Func<bool> predicate);
-		void PulseAll();
-		/*void InhibitPulse();
-		void UnInhibitPulse();*/
+		IEnumerable<int> baseEnumerable;
+		
+		[SetUpAttribute]
+		public void Setup()
+		{
+			baseEnumerable = Enumerable.Range(1, 500);
+		}
+
+		[TestAttribute]
+		public void SelectTestCase()
+		{
+			IEnumerable<int> sync  = baseEnumerable.Select(i => i * i);
+			IEnumerable<int> async = baseEnumerable.AsParallel().Select(i => i * i);
+			
+			// This is not AreEquals because IParallelEnumerable is not non-deterministic (IParallelOrderedEnumerable is)
+			// thus the order of the initial Enumerable might not be preserved
+			CollectionAssert.AreEquivalent(sync, async, "#1");
+		}
+		
+		[TestAttribute]
+		public void WhereTestCase()
+		{
+			IEnumerable<int> sync  = baseEnumerable.Where(i => i % 2 == 0);
+			IEnumerable<int> async = baseEnumerable.AsParallel().Where(i => i % 2 == 0);
+			
+			// This is not AreEquals because IParallelEnumerable is not non-deterministic (IParallelOrderedEnumerable is)
+			// thus the order of the initial Enumerable might not be preserved
+			CollectionAssert.AreEquivalent(sync, async, "#1");
+		}
 	}
 }
