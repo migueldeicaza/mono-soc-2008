@@ -65,5 +65,32 @@ namespace ParallelFxTests
 			// thus the order of the initial Enumerable might not be preserved
 			CollectionAssert.AreEquivalent(sync, async, "#1");
 		}
+		
+		[TestAttribute]
+		public void CountTestCase()
+		{
+			int sync  = baseEnumerable.Count();
+			int async = baseEnumerable.AsParallel().Count();
+			
+			Assert.AreEqual(sync, async, "#1");
+		}
+		
+		[TestAttribute]
+		public void RangeTestCase()
+		{
+			int[] sync  = Enumerable.Range(1, 10).ToArray();
+			int[] async = ParallelEnumerable.Range(1, 10).ToArray();
+
+			CollectionAssert.AreEqual(sync, async, "#1");
+		}
+		
+		[TestAttribute]
+		public void RepeatTestCase()
+		{
+			int[] sync  = Enumerable.Repeat(1, 10).ToArray();
+			int[] async = ParallelEnumerable.Repeat(1, 10).ToArray();
+
+			CollectionAssert.AreEqual(sync, async, "#1");
+		}
 	}
 }

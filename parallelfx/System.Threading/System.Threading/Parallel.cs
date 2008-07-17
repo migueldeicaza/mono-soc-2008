@@ -69,11 +69,11 @@ namespace System.Threading
 			Task[] tasks = new Task[num];
 			ParallelState state = new ParallelState(tasks);
 			
-			int currentIndex = from - step;
+			int currentIndex = from;
 			
 			Action<object> workerMethod = delegate {
 				int index;
-				while ((index = Interlocked.Add(ref currentIndex, step)) < to && !state.IsStopped) {
+				while ((index = Interlocked.Add(ref currentIndex, step) - step) < to && !state.IsStopped) {
 					action (index, state);
 				}
 			};
@@ -238,7 +238,7 @@ namespace System.Threading
 		
 		internal static void SpawnBestNumber(Action action, int dop, bool wait)
 		{
-			int num = dop == -1 ? GetBestWorkerNumber() : dop;
+			int num = dop == -1 ? GetBestWorkerNumber() - 1 : dop;
 			Task[] tasks = new Task[num];
 			for (int i = 0; i < num; i++)
 				tasks[i] = Task.Create(_ => action());
