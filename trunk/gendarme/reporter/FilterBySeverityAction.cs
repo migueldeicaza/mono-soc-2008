@@ -29,7 +29,7 @@
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
-	public class FilterBySeverity : IAction {
+	public class FilterBySeverityAction : IAction {
 		public XDocument Process (XDocument document)
 		{
 			return document;
