@@ -92,6 +92,20 @@ namespace Test.Rules.Correctness {
 			{
 				String.Format ("{{Width={0}, Height={1}}}", width, height);
 			}
+
+			public void MethodWithGoodFormattingLoadingFromLocal ()
+			{
+				string message = "The error {0} is not valid";
+				string val = "Foo";
+				String.Format (message, val);
+			}
+
+			public void MethodWithBadFormattingLoadingFromLocal ()
+			{
+				string message = "The error {0} is not valid";
+				string val = "Foo";
+				String.Format (message);
+			}
 		}
 
 		[Test]
@@ -146,6 +160,18 @@ namespace Test.Rules.Correctness {
 		public void SuccessOnMethodWithGoodFormattingButWithMultipleBracketsTest ()
 		{
 			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingButWithMultipleBrackets");
+		}
+
+		[Test]
+		public void SuccessOnMethodWithGoodFormattingLoadingFromLocalTest ()
+		{
+			AssertRuleSuccess<FormattingCases> ("MethodWithGoodFormattingLoadingFromLocal");
+		}
+
+		[Test]
+		public void FailOnMethodWithBadFormattingLoadingFromLocalTest ()
+		{
+			AssertRuleFailure<FormattingCases> ("MethodWithBadFormattingLoadingFromLocal", 1);
 		}
 	}
 }
