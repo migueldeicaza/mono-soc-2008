@@ -42,7 +42,7 @@ namespace Gendarme.Reporter.Test {
 
 			document = new FilterBySeverityAction ().Process (document);
 			Assert.IsNotNull (document);
-
+			
 			critical = XDocument.Load ("Mono.Security.Critical.xml");
 			high = XDocument.Load ("Mono.Security.High.xml");
 			medium = XDocument.Load ("Mono.Security.Medium.xml");
