@@ -111,6 +111,11 @@ namespace Test.Rules.Correctness {
 			{
 				String.Format ("I forget include parameters.");
 			}
+
+			public void MethodCallingEnumFormat (Type type, object value)
+			{
+				 Enum.Format (type, value, "G");
+			}
 		}
 
 		[Test]
@@ -183,6 +188,12 @@ namespace Test.Rules.Correctness {
 		public void FailOnMethodWithoutParametersTest ()
 		{
 			AssertRuleFailure<FormattingCases> ("MethodWithoutParameters", 1);
+		}
+
+		[Test]
+		public void SkipOnMethodCallingEnumFormatTest ()
+		{
+			AssertRuleDoesNotApply<FormattingCases> ("MethodCallingEnumFormat");
 		}
 	}
 }

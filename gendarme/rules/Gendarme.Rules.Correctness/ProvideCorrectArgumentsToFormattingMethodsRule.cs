@@ -47,7 +47,8 @@ namespace Gendarme.Rules.Correctness {
 		{
 			return from Instruction instruction in method.Body.Instructions
 			where (instruction.OpCode.FlowControl == FlowControl.Call) && 
-				formatSignature.Matches ((MethodReference) instruction.Operand)	
+				formatSignature.Matches ((MethodReference) instruction.Operand) &&
+				String.Compare ("System.String", ((MethodReference) instruction.Operand).DeclaringType.ToString ()) == 0
 			select instruction;
 		}
 
@@ -123,9 +124,8 @@ namespace Gendarme.Rules.Correctness {
 					//start counting skipping the ldstr
 					//instruction which adds 1 to the counter
 					int elementsPushed = CountElementsInTheStack (method, loadString.Next, call);
-					//Console.WriteLine ("{0} ex - {1} pu- {2} method", expectedParameters, elementsPushed, method.Name);
 					if (elementsPushed == 0 && expectedParameters == 0) {
-						Runner.Report (method, call, Severity.Low, Confidence.Low, "You are calling String.Format without arguments, you can remove the call to String.Format");
+						Runner.Report (method, call, Severity.Low, Confidence.High, "You are calling String.Format without arguments, you can remove the call to String.Format");
 						continue;
 					}
 
@@ -137,7 +137,7 @@ namespace Gendarme.Rules.Correctness {
 					}
 
 					if (elementsPushed < expectedParameters)
-						Runner.Report (method, call, Severity.Critical, Confidence.Normal, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
+						Runner.Report (method, call, Severity.Critical, Confidence.High, String.Format ("The String.Format method is expecting {0} parameters, but only {1} are found.", expectedParameters, elementsPushed));
 				}
 
 			}
