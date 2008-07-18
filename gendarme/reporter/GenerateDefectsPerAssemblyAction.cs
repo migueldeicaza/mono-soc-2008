@@ -40,9 +40,7 @@ namespace Gendarme.Reporter {
 			generated.Root.Add (new XElement ("files", 
 				from file in filesSection.Elements ()
 				where file.Attribute ("Name").Value.Split (',')[0] == assemblyName
-				select new XElement ("file", 
-					new XAttribute ("Name", file.Attribute ("Name").Value),
-					new XText (file.Value))));
+				select file)); 
 			return generated;
 		}
 
