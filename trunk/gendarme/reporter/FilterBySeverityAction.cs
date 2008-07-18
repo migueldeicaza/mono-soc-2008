@@ -60,7 +60,7 @@ namespace Gendarme.Reporter {
 			}
 		}
 
-		public XDocument[] Process (XDocument[] documents)
+		public XDocument[] Process (params XDocument[] documents)
 		{
 			foreach (XDocument document in documents) {
 				string assemblyName = (from file in document.Root.Element ("files").Elements ()

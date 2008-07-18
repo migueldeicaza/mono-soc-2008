@@ -48,7 +48,7 @@ namespace Gendarme.Reporter {
 			return actions.ToArray ();
 		}
 		
-		public XDocument[] ApplyActions (XDocument[] documents)
+		public XDocument[] ApplyActions (params XDocument[] documents)
 		{
 			XDocument[] results = documents;
 			foreach (IAction action in actions) 

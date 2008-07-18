@@ -74,7 +74,7 @@ namespace Gendarme.Reporter {
 			return document;
 		}
 
-		public XDocument[] Process (XDocument[] documents)
+		public XDocument[] Process (params XDocument[] documents)
 		{
 			foreach (XDocument document in documents) {
 				var filesToWrite = from file in document.Root.Element ("files").Elements ()
