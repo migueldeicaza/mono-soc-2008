@@ -37,19 +37,27 @@ namespace Gendarme.Reporter {
 		static readonly string Medium = "Medium";
 		static readonly string Low = "Low";
 
-		public XDocument CreateDefectlessDocument (XDocument original)
+		public XDocument CloneDocument (XDocument original)
 		{
-			return new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
-				new XProcessingInstruction ("xml-stylesheet","type='text/xsl' href='gendarme.xsl'"),
-				new XElement ("gendarme-output", original.Root.Attribute ("date"),
-				original.Root.Element ("files"),
-				original.Root.Element ("rules"),
-				new XElement ("results")));
+			return new XDocument (original);
 
 		}
 
-		public void AddDefectsWithSeverity (string severity, XDocument newDocument, XDocument original)
+		public void RemoveDefectsWithoutSeverity (string severity, XDocument newDocument)
 		{
+			foreach (XElement rule in newDocument.Root.Element ("results").Elements ()) {
+				foreach (XElement target in rule.Elements ("target")) {
+					foreach (XElement defect in target.Elements ("defect")) {
+						if (String.Compare (defect.Attribute ("Severity").Value, severity) != 0)
+							defect.Remove ();
+					}
+
+					if (target.Elements ("defect").Count () == 0)
+						target.Remove ();
+				}
+				if (rule.Elements ("target").Count () == 0)
+					rule.Remove ();
+			}
 		}
 
 		public XDocument Process (XDocument document)
@@ -58,15 +66,15 @@ namespace Gendarme.Reporter {
 				select file.Attribute ("Name").Value.Split
 				(',')[0]).First ();
 			
-			XDocument critical = CreateDefectlessDocument (document);
-			XDocument high = CreateDefectlessDocument (document);
-			XDocument medium = CreateDefectlessDocument (document);
-			XDocument low = CreateDefectlessDocument (document);
+			XDocument critical = CloneDocument (document);
+			XDocument high = CloneDocument (document);
+			XDocument medium = CloneDocument (document);
+			XDocument low = CloneDocument (document);
 
-			AddDefectsWithSeverity (Critical, critical, document);
-			AddDefectsWithSeverity (High, high, document);
-			AddDefectsWithSeverity (Medium, medium, document);
-			AddDefectsWithSeverity (Low, low, document);
+			RemoveDefectsWithoutSeverity (Critical, critical);
+			RemoveDefectsWithoutSeverity (High, high);
+			RemoveDefectsWithoutSeverity (Medium, medium);
+			RemoveDefectsWithoutSeverity (Low, low);
 
 			new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName)).Process (critical);
 			new WriteToFileAction (String.Format ("{0}.High.xml", assemblyName)).Process (high);
