@@ -41,7 +41,7 @@ namespace Gendarme.Reporter {
 				from file in filesSection.Elements ()
 				where file.Attribute ("Name").Value.Split (',')[0] == assemblyName
 				select new XElement ("file", 
-					new XAttribute ("Name", file.Attribute ("Name")),
+					new XAttribute ("Name", file.Attribute ("Name").Value),
 					new XText (file.Value))));
 			return generated;
 		}
@@ -91,6 +91,9 @@ namespace Gendarme.Reporter {
 				generatedDocument = AddResultsSection (generatedDocument, file, document.Root.Element ("results"));
 			
 				new WriteToFileAction (String.Format ("{0}.xml", file)).Process (generatedDocument);
+
+				//DIRTY HACK:
+				new FilterBySeverityAction ().Process (generatedDocument);
 			}
 
 			return document;
