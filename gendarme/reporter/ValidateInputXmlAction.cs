@@ -55,7 +55,7 @@ namespace Gendarme.Reporter {
 			validationErrors.Add (args.Exception.Message.Replace ("XmlSchema error", String.Format ("Error in the Xml file")));	
 		}
 
-		public XDocument[] Process (XDocument[] documents)
+		public XDocument[] Process (params XDocument[] documents)
 		{
 			foreach (XDocument document in documents) {
 				using (Stream stream = GetStreamFromResource ("gendarme-output.xsd")) {

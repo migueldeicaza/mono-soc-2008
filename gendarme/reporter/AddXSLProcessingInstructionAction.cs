@@ -39,7 +39,7 @@ namespace Gendarme.Reporter {
 			this.xslReference = xslReference;
 		}
 
-		public XDocument[] Process (XDocument[] documents)
+		public XDocument[] Process (params XDocument[] documents)
 		{
 			List<XDocument> results = new List<XDocument> ();
 			foreach (XDocument document in documents) {

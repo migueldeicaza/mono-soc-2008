@@ -38,7 +38,7 @@ namespace Gendarme.Reporter {
 			this.destinationFile = destinationFile;
 		}
 
-		public XDocument[] Process (XDocument[] documents)
+		public XDocument[] Process (params XDocument[] documents)
 		{
 			foreach (XDocument document in documents) {
 				using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
