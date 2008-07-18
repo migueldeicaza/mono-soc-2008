@@ -41,8 +41,8 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (fileName);
 			Assert.IsNotNull (document);
 
-			document = new ValidateInputXmlAction ().Process (document);
-			return document;
+			XDocument[] documents = new ValidateInputXmlAction ().Process (new XDocument[] {document});
+			return documents == null ? null : documents[0];
 		}
 
 		[Test]

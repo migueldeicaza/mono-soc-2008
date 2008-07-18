@@ -38,22 +38,27 @@ namespace Gendarme.Reporter.Test {
 	[TestFixture]
 	public class AddXSLProcessingInstructionActionTest {
 		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";	
+		XDocument document;
 
 		private XDocument GetProcessedDocument ()
 		{
-			XDocument document = XDocument.Load (xmlFile);
-			Assert.IsNotNull (document);
+			XDocument loaded = XDocument.Load (xmlFile);
+			Assert.IsNotNull (loaded);
 
-			document = AddXSLProcessingInstructionAction.GendarmeStyle.Process (document);	
-			Assert.IsNotNull (document);
-			return document;
+			loaded = AddXSLProcessingInstructionAction.GendarmeStyle.Process (new XDocument[] {loaded})[0];	
+			Assert.IsNotNull (loaded);
+			return loaded;
+		}
+
+		[TestFixtureSetUp]
+		public void TestFixtureSetUp ()
+		{
+			document = GetProcessedDocument ();
 		}
 
 		[Test]
 		public void ProcessExistenceTest ()
 		{
-			XDocument document = GetProcessedDocument ();
-
 			var query = from element in document.Nodes ()
 				where element is XProcessingInstruction
 				select element;
@@ -64,7 +69,6 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void ProcessLocationTest ()
 		{
-			XDocument document = GetProcessedDocument ();
 			var query = from element in document.Nodes ()
 				where element is XProcessingInstruction
 				select element;
@@ -78,10 +82,9 @@ namespace Gendarme.Reporter.Test {
 		[Test]
 		public void SkipOnAlreadyAddedTest ()
 		{
-			XDocument document = GetProcessedDocument ();
-			document = AddXSLProcessingInstructionAction.GendarmeStyle.Process (document);
+			XDocument newDocument = AddXSLProcessingInstructionAction.GendarmeStyle.Process (new XDocument[] {document})[0];
 
-			var query = from element in document.Nodes ()
+			var query = from element in newDocument.Nodes ()
 				where element is XProcessingInstruction
 				select element;
 
