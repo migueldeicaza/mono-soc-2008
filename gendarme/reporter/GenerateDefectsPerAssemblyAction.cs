@@ -74,27 +74,28 @@ namespace Gendarme.Reporter {
 			return document;
 		}
 
-		public XDocument Process (XDocument document)
+		public XDocument[] Process (XDocument[] documents)
 		{
-			var filesToWrite = from file in document.Root.Element ("files").Elements ()
+			foreach (XDocument document in documents) {
+				var filesToWrite = from file in document.Root.Element ("files").Elements ()
 				select file.Attribute ("Name").Value.Split (',')[0];
 			
-			foreach (var file in filesToWrite) {
-				XDocument generatedDocument = CreateDocument ();
-				//TODO: Extrac some methods in order to preserve
-				//the coherence
-				generatedDocument.Add (new XElement ("gendarme-output", new XAttribute ("date", document.Root.Attribute("date").Value)));
-				generatedDocument = AddFilesSection (generatedDocument, file, document.Root.Element ("files"));
-				generatedDocument.Root.Add (document.Root.Element ("rules"));
-				generatedDocument = AddResultsSection (generatedDocument, file, document.Root.Element ("results"));
+				foreach (var file in filesToWrite) {
+					XDocument generatedDocument = CreateDocument ();
+					//TODO: Extrac some methods in order to preserve
+					//the coherence
+					generatedDocument.Add (new XElement ("gendarme-output", new XAttribute ("date", document.Root.Attribute("date").Value)));
+					generatedDocument = AddFilesSection (generatedDocument, file, document.Root.Element ("files"));
+					generatedDocument.Root.Add (document.Root.Element ("rules"));
+					generatedDocument = AddResultsSection (generatedDocument, file, document.Root.Element ("results"));
 			
-				new WriteToFileAction (String.Format ("{0}.xml", file)).Process (generatedDocument);
+					new WriteToFileAction (String.Format ("{0}.xml", file)).Process (new XDocument[] {generatedDocument});
+					//DIRTY HACK:
+					new FilterBySeverityAction ().Process (new XDocument[] {generatedDocument});
+				}
 
-				//DIRTY HACK:
-				new FilterBySeverityAction ().Process (generatedDocument);
 			}
-
-			return document;
+			return documents;
 		}
 	}
 }

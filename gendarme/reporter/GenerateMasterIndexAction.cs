@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
 
@@ -76,15 +77,18 @@ namespace Gendarme.Reporter {
 			));	
 		}
 
-		public XDocument Process (XDocument document)
+		public XDocument[] Process (XDocument[] documents)
 		{
-			originalDocument = document;
-			XDocument newDocument = CreateStandardXmlDocument ();
-
-			newDocument.Add (CreateRootElementFrom (document.Root));
-			newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
-
-			return newDocument;
+			List<XDocument> results = new List<XDocument> ();
+			foreach (XDocument document in documents) {
+				originalDocument = document;
+				XDocument newDocument = CreateStandardXmlDocument ();
+	
+				newDocument.Add (CreateRootElementFrom (document.Root));
+				newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
+				results.Add (newDocument);
+			}
+			return results.ToArray ();
 		}
 	}
 }

@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
@@ -38,13 +39,16 @@ namespace Gendarme.Reporter {
 			this.xslReference = xslReference;
 		}
 
-		public XDocument Process (XDocument document)
+		public XDocument[] Process (XDocument[] documents)
 		{
-			XDocument newDocument = new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
-				new XProcessingInstruction ("xml-stylesheet", String.Format ("type='text/xsl' href='{0}'", xslReference)),
-				document.Root);
+			List<XDocument> results = new List<XDocument> ();
+			foreach (XDocument document in documents) {
+				results.Add (new XDocument (new XDeclaration ("1.0", "utf-8", "yes"),
+					new XProcessingInstruction ("xml-stylesheet", String.Format ("type='text/xsl' href='{0}'", xslReference)), 
+					document.Root));
+			}
 
-			return newDocument;
+			return results.ToArray ();
 		}
 		
 		public static AddXSLProcessingInstructionAction GendarmeStyle {

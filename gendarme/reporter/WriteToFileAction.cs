@@ -38,11 +38,13 @@ namespace Gendarme.Reporter {
 			this.destinationFile = destinationFile;
 		}
 
-		public XDocument Process (XDocument document)
+		public XDocument[] Process (XDocument[] documents)
 		{
-			using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
-				document.Save (writer);
-			return document;
+			foreach (XDocument document in documents) {
+				using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
+					document.Save (writer);
+			}
+			return documents;
 		}
 	}
 }
