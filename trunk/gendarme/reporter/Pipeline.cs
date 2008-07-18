@@ -48,12 +48,12 @@ namespace Gendarme.Reporter {
 			return actions.ToArray ();
 		}
 		
-		public XDocument ApplyActions (XDocument document)
+		public XDocument[] ApplyActions (XDocument[] documents)
 		{
-			XDocument result = document;
+			XDocument[] results = documents;
 			foreach (IAction action in actions) 
-				result = action.Process (result);
-			return result;
+				results = action.Process (results);
+			return results;
 		}
 	}
 }

@@ -55,26 +55,26 @@ namespace Gendarme.Reporter {
 			validationErrors.Add (args.Exception.Message.Replace ("XmlSchema error", String.Format ("Error in the Xml file")));	
 		}
 
-		public XDocument Process (XDocument document)
+		public XDocument[] Process (XDocument[] documents)
 		{
-			using (Stream stream = GetStreamFromResource ("gendarme-output.xsd")) {
-				if (stream == null)
-					throw new InvalidDataException ("Could not locate Xml Schema Deficintion inside resources");
+			foreach (XDocument document in documents) {
+				using (Stream stream = GetStreamFromResource ("gendarme-output.xsd")) {
+					if (stream == null)
+						throw new InvalidDataException ("Could not locate Xml Schema Deficintion inside resources");
 
-				XmlReaderSettings settings = new XmlReaderSettings ();
-				settings.Schemas.Add (XmlSchema.Read (stream, OnValidationErrors));
-				settings.ValidationType = ValidationType.Schema;
-				settings.ValidationEventHandler += OnValidationErrors;
-				using (XmlReader reader = XmlReader.Create (new StringReader (document.ToString ()), settings)) {
-					while (reader.Read ()) {}
+					XmlReaderSettings settings = new XmlReaderSettings ();
+					settings.Schemas.Add (XmlSchema.Read (stream, OnValidationErrors));
+					settings.ValidationType = ValidationType.Schema;
+					settings.ValidationEventHandler += OnValidationErrors;
+					using (XmlReader reader = XmlReader.Create (new StringReader (document.ToString ()), settings)) {
+						while (reader.Read ()) {}
+					}
 				}
-					
+
+				foreach (String message in validationErrors)
+					Console.Error.WriteLine (message);
 			}
-
-			foreach (String message in validationErrors)
-				Console.Error.WriteLine (message);
-
-			return (validationErrors.Count () == 0) ? document : null;
+			return (validationErrors.Count () == 0) ? documents : null;
 		}
 	}
 }
