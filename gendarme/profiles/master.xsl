@@ -32,10 +32,26 @@
 					<a href="{@shortname}.xml">
 						<xsl:value-of select="@shortname"/>
 					</a>
-						<td><xsl:value-of select="@critical"/></td>
-						<td><xsl:value-of select="@high"/></td>
-						<td><xsl:value-of select="@medium"/></td>
-						<td><xsl:value-of select="@low"/></td>
+						<td>
+							<a href="{@shortname}.Critical.xml">
+							<xsl:value-of select="@critical"/>
+							</a>
+						</td>
+						<td>
+							<a href="{@shortname}.High.xml">
+							<xsl:value-of select="@high"/>
+							</a>
+						</td>
+						<td>
+							<a href="{@shortname}.Medium.xml">
+							<xsl:value-of select="@medium"/>
+							</a>
+						</td>
+						<td>
+							<a href="{@shortname}.Low.xml">
+							<xsl:value-of select="@low"/>
+							</a>
+						</td>
 					</tr>
 				</xsl:for-each>
 				</table>
