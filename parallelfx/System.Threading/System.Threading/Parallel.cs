@@ -29,7 +29,6 @@ using System.Threading.Tasks;
 
 namespace System.Threading
 {
-	
 	public static class Parallel
 	{
 		static int GetBestWorkerNumber()
@@ -226,24 +225,34 @@ namespace System.Threading
 			HandleExceptions(ts);
 		}
 		
-		internal static void SpawnBestNumber(Action action)
+		internal static Task[] SpawnBestNumber(Action action, Action callback)
 		{
-			SpawnBestNumber(action, -1);
+			return SpawnBestNumber(action, -1, callback);
 		}
 		
-		internal static void SpawnBestNumber(Action action, int dop)
+		internal static Task[] SpawnBestNumber(Action action, int dop, Action callback)
 		{
-			SpawnBestNumber(action, dop, false);
+			return SpawnBestNumber(action, dop, false, callback);
 		}
 		
-		internal static void SpawnBestNumber(Action action, int dop, bool wait)
+		internal static Task[] SpawnBestNumber(Action action, int dop, bool wait, Action callback)
 		{
-			int num = dop == -1 ? GetBestWorkerNumber() - 1 : dop;
+			int num = dop == -1 ? GetBestWorkerNumber() : dop;
 			Task[] tasks = new Task[num];
-			for (int i = 0; i < num; i++)
+			for (int i = 0; i < num; i++) {
 				tasks[i] = Task.Create(_ => action());
+			}
+			if (callback != null) {
+				for (int j = 0; j < num; j++) {
+					tasks[j].ContinueWith(delegate {
+						Task.WaitAll(tasks);
+						callback();
+					});
+				}
+			}
 			if (wait)
 				Task.WaitAll(tasks);
+			return tasks;
 		}
 	}
 }

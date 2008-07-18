@@ -137,7 +137,6 @@ namespace System.Threading.Tasks
 			return result;
 		}
 		
-		
 		public Task ContinueWith(Action<Task> a)
 		{
 			return ContinueWith(a, TaskContinuationKind.OnAny, TaskCreationOptions.None);

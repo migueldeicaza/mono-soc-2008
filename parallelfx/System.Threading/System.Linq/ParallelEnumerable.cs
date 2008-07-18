@@ -35,54 +35,65 @@ namespace System.Linq
 		
 		static int Dop<T>(this IParallelEnumerable<T> source)
 		{
-			ParallelEnumerable<T> temp = source as ParallelEnumerable<T>;
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			return temp == null ? defaultDop : temp.Dop;
 		}
 		
 		static void IsNotLast<T>(this IParallelEnumerable<T> source)
 		{
-			ParallelEnumerable<T> temp = source as ParallelEnumerable<T>;
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			if (temp == null)
 				return;
 			temp.IsLast = false;
+			//Console.WriteLine("Correctly IsNotLast-ed");
+		}
+		
+		static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
+		{
+			IParallelEnumerator<T> temp = source.GetEnumerator() as IParallelEnumerator<T>;
+			return temp;
 		}
 		
 		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
 		{
 			source.IsNotLast();
-			IEnumerator<TSource> feedEnum = source.GetEnumerator();
+			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
 			int index = -1;
 			
 			Parallel.SpawnBestNumber(delegate {
-				// Technically it's not exact, we might get preempted
-				int i = Interlocked.Increment(ref index);
-				while (feedEnum.MoveNext()) {
-					// TODO: need to throw possible Exception stored in Task when the processing is finished
-					action(i, feedEnum.Current);
+				TSource item;
+				while (feedEnum.MoveNext(out item)) {
+					// Technically it's not exact, we might get preempted
+					int i = Interlocked.Increment(ref index);
+					action(i, item);
 				}
-			}, source.Dop(), block);
+			}, source.Dop(), block, null);
 		}
 		
-		static ParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
-		                                                    Action<BlockingCollection<TResult>, int, TSource> action)
+		static IParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
+		                                                    Action<Action<TResult>, int, TSource> action)
 		{
 			source.IsNotLast();
-			BlockingCollection<TResult> resultBuffer = new BlockingCollection<TResult>();
-			IEnumerator<TSource> feedEnum = source.GetEnumerator();
-			int index = -1;
 			
-			Action a = delegate {
-				// Technically it's not exact, we might get preempted
-				if (feedEnum.MoveNext ()) {
+			BlockingCollection<TResult>  resultBuffer = new BlockingCollection<TResult>();
+			IParallelEnumerator<TSource> feedEnum     = source.GetParallelEnumerator();
+			int                          index        = -1;
+			
+			Func<Action<TResult>, bool> a = delegate(Action<TResult> adder) {
+				TSource item;
+				if (feedEnum.MoveNext (out item)) {
+					//Console.WriteLine("Was able to move next, " + Thread.CurrentThread.ManagedThreadId);
+					// Technically it's not exact, we might get preempted
 					int i = Interlocked.Increment (ref index);
-					// TODO: need to throw possible Exception stored in Task when the processing is finished
-					action (resultBuffer, i, feedEnum.Current);
+					action (adder, i, item);
+					return true;
 				} else {
-					resultBuffer.CompleteAdding ();
+					//Console.WriteLine("Wasn't able to move next, " + Thread.CurrentThread.ManagedThreadId);
+					return false;
 				}
 			};
 			
-			return new ParallelEnumerable<TResult>(a, resultBuffer, source.Dop());
+			return ParallelEnumerableFactory.GetFromBlockingCollection<TResult>(resultBuffer, a, source.Dop());
 		}
 		
 		#region Select
@@ -95,8 +106,8 @@ namespace System.Linq
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
-			return Process<TSource, TResult> (source, delegate (BlockingCollection<TResult> resultBuffer, int i, TSource e) {
-				resultBuffer.Add(selector(e, i));
+			return Process<TSource, TResult> (source, delegate (Action<TResult> adder, int i, TSource e) {
+				adder(selector(e, i));
 			});
 		}
 		#endregion
@@ -111,9 +122,9 @@ namespace System.Linq
 		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, bool> predicate)
 		{
-			return Process<TSource, TSource> (source, delegate (BlockingCollection<TSource> resultBuffer, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (Action<TSource> adder, int i, TSource e) {
 				if (predicate(e, i))
-					resultBuffer.Add(e);
+					adder(e);
 			});
 		}
 		#endregion
@@ -138,10 +149,10 @@ namespace System.Linq
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
-			return ParallelEnumerable<int>.GetRangeParallelEnumerable (start, count, defaultDop);
+			return ParallelEnumerableFactory.GetFromRange (start, count, defaultDop);
 		}
 		
-		public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
+		/*public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
 		{
 			ConcurrentStack<TResult> stack = new ConcurrentStack<TResult>();
 			// Is Parallel.For really necessary ?
@@ -153,7 +164,7 @@ namespace System.Linq
 			coll.CompleteAdding();
 			
 			return new ParallelEnumerable<TResult>(coll, defaultDop);
-		}
+		}*/
 		#endregion
 	}
 }

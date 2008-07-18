@@ -24,6 +24,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Collections;
@@ -61,10 +62,10 @@ namespace System.Linq
 			const int chunkSize = 10;
 			bool cont = true;
 			int i;
+			T[] buffer = new T[chunkSize];
+			Console.WriteLine("Getting Parallel enumerator from standard Enumerable");
 			
 			while (cont) {
-				T[] buffer = new T[chunkSize];
-				
 				try {
 					sl.Enter();
 					for (i = 0; i < chunkSize; i++) {
@@ -78,8 +79,10 @@ namespace System.Linq
 					sl.Exit();
 				}
 				
-				for (int j = 0; j < i; j++)
+				for (int j = 0; j < i; j++) {
+					Console.WriteLine("Parallel enumerator from standard Enumerable yielding");
 					yield return buffer[j];
+				}
 			}
 		}
 		
@@ -91,37 +94,89 @@ namespace System.Linq
 			getEnumerator = GetEnumeratorFromBlockingCollection;
 		}
 				
-		IEnumerator<T> GetEnumeratorFromBlockingCollection()
+		class BlockingCollectionEnumerator: IEnumerator<T>
 		{
-			if (isLast) {
-				Parallel.SpawnBestNumber(delegate {
-					while (!bColl.IsAddingComplete)
-						action();
-				}, dop);
+			T current;
+			readonly BlockingCollection<T> bColl;
+			readonly bool isLast;
+			readonly Action action;
+			
+			public BlockingCollectionEnumerator(BlockingCollection<T> bColl, bool isLast, Action action)
+			{
+				this.bColl =  bColl;
+				this.isLast = isLast;
+				this.action = action;
 			}
-			// HACK: Yikes !
-			while (!bColl.IsCompleted) {
-				if (!isLast) {
-					T element;
-					do {
-						action();
-					} while (!bColl.TryRemove(out element) && !bColl.IsCompleted);
-					if (!bColl.IsCompleted)
-						yield return element;
-				} else {
-					foreach (T item in bColl.GetConsumingEnumerable())
-						yield return item;
+			
+			T IEnumerator<T>.Current {
+				get {
+					return current;
 				}
+			}
+			
+			object IEnumerator.Current {
+				get {
+					return (object) current;
+				}
+			}
+			
+			public bool MoveNext()
+			{
+				if (bColl.IsCompleted)
+					return false;
+				
+				if (!isLast) {
+					Console.WriteLine("Attempting child action from : " + Thread.CurrentThread.ManagedThreadId);
+					if (!bColl.IsAddingComplete) {
+						do {
+							action();
+						} while (bColl.TryRemove(out current) && !bColl.IsCompleted);
+					}
+					if (bColl.IsCompleted) {
+						return false;
+					}
+				} else {
+					Console.WriteLine("Main operator yielding");
+					if (bColl.IsCompleted)
+						return false;
+					current = bColl.Remove();
+				}
+				
+				return true;
+			}
+			
+			public void Reset()
+			{
+				
+			}
+			
+			public void Dispose()
+			{
 			}
 		}
 		
-		// Will use range partitionning
+		IEnumerator<T> GetEnumeratorFromBlockingCollection()
+		{
+			if (isLast) {
+				Console.WriteLine("Starting main parallel looping " + Thread.CurrentThread.ManagedThreadId);
+				Parallel.SpawnBestNumber(delegate {
+						while (!bColl.IsAddingComplete) {
+							Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
+							action();
+						}
+				}, dop);
+			}
+			
+			return new BlockingCollectionEnumerator(bColl, isLast, action);
+		}
+		
 		public ParallelEnumerable(int dop)
 		{
 			this.dop = dop;
 			this.isLast = true;
 		}
 		
+		// Will use range partitionning
 		public static ParallelEnumerable<int> GetRangeParallelEnumerable(int from, int count, int dop)
 		{
 			//HACK: rather ugly
@@ -133,7 +188,7 @@ namespace System.Linq
 			return temp;
 		}
 		
-		IEnumerator<int> GetEnumeratorFromRange()
+		protected IEnumerator<int> GetEnumeratorFromRange()
 		{
 			int counter = from;
 			int value;
@@ -150,6 +205,16 @@ namespace System.Linq
 			return getEnumerator();
 		}
 		
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			return getEnumerator();
+		}
+		
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return (IEnumerator)getEnumerator();
+		}
+		
 		public int Dop {
 			get {
 				return dop;
@@ -163,16 +228,6 @@ namespace System.Linq
 			set {
 				isLast = value;
 			}
-		}
-		
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
-		{
-			return getEnumerator();
-		}
-		
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return (IEnumerator)getEnumerator();
 		}
 	}
 }
