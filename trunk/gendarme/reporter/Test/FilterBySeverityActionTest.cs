@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.IO;
 using System.Xml.Linq;
 using NUnit.Framework;
@@ -40,13 +41,14 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load ("Test/Fakes/Mono.Security.xml");
 			Assert.IsNotNull (document);
 
-			document = new FilterBySeverityAction ().Process (new XDocument[] {document})[0];
+			XDocument[] documents = new FilterBySeverityAction ().Process (document);
 			Assert.IsNotNull (document);
+			Assert.AreEqual (4, documents.Length);
 			
-			critical = XDocument.Load ("Mono.Security.Critical.xml");
-			high = XDocument.Load ("Mono.Security.High.xml");
-			medium = XDocument.Load ("Mono.Security.Medium.xml");
-			low = XDocument.Load ("Mono.Security.Low.xml");
+			critical = documents[0];
+			high = documents[1];
+			medium = documents[2];
+			low = documents[3];
 		}
 
 		[TestFixtureSetUp]
@@ -62,6 +64,13 @@ namespace Gendarme.Reporter.Test {
 				File.Delete (file);
 		}
 
+		[Test]
+		[ExpectedException (typeof (ArgumentException))]
+		public void PassMoreThanOneDocumentTest ()
+		{
+			new FilterBySeverityAction ().Process (critical, high);
+		}
+		
 		[Test]
 		public void AllDocumentsExistsTest ()
 		{

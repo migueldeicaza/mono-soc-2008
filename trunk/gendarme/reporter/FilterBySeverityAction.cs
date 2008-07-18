@@ -62,27 +62,32 @@ namespace Gendarme.Reporter {
 
 		public XDocument[] Process (params XDocument[] documents)
 		{
-			foreach (XDocument document in documents) {
-				string assemblyName = (from file in document.Root.Element ("files").Elements ()
-					select file.Attribute ("Name").Value.Split
-					(',')[0]).First ();
+			if (documents.Length != 1)
+				throw new ArgumentException ("You have to pass only one document.", "documents");
+
+			XDocument document = documents[0];
+
+			string assemblyName = (from file in document.Root.Element ("files").Elements ()
+				select file.Attribute ("Name").Value.Split
+				(',')[0]).First ();
 			
-				XDocument critical = CloneDocument (document);
-				XDocument high = CloneDocument (document);
-				XDocument medium = CloneDocument (document);
-				XDocument low = CloneDocument (document);
+			XDocument critical = CloneDocument (document);
+			XDocument high = CloneDocument (document);
+			XDocument medium = CloneDocument (document);
+			XDocument low = CloneDocument (document);
 
-				RemoveDefectsWithoutSeverity (Critical, critical);
-				RemoveDefectsWithoutSeverity (High, high);
-				RemoveDefectsWithoutSeverity (Medium, medium);
-				RemoveDefectsWithoutSeverity (Low, low);
+			RemoveDefectsWithoutSeverity (Critical, critical);
+			RemoveDefectsWithoutSeverity (High, high);
+			RemoveDefectsWithoutSeverity (Medium, medium);
+			RemoveDefectsWithoutSeverity (Low, low);
 
-				new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName)).Process (new XDocument[] {critical});
-				new WriteToFileAction (String.Format ("{0}.High.xml", assemblyName)).Process (new XDocument[] {high});
-				new WriteToFileAction (String.Format ("{0}.Medium.xml", assemblyName)).Process (new XDocument[] {medium});
-				new WriteToFileAction (String.Format ("{0}.Low.xml", assemblyName)).Process (new XDocument[] {low});
-			}
-			return documents;
+			//TODO: The actions should be separated units.
+			new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName)).Process (critical);
+			new WriteToFileAction (String.Format ("{0}.High.xml", assemblyName)).Process (high);
+			new WriteToFileAction (String.Format ("{0}.Medium.xml", assemblyName)).Process (medium);
+			new WriteToFileAction (String.Format ("{0}.Low.xml", assemblyName)).Process (low);
+
+			return new XDocument[] {critical, high, medium, low};
 		}
 	}
 }
