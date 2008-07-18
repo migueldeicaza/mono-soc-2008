@@ -42,7 +42,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
-			document = new GenerateDefectsPerAssemblyAction ().Process (document);
+			document = new GenerateDefectsPerAssemblyAction ().Process (new XDocument[] {document})[0];
 			Assert.IsNotNull (document);
 		}
 

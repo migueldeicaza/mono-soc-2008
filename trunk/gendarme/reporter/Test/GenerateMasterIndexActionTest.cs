@@ -50,7 +50,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
-			document = new GenerateMasterIndexAction ().Process (document);
+			document = new GenerateMasterIndexAction ().Process (new XDocument[] {document})[0];
 			Assert.IsNotNull (document);
 			return document;
 		}

@@ -40,7 +40,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load ("Test/Fakes/Mono.Security.xml");
 			Assert.IsNotNull (document);
 
-			document = new FilterBySeverityAction ().Process (document);
+			document = new FilterBySeverityAction ().Process (new XDocument[] {document})[0];
 			Assert.IsNotNull (document);
 			
 			critical = XDocument.Load ("Mono.Security.Critical.xml");
