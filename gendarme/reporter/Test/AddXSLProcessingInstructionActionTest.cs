@@ -42,12 +42,13 @@ namespace Gendarme.Reporter.Test {
 
 		private XDocument GetProcessedDocument ()
 		{
-			XDocument loaded = XDocument.Load (xmlFile);
-			Assert.IsNotNull (loaded);
+			XDocument document = XDocument.Load (xmlFile);
+			Assert.IsNotNull (document);
 
-			loaded = AddXSLProcessingInstructionAction.GendarmeStyle.Process (new XDocument[] {loaded})[0];	
-			Assert.IsNotNull (loaded);
-			return loaded;
+			XDocument[] documents = AddXSLProcessingInstructionAction.GendarmeStyle.Process (document);	
+			Assert.IsNotNull (documents);
+			Assert.AreEqual (1, documents.Length);	
+			return documents[0];
 		}
 
 		[TestFixtureSetUp]
