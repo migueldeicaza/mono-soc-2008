@@ -95,26 +95,24 @@ namespace System.Threading.Collections
 			return item;
 		}
 		
-		public bool TryAdd(out T item)
+		public bool TryAdd(T item)
 		{
 			if (isComplete || isFull()) {
-				item = default(T);
 				return false;
 			}
 			return underlyingColl.Add(item);
 		}
 		
-		public bool TryAdd(out T item, TimeSpan ts)
+		public bool TryAdd(T item, TimeSpan ts)
 		{
-			return TryAdd(out item, (int)ts.TotalMilliseconds);
+			return TryAdd(item, (int)ts.TotalMilliseconds);
 		}
 		
-		public bool TryAdd(out T item, int millisecondsTimeout)
+		public bool TryAdd(T item, int millisecondsTimeout)
 		{
 			Stopwatch sw = Stopwatch.StartNew();
 			while (isFull()) {
 				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
-					item = default(T);
 					sw.Stop();
 					return false;
 				}
@@ -151,6 +149,7 @@ namespace System.Threading.Collections
 		public void CompleteAdding()
 		{
 			isComplete = true;
+			//Console.WriteLine("Complete adding");
 		}
 		
 		public void CopyTo(Array array, int index)

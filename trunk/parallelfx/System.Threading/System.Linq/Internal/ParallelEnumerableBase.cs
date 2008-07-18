@@ -1,4 +1,4 @@
-// ParallelQuery.cs
+// ParallelEnumerableBase.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,20 +23,55 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace System.Linq
 {
-	public static class ParallelQuery
+	internal abstract class ParallelEnumerableBase<T>: IParallelEnumerable<T>
 	{
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
+		protected bool isLast = true;
+		
+		protected int dop;
+		
+		protected ParallelEnumerableBase(int dop)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, -1);
+			this.dop = dop;
 		}
 		
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
+		public IEnumerator<T> GetEnumerator(bool enablePipelining)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
+			// Don't care about Pipelining for the moment
+			// Just a matter of calling Task.WaitAll in the correct place
+			return GetParallelEnumerator();
 		}
+		
+		protected abstract IParallelEnumerator<T> GetParallelEnumerator();
+		
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			return (IEnumerator<T>)GetParallelEnumerator();
+		}
+		
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return (IEnumerator)GetParallelEnumerator();
+		}
+		
+		public bool IsLast {
+			get {
+				return isLast;
+			}
+			set {
+				isLast = value;
+			}
+		}
+
+		public int Dop {
+			get {
+				return dop;
+			}
+		}
+		
 	}
 }

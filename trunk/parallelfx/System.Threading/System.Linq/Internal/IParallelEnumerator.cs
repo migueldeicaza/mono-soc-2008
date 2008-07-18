@@ -1,4 +1,4 @@
-// ParallelQuery.cs
+// IParallelEnumerator.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,20 +23,15 @@
 //
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace System.Linq
 {
-	public static class ParallelQuery
+	internal interface IParallelEnumerator<T>: IEnumerator<T>
 	{
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
-		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, -1);
-		}
-		
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
-		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
-		}
+		// Do the same thing than IEnumerator.MoveNext but is thread-safe as the result 
+		// obtained via out is guaranteed to be unique and correct
+		bool MoveNext(out T item);
 	}
 }

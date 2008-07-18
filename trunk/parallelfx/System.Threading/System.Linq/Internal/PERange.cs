@@ -1,4 +1,4 @@
-// ParallelQuery.cs
+// PERange.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,20 +23,73 @@
 //
 
 using System;
+using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace System.Linq
 {
-	public static class ParallelQuery
+	internal class PERange: ParallelEnumerableBase<int>
 	{
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
+		int start, count;
+		
+		public PERange(int start, int count, int dop): base(dop)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, -1);
+			this.start = start;
+			this.count = count;
 		}
 		
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
+		class PERangeEnumerator: IParallelEnumerator<int>
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
+			static int current;
+			readonly int start, count;
+			int counter;
+			
+			public PERangeEnumerator(int start, int count)
+			{
+				this.start = this.counter = start;
+				this.count = count;
+			}
+			
+			int IEnumerator<int>.Current {
+				get {
+					return current;
+				}
+			}
+			
+			object IEnumerator.Current {
+				get {
+					return current;
+				}
+			}
+			
+			public bool MoveNext()
+			{
+				current = Interlocked.Increment(ref counter) - 1;
+				return current < (start + count);
+			}
+			
+			public bool MoveNext(out int item)
+			{
+				item = Interlocked.Increment(ref counter) - 1;
+				current = item;
+				return item < (start + count);
+			}
+			
+			public void Reset()
+			{
+				this.counter = start;
+			}
+			
+			public void Dispose()
+			{
+				
+			}
+		}
+		
+		protected override IParallelEnumerator<int> GetParallelEnumerator()
+		{
+			return new PERangeEnumerator(start, count);
 		}
 	}
 }

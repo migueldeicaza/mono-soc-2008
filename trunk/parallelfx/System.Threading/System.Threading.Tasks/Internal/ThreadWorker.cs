@@ -124,11 +124,11 @@ namespace System.Threading.Tasks
 		void WorkerMethodWrapper()
 		{
 			Task.childWorkAdder = (t) => { 
-				/*dDeque.PushBottom(t);
-				sched.PulseAll();*/
+				dDeque.PushBottom(t);
+				sched.PulseAll();
 				// Instead of adding as the next Task, preempt the current Task
 				// i.e. run it now (might be better suited to PLinq)
-				t.threadStart();
+				//t.threadStart();
 			};
 			int sleepTime = 0;
 			// Main loop

@@ -1,4 +1,4 @@
-// ParallelQuery.cs
+// ParallelEnumerableFactory.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,19 +24,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Collections;
 
 namespace System.Linq
 {
-	public static class ParallelQuery
+	
+	internal static class ParallelEnumerableFactory
 	{
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
+		public static IParallelEnumerable<T> GetFromBlockingCollection<T>(BlockingCollection<T> coll,
+		                                                                  Func<Action<T>, bool> action, int dop)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, -1);
+			return new System.Linq.PEBlockingCollection<T>(coll, action, dop);
 		}
 		
-		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
+		public static IParallelEnumerable<T> GetFromIEnumerable<T>(IEnumerable<T> coll, int dop)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
+			return new System.Linq.PEIEnumerable<T>(coll, dop);
+		}
+		
+		public static IParallelEnumerable<int> GetFromRange(int start, int count, int dop)
+		{
+			return new PERange(start, count, dop);
 		}
 	}
 }
