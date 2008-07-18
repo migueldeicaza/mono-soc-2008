@@ -48,7 +48,7 @@
 							</a>
 						</td>
 						<td>
-							<a href="{@shortname}.Medium.xml">
+							<a href="{@shortname}.Low.xml">
 							<xsl:value-of select="@low"/>
 							</a>
 						</td>
