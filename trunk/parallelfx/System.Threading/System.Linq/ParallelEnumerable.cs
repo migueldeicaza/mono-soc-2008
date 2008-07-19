@@ -146,25 +146,55 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region Aggregate
+		public static TResult Aggregate<TSource, TAccumulate, TResult>(this IParallelEnumerable<TSource> source,
+		                                                               Func<TAccumulate> seedFactory,
+		                                                               Func<TAccumulate, TSource, TAccumulate> intermediateReduceFunc,
+		                                                               Func<TAccumulate, TAccumulate, TAccumulate> finalReduceFunc,
+		                                                               Func<TAccumulate, TResult> resultSelector)
+		{
+			int count = Parallel.GetBestWorkerNumber();
+			TAccumulate[] accumulators = new TAccumulate[count];
+			for (int i = 0; i < count; i++) {
+				accumulators[i] = seedFactory();
+			}
+			
+			int index = -1;
+			Process<TSource>(source, delegate (int j, TSource element) {
+				int i = Interlocked.Increment(ref index) % count;
+				// Reduce results on each domain
+				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
+			}, true);
+			// Reduce the final domains into a single one
+			for (int i = 1; i < count; i++) {
+				accumulators[0] = finalReduceFunc(accumulators[0], accumulators[i]);
+			}
+			// Return the final result
+			return resultSelector(accumulators[0]);
+		}
+		#endregion
+		
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
 			return ParallelEnumerableFactory.GetFromRange (start, count, defaultDop);
 		}
 		
-		/*public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
+		public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
 		{
-			ConcurrentStack<TResult> stack = new ConcurrentStack<TResult>();
-			// Is Parallel.For really necessary ?
-			Parallel.For(0, count, delegate (int i) {
-				stack.Push(element);
-			});
+			int numTime = -1;
 			
-			BlockingCollection<TResult> coll = new BlockingCollection<TResult>(stack, count);
-			coll.CompleteAdding();
+			Func<Action<TResult>, bool> action = delegate (Action<TResult> adder) {
+				int temp = Interlocked.Increment(ref numTime);
+				if (temp >= count)
+				    return false;
+				adder(element);
+				return true;
+			};
 			
-			return new ParallelEnumerable<TResult>(coll, defaultDop);
-		}*/
+			return ParallelEnumerableFactory.GetFromBlockingCollection(new BlockingCollection<TResult>(new ConcurrentStack<TResult>(), count)
+			                                                           , action, defaultDop);
+		}
 		#endregion
 	}
 }

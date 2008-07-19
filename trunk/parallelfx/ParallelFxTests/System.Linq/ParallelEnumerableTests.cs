@@ -82,6 +82,19 @@ namespace ParallelFxTests
 		}
 		
 		[TestAttribute]
+		public void AggregateTestCase()
+		{
+			IParallelEnumerable<int> range = ParallelEnumerable.Range(1, 10);
+			double average = range.Aggregate(
+			                              () => new double[2],
+			                              (acc, elem) => { acc[0] += elem; acc[1]++; return acc; },
+			                              (acc1, acc2) => { acc1[0] += acc2[0]; acc1[1] += acc2[1]; return acc1; },
+			                              acc => acc[0] / acc[1]);
+			
+			Assert.AreEqual(5.5, average, "#1");
+		}
+		
+		[TestAttribute]
 		public void RangeTestCase()
 		{
 			int[] sync  = Enumerable.Range(1, 10).ToArray();
@@ -90,13 +103,13 @@ namespace ParallelFxTests
 			CollectionAssert.AreEqual(sync, async, "#1");
 		}
 		
-		/*[TestAttribute]
+		[TestAttribute]
 		public void RepeatTestCase()
 		{
 			int[] sync  = Enumerable.Repeat(1, 10).ToArray();
 			int[] async = ParallelEnumerable.Repeat(1, 10).ToArray();
 
 			CollectionAssert.AreEqual(sync, async, "#1");
-		}*/
+		}
 	}
 }

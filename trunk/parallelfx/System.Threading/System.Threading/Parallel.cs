@@ -31,7 +31,7 @@ namespace System.Threading
 {
 	public static class Parallel
 	{
-		static int GetBestWorkerNumber()
+		public static int GetBestWorkerNumber()
 		{
 			TaskManagerPolicy policy = TaskManager.Current.Policy;
 			
