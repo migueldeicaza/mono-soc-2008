@@ -42,6 +42,11 @@ namespace System.Linq
 			return new System.Linq.PEIEnumerable<T>(coll, dop);
 		}
 		
+		public static IParallelEnumerable<T> GetFromIParallelEnumerable<T>(int dop, params IParallelEnumerable<T>[] enumerables)
+		{
+			return new System.Linq.PEConcat<T>(enumerables, dop);
+		}
+		
 		public static IParallelEnumerable<int> GetFromRange(int start, int count, int dop)
 		{
 			return new PERange(start, count, dop);

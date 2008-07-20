@@ -66,6 +66,9 @@ namespace System.Threading.Tasks
 				parent = null;
 			
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
+			
+			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
+				Task.Create(action, state, tm, taskCreationOptions);
 		}
 		
 		protected void Schedule()

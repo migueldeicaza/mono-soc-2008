@@ -48,6 +48,15 @@ namespace System.Linq
 		
 		protected abstract IParallelEnumerator<T> GetParallelEnumerator();
 		
+		// This method is to be used by Linq operators who doesn't really care about the 
+		// result of the computation like Any()
+		internal protected virtual IParallelEnumerator<T> GetSynchronousParallelEnumerator()
+		{
+			// By default we return the standard IParallelEnumerator, this will be overriden only
+			// by PEBlockingCollection to remove the call to SpawnBestNumber()
+			return GetParallelEnumerator();
+		}
+		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
 			return (IEnumerator<T>)GetParallelEnumerator();

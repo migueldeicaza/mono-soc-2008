@@ -44,14 +44,14 @@ namespace ParallelFxTests
 			baseEnumerable = Enumerable.Range(1, 500);
 		}
 		
-		void AreEquivalent(IEnumerable<int> syncEnumerable, IEnumerable<int> asyncEnumerable)
+		void AreEquivalent(IEnumerable<int> syncEnumerable, IEnumerable<int> asyncEnumerable, int count)
 		{
 			int[] sync  = syncEnumerable.ToArray();
 			int[] async = asyncEnumerable.ToArray();
 			
 			// This is not AreEquals because IParallelEnumerable is not non-deterministic (IParallelOrderedEnumerable is)
 			// thus the order of the initial Enumerable might not be preserved
-			CollectionAssert.AreEquivalent(sync, async, "#1");
+			CollectionAssert.AreEquivalent(sync, async, "#" + count);
 		}
 
 		[TestAttribute]
@@ -60,7 +60,7 @@ namespace ParallelFxTests
 			IEnumerable<int> sync  = baseEnumerable.Select(i => i * i).ToArray();
 			IEnumerable<int> async = baseEnumerable.AsParallel().Select(i => i * i).ToArray();
 			
-			AreEquivalent(sync, async);
+			AreEquivalent(sync, async, 1);
 		}
 		
 		[TestAttribute]
@@ -69,7 +69,7 @@ namespace ParallelFxTests
 			IEnumerable<int> sync  = baseEnumerable.Where(i => i % 2 == 0).ToArray();
 			IEnumerable<int> async = baseEnumerable.AsParallel().Where(i => i % 2 == 0).ToArray();
 			
-			AreEquivalent(sync, async);
+			AreEquivalent(sync, async, 1);
 		}
 		
 		[TestAttribute]
@@ -92,6 +92,42 @@ namespace ParallelFxTests
 			                              acc => acc[0] / acc[1]);
 			
 			Assert.AreEqual(5.5, average, "#1");
+		}
+		
+		[TestAttribute]
+		public void ElementAtTestCase()
+		{
+			Assert.AreEqual(1, baseEnumerable.ElementAt(0), "#1");
+			Assert.AreEqual(51, baseEnumerable.ElementAt(50), "#2");
+			Assert.AreEqual(489, baseEnumerable.ElementAt(488), "#3");
+		}
+		
+		[TestAttribute]
+		public void TakeTestCase()
+		{
+			IParallelEnumerable<int> async = baseEnumerable.AsParallel().Take(200);
+			IEnumerable<int> sync = baseEnumerable.Take(200);
+			
+			AreEquivalent(sync, async, 1);
+			
+			async = baseEnumerable.AsParallel().Take(100);
+			sync = baseEnumerable.Take(100);
+			
+			AreEquivalent(sync, async, 2);
+		}
+		
+		[TestAttribute]
+		public void SkipTestCase()
+		{
+			IParallelEnumerable<int> async = baseEnumerable.AsParallel().Skip(200);
+			IEnumerable<int> sync = baseEnumerable.Skip(200);
+			
+			AreEquivalent(sync, async, 1);
+			
+			async = baseEnumerable.AsParallel().Skip(100);
+			sync = baseEnumerable.Skip(100);
+			
+			AreEquivalent(sync, async, 2);
 		}
 		
 		[TestAttribute]

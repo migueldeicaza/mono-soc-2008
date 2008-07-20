@@ -31,11 +31,16 @@ namespace System.Linq
 	{
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
 		{
-			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, -1);
+			return source.AsParallel(ParallelEnumerable.DefaultDop);
 		}
 		
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
 		{
+			IParallelEnumerable<T> temp = source as IParallelEnumerable<T>;
+			// No need to convert
+			if (temp != null)
+				return temp;
+			
 			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
 		}
 	}

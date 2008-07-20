@@ -101,6 +101,7 @@ namespace System.Linq
 					//Console.WriteLine("Main operator yielding");
 					if (bColl.IsCompleted)
 						return false;
+					
 					try {
 						item = bColl.Remove();
 					} catch {
@@ -140,10 +141,10 @@ namespace System.Linq
 		protected override IParallelEnumerator<T> GetParallelEnumerator()
 		{
 			if (isLast) {
-				//Console.WriteLine("Starting main parallel looping " + Thread.CurrentThread.ManagedThreadId);
+				Console.WriteLine("Starting main parallel looping " + Thread.CurrentThread.ManagedThreadId);
 				Parallel.SpawnBestNumber(delegate {
 					while (!bColl.IsAddingComplete) {
-						//Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
+						Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
 						if (!action(BlockingCollectionAdder))
 							break;
 					}
@@ -151,6 +152,11 @@ namespace System.Linq
 			}
 			
 			return new BlockingCollectionEnumerator(bColl, isLast, action);
+		}
+		
+		internal protected override IParallelEnumerator<T> GetSynchronousParallelEnumerator()
+		{
+			return new BlockingCollectionEnumerator(bColl, false, action);
 		}
 	}
 }
