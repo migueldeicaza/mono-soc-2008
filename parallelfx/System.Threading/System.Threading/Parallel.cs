@@ -41,7 +41,7 @@ namespace System.Threading
 		static void HandleExceptions(IEnumerable<Task> tasks)
 		{
 			IEnumerable<Exception> exs = tasks.Where(t => t.Exception != null).Select(t => t.Exception);
-			if (!exs.SequenceEqual(Enumerable.Empty<Exception>())) {
+			if (exs.Any()) {
 				throw new AggregateException(exs);
 			}
 		}
@@ -53,7 +53,25 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
-			For(from, to, step, (int i, ParallelState s) => action(i));
+			int num = GetBestWorkerNumber();
+
+			Task[] tasks = new Task[num];
+			
+			int currentIndex = from;
+			
+			Action<object> workerMethod = delegate {
+				int index;
+				while ((index = Interlocked.Add(ref currentIndex, step) - step) < to) {
+					action (index);
+				}
+			};
+			
+			for (int i = 0; i < num; i++) {
+				tasks[i] = Task.Create(workerMethod);
+			}
+			
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
 		}
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)

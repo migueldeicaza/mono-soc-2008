@@ -31,15 +31,15 @@ namespace System.Linq
 {
 	public static class ParallelEnumerable
 	{
-		const int defaultDop = -1;
+		public const int DefaultDop = -1;
 		
-		static int Dop<T>(this IParallelEnumerable<T> source)
+		internal static int Dop<T>(this IParallelEnumerable<T> source)
 		{
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			return temp == null ? defaultDop : temp.Dop;
+			return temp == null ? DefaultDop : temp.Dop;
 		}
 		
-		static void IsNotLast<T>(this IParallelEnumerable<T> source)
+		internal static void IsNotLast<T>(this IParallelEnumerable<T> source)
 		{
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			if (temp == null)
@@ -48,13 +48,19 @@ namespace System.Linq
 			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
-		static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
+		internal static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
 		{
 			IParallelEnumerator<T> temp = source.GetEnumerator() as IParallelEnumerator<T>;
 			return temp;
 		}
 		
-		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
+		internal static IParallelEnumerator<T> GetSynchronousParallelEnumerator<T>(this IParallelEnumerable<T> source)
+		{
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
+			return temp == null ? null : temp.GetSynchronousParallelEnumerator();
+		}
+		
+		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
 		{
 			source.IsNotLast();
 			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
@@ -65,13 +71,14 @@ namespace System.Linq
 				while (feedEnum.MoveNext(out item)) {
 					// Technically it's not exact, we might get preempted
 					int i = Interlocked.Increment(ref index);
-					action(i, item);
+					if (!action(i, item))
+						break;
 				}
 			}, source.Dop(), block, null);
 		}
 		
 		static IParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
-		                                                    Action<Action<TResult>, int, TSource> action)
+		                                                    Func<Action<TResult>, int, TSource, bool> action)
 		{
 			source.IsNotLast();
 			
@@ -85,8 +92,7 @@ namespace System.Linq
 					//Console.WriteLine("Was able to move next, " + Thread.CurrentThread.ManagedThreadId);
 					// Technically it's not exact, we might get preempted
 					int i = Interlocked.Increment (ref index);
-					action (adder, i, item);
-					return true;
+					return action (adder, i, item);
 				} else {
 					//Console.WriteLine("Wasn't able to move next, " + Thread.CurrentThread.ManagedThreadId);
 					return false;
@@ -108,6 +114,7 @@ namespace System.Linq
 		{
 			return Process<TSource, TResult> (source, delegate (Action<TResult> adder, int i, TSource e) {
 				adder(selector(e, i));
+				return true;
 			});
 		}
 		#endregion
@@ -125,6 +132,7 @@ namespace System.Linq
 			return Process<TSource, TSource> (source, delegate (Action<TSource> adder, int i, TSource e) {
 				if (predicate(e, i))
 					adder(e);
+				return true;
 			});
 		}
 		#endregion
@@ -141,8 +149,22 @@ namespace System.Linq
 			Process(source, delegate (int i, TSource element) {
 				if (predicate(element))
 					Interlocked.Increment(ref count);
+				return true;
 			}, true);
 			return count;
+		}
+		#endregion
+		
+		#region Any
+		public static bool Any<TSource>(this IParallelEnumerable<TSource> source)
+		{
+			bool result = false;
+			Process(source, delegate (int i, TSource element) {
+				result = true;
+				return false;
+			}, true);
+			
+			return result;
 		}
 		#endregion
 		
@@ -164,6 +186,7 @@ namespace System.Linq
 				int i = Interlocked.Increment(ref index) % count;
 				// Reduce results on each domain
 				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
+				return true;
 			}, true);
 			// Reduce the final domains into a single one
 			for (int i = 1; i < count; i++) {
@@ -174,10 +197,69 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region Concat
+		public static IParallelEnumerable<TSource> Concat<TSource>(this IParallelEnumerable<TSource> source,
+		                                                           IParallelEnumerable<TSource> second)
+		{
+			source.IsNotLast();
+			second.IsNotLast();
+			IParallelEnumerable<TSource> temp = 
+				ParallelEnumerableFactory.GetFromIParallelEnumerable(source.Dop(), source, second);
+			
+			return Process<TSource, TSource>(temp, delegate (Action<TSource> adder, int i, TSource e) {
+				adder(e);
+				return true;
+			});
+		}
+		#endregion
+		
+		#region Take
+		public static IParallelEnumerable<TSource> Take<TSource>(this IParallelEnumerable<TSource> source, int count)
+		{
+			int counter = 0;
+			
+			return Process<TSource, TSource> (source, delegate (Action<TSource> adder, int i, TSource e) {
+				if (Interlocked.Increment(ref counter) <= count) {
+					adder(e);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		}
+		#endregion
+		
+		#region Skip
+		public static IParallelEnumerable<TSource> Skip<TSource>(this IParallelEnumerable<TSource> source, int count)
+		{
+			int counter = 0;
+			
+			return source.Where((element, index) => Interlocked.Increment(ref counter) >= count);
+		}
+		#endregion
+		
+		#region ElementAt
+		public static TSource ElementAt<TSource>(this IParallelEnumerable<TSource> source, int index)
+		{
+			TSource result = default(TSource);
+			int currIndex = -1;
+			
+			Process(source, delegate (int j, TSource element) {
+				if (Interlocked.Increment(ref currIndex) == index) {
+					result = element;
+					return false;
+				}
+				return true;
+			}, true);
+			
+			return result;
+		}
+		#endregion
+		
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
-			return ParallelEnumerableFactory.GetFromRange (start, count, defaultDop);
+			return ParallelEnumerableFactory.GetFromRange (start, count, DefaultDop);
 		}
 		
 		public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
@@ -193,7 +275,7 @@ namespace System.Linq
 			};
 			
 			return ParallelEnumerableFactory.GetFromBlockingCollection(new BlockingCollection<TResult>(new ConcurrentStack<TResult>(), count)
-			                                                           , action, defaultDop);
+			                                                           , action, DefaultDop);
 		}
 		#endregion
 	}
