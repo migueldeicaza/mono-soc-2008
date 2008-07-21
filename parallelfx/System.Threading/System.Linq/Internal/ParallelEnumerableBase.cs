@@ -31,7 +31,7 @@ namespace System.Linq
 	internal abstract class ParallelEnumerableBase<T>: IParallelEnumerable<T>
 	{
 		protected bool isLast = true;
-		
+		protected bool isOrdered = false;
 		protected int dop;
 		
 		protected ParallelEnumerableBase(int dop)
@@ -48,14 +48,6 @@ namespace System.Linq
 		
 		protected abstract IParallelEnumerator<T> GetParallelEnumerator();
 		
-		// This method is to be used by Linq operators who doesn't really care about the 
-		// result of the computation like Any()
-		internal protected virtual IParallelEnumerator<T> GetSynchronousParallelEnumerator()
-		{
-			// By default we return the standard IParallelEnumerator, this will be overriden only
-			// by PEBlockingCollection to remove the call to SpawnBestNumber()
-			return GetParallelEnumerator();
-		}
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
@@ -73,6 +65,15 @@ namespace System.Linq
 			}
 			set {
 				isLast = value;
+			}
+		}
+		
+		public bool IsOrdered {
+			get {
+				return isOrdered;
+			}
+			set {
+				isOrdered = value;
 			}
 		}
 

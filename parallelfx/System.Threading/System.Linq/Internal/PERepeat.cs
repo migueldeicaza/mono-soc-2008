@@ -1,4 +1,4 @@
-// PERange.cs
+// PERepeat.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -29,29 +29,32 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
-	internal class PERange: ParallelEnumerableBase<int>
+	internal class PERepeat<T>: ParallelEnumerableBase<T>
 	{
-		int start, count;
+		int count;
+		T element;
 		
-		public PERange(int start, int count, int dop): base(dop)
+		public PERepeat(T element, int count, int dop): base(dop)
 		{
-			this.start = start;
+			this.element = element;
 			this.count = count;
 		}
 		
-		class PERangeEnumerator: IParallelEnumerator<int>
+		class PERepeatEnumerator: IParallelEnumerator<T>
 		{
-			static int current;
-			readonly int start, count;
+			readonly int count;
+			readonly T   element;
 			int counter;
+			T current;
 			
-			public PERangeEnumerator(int start, int count)
+			public PERepeatEnumerator(T element, int count)
 			{
-				this.start = this.counter = start;
+				this.element = element;
 				this.count = count;
+				this.current = element;
 			}
 			
-			int IEnumerator<int>.Current {
+			T IEnumerator<T>.Current {
 				get {
 					return current;
 				}
@@ -65,21 +68,21 @@ namespace System.Linq
 			
 			public bool MoveNext()
 			{
-				current = Interlocked.Increment(ref counter) - 1;
-				return current < (start + count);
+				int i = Interlocked.Increment(ref counter) - 1;
+				return i < count;
 			}
 			
-			public bool MoveNext(out int item, out int index)
+			public bool MoveNext(out T item, out int index)
 			{
-				item = Interlocked.Increment(ref counter) - 1;
-				index = item - start;
-				current = item;
-				return item < (start + count);
+				int i = Interlocked.Increment(ref counter) - 1;
+				item  = element;
+				index = i;
+				return i < count;
 			}
 			
 			public void Reset()
 			{
-				this.counter = start;
+				this.counter = 0;
 			}
 			
 			public void Dispose()
@@ -88,9 +91,9 @@ namespace System.Linq
 			}
 		}
 		
-		protected override IParallelEnumerator<int> GetParallelEnumerator()
+		protected override IParallelEnumerator<T> GetParallelEnumerator()
 		{
-			return new PERangeEnumerator(start, count);
+			return new PERepeatEnumerator(element, count);
 		}
 	}
 }

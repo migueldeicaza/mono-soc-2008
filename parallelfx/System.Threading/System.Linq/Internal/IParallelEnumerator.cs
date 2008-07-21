@@ -32,6 +32,6 @@ namespace System.Linq
 	{
 		// Do the same thing than IEnumerator.MoveNext but is thread-safe as the result 
 		// obtained via out is guaranteed to be unique and correct
-		bool MoveNext(out T item);
+		bool MoveNext(out T item, out int index);
 	}
 }
