@@ -23,10 +23,13 @@
 //
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
-namespace System.Threading.Linq
+namespace System.Linq
 {
-	public interface IParallelOrderedEnumerable<T>
+	public interface IParallelOrderedEnumerable<T>: IParallelEnumerable<T>,
+	IParallelEnumerable, IOrderedEnumerable<T>, IEnumerable<T>, IEnumerable
 	{
 	}
 }

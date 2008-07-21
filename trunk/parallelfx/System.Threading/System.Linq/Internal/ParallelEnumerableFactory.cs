@@ -31,10 +31,11 @@ namespace System.Linq
 	
 	internal static class ParallelEnumerableFactory
 	{
-		public static IParallelEnumerable<T> GetFromBlockingCollection<T>(BlockingCollection<T> coll,
-		                                                                  Func<Action<T>, bool> action, int dop)
+		public static IParallelEnumerable<T> GetFromBlockingCollection<TSource, T>(BlockingCollection<T> coll,
+		                                                                  Func<IParallelEnumerator<TSource>, Action<T, bool>, Action<int>, bool> action,
+		                                                                  IParallelEnumerable<TSource> source)
 		{
-			return new System.Linq.PEBlockingCollection<T>(coll, action, dop);
+			return new System.Linq.PEBlockingCollection<TSource, T>(coll, action, source, source.Dop());
 		}
 		
 		public static IParallelEnumerable<T> GetFromIEnumerable<T>(IEnumerable<T> coll, int dop)
@@ -50,6 +51,11 @@ namespace System.Linq
 		public static IParallelEnumerable<int> GetFromRange(int start, int count, int dop)
 		{
 			return new PERange(start, count, dop);
+		}
+		
+		public static IParallelEnumerable<T> GetFromRepeat<T>(T element, int count, int dop)
+		{
+			return new PERepeat<T>(element, count, dop);
 		}
 	}
 }

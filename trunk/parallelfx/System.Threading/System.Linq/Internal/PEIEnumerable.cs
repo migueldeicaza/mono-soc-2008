@@ -47,6 +47,7 @@ namespace System.Linq
 			
 			IEnumerator<T> enumerator;
 			T current;
+			int currIndex;
 			
 			/*T[] buffer = new T[chunkSize];
 			int fillIndex;*/
@@ -86,14 +87,16 @@ namespace System.Linq
 				return result;
 			}
 			
-			public bool MoveNext(out T item)
+			public bool MoveNext(out T item, out int index)
 			{
 				bool result = false;
+				index = -1;
 				
 				try {
 					sl.Enter();
 					if (enumerator.MoveNext()) {
 						current = item = enumerator.Current;
+						index = currIndex++;
 						result = true;
 					}
 				} finally {

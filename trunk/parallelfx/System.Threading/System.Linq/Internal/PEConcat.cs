@@ -48,6 +48,11 @@ namespace System.Linq
 			T current;
 			SpinWait sw = new SpinWait();
 			
+			// Tell by how much index is shifted
+			int stride;
+			// Keep the last index returned for stride
+			int backupIndex;
+			
 			bool finished;
 			
 			public PEIConcatEnumerator(IParallelEnumerable<T>[] enumerables)
@@ -71,19 +76,23 @@ namespace System.Linq
 			
 			public bool MoveNext()
 			{
-				return MoveNext(out current);
+				int i;
+				return MoveNext(out current, out i);
 			}
 			
-			public bool MoveNext(out T item)
+			public bool MoveNext(out T item, out int elementIndex)
 			{
+				int i = -1;
+				
 				while (flag != 0) {
 					sw.SpinOnce();
 				}
 				
-				while (!currentEnumerator.MoveNext(out item) && !finished) {
+				while (!currentEnumerator.MoveNext(out item, out i) && !finished) {
 					int result = Interlocked.Exchange(ref flag, 1);
 					if (result == 0) {
 						int index = currIndex++;
+						stride += backupIndex;
 						if (index >= enumerables.Length) {
 							finished = true;
 						} else {
@@ -95,6 +104,10 @@ namespace System.Linq
 						sw.SpinOnce();
 					}
 				}
+				
+				elementIndex = i + stride;
+				backupIndex  = elementIndex;
+				
 				if (!finished)
 					current = item;
 				

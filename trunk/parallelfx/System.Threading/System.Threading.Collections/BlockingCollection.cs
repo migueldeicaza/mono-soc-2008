@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,7 +36,8 @@ namespace System.Threading.Collections
 		readonly int upperBound;
 		readonly Func<bool> isFull;
 		
-		const int blockingTime = 100;
+		//const int blockingTime = 100;
+		readonly SpinWait sw = new SpinWait();
 		
 		bool isComplete;
 		
@@ -188,7 +190,8 @@ namespace System.Threading.Collections
 		// Method used to stall the thread for a limited period of time before retrying an operation
 		void Block()
 		{
-			Thread.Sleep(blockingTime);
+			//Thread.Sleep(blockingTime);
+			sw.SpinOnce();
 		}
 		
 		public int BoundedCapacity {
