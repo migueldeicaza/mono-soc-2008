@@ -87,20 +87,31 @@ namespace System.Linq
 				return result;
 			}
 			
+			readonly object syncRoot = new object();
+			
 			public bool MoveNext(out T item, out int index)
 			{
 				bool result = false;
 				index = -1;
 				
-				try {
+				/*try {
 					sl.Enter();
 					if (enumerator.MoveNext()) {
 						current = item = enumerator.Current;
-						index = currIndex++;
+						index = currIndex++; 
 						result = true;
 					}
+					
+					if (!result)
+						Console.WriteLine("PEIEnumerable : " + currIndex.ToString());
 				} finally {
 					sl.Exit();
+				}*/
+				lock (syncRoot) {
+					if (result = enumerator.MoveNext()) {
+						item = enumerator.Current;
+						index = currIndex++;
+					}
 				}
 				
 				return result;

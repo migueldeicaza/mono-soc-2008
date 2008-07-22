@@ -25,11 +25,11 @@ class MainClass
 		Console.WriteLine();
 		
 		sw.Start();
-		foreach (int i in 
-			ParallelEnumerable.Range(1, 2000).Where(i => { return i % 10 == 0; }).Select(i => { /*Thread.Sleep(1);*/ return i + 1; })) {
+		ParallelEnumerable.ForAll(
+			ParallelEnumerable.Range(1, 2000).Where(i => { return i % 10 == 0; }).Select(i => { /*Thread.Sleep(1);*/ return i + 1; }), delegate (int i) {
 			Console.Write(i + ", ");
 			//Thread.Sleep(1); 	
-		}
+		});
 		sw.Stop();
 		Console.WriteLine("\n\n[Time elapsed for asynchronous : {0}]\n\n", sw.Elapsed.ToString());
 		Console.WriteLine("Speedup : {0:F2}", synch / (double)sw.ElapsedMilliseconds);

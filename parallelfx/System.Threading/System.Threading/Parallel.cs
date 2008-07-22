@@ -263,13 +263,18 @@ namespace System.Threading
 			if (callback != null) {
 				for (int j = 0; j < num; j++) {
 					tasks[j].ContinueWith(delegate {
-						Task.WaitAll(tasks);
+						for (int i = 0; i < num; i++) {
+							if (i == j) continue;
+							tasks[i].Wait();
+						}
 						callback();
 					});
 				}
 			}
+
 			if (wait)
 				Task.WaitAll(tasks);
+			
 			return tasks;
 		}
 	}

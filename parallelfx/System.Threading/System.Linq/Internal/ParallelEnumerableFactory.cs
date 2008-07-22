@@ -32,7 +32,7 @@ namespace System.Linq
 	internal static class ParallelEnumerableFactory
 	{
 		public static IParallelEnumerable<T> GetFromBlockingCollection<TSource, T>(BlockingCollection<T> coll,
-		                                                                  Func<IParallelEnumerator<TSource>, Action<T, bool>, Action<int>, bool> action,
+		                                                                  Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
 		                                                                  IParallelEnumerable<TSource> source)
 		{
 			return new System.Linq.PEBlockingCollection<TSource, T>(coll, action, source, source.Dop());

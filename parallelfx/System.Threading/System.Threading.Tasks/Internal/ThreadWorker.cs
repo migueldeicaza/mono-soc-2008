@@ -49,8 +49,8 @@ namespace System.Threading.Tasks
 		const    int  maxRetry = 5;
 		
 		#region Sleep related fields
-		const int sleepTimeBeforeRetry = 1;
-		const int sleepThreshold = 100000;
+		const int sleepTimeBeforeRetry = 0;
+		const int sleepThreshold = 1000;
 		#endregion
 		
 		Action threadInitializer;
@@ -133,19 +133,22 @@ namespace System.Threading.Tasks
 			int sleepTime = 0;
 			// Main loop
 			while (started == 1) {
-				WorkerMethod();
+				bool result = WorkerMethod();
 				Thread.Sleep(sleepTimeBeforeRetry);
 				// If the Thread has been more sleeping than working shut it down
+				if (result) sleepTime = 0;
 				if (sleepTime++ > sleepThreshold)
 					break;
+				
 			}
 			
 			started = 0;
 		}
 		
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
-		void WorkerMethod()
+		bool WorkerMethod()
 		{
+			bool result = false;
 			bool hasStolenFromOther;
 			do {
 				hasStolenFromOther = false;
@@ -159,6 +162,7 @@ namespace System.Threading.Tasks
 					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
 						if (value != null) {
 							value.threadStart();
+							result = true;
 						}
 					}
 				}
@@ -177,19 +181,23 @@ namespace System.Threading.Tasks
 							hasStolenFromOther = true;
 							if (value != null) {
 								value.threadStart();
+								result = true;
 							}
 						}
 					}
 				}
 			} while (!sharedWorkQueue.IsEmpty || hasStolenFromOther);
 			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId);
+			
+			return result;
 		}
 		
 		// Almost same as above but with an added predicate and treating one item at a time. 
 		// It's used by Scheduler Participate(...) method for special waiting case like
 		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
 		internal void WorkerMethod(Func<bool> predicate)
-		{	
+		{
+			
 			while (!predicate()) {
 				Task value;
 				
