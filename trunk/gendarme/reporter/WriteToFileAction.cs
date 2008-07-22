@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -40,10 +41,13 @@ namespace Gendarme.Reporter {
 
 		public XDocument[] Process (params XDocument[] documents)
 		{
-			foreach (XDocument document in documents) {
-				using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
+			if (documents.Length != 1)
+				throw new ArgumentException ("You should pass only one document.", "documents");
+
+			XDocument document = documents[0];
+
+			using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
 					document.Save (writer);
-			}
 			return documents;
 		}
 	}
