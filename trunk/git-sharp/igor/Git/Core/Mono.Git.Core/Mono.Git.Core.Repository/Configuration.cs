@@ -82,13 +82,29 @@ namespace Mono.Git.Core.Repository
 			}
 		}
 		
+		public ConfigValue[] Values
+		{
+			set {
+				values = value;
+			}
+			get {
+				return values;
+			}
+		}
+		
 		public Configuration ()
-		{ 
+		{
+		}
+		
+		public void AddConfigValues (string configPath)
+		{
+			path = configPath;
+			AddConfigValues ();
 		}
 		
 		public void AddConfigValues ()
 		{
-			string line;
+			string line = null;
 			string section = null;
 			
 			TextReader tr = new StreamReader (path);
@@ -115,22 +131,31 @@ namespace Mono.Git.Core.Repository
 		public void AddConfigValue (string configSection, string configName, string configValue)
 		{
 			ConfigValue confValue = new ConfigValue (configSection, configName, configValue);
-			
-			if (values.Length == 0 || values == null) {
-				values = new ConfigValue[1];
-				return;
-			}
-			
-			ArrayList valuesArray = new ArrayList (values);
-			
-			valuesArray.Add (confValue);
-			
-			values = (ConfigValue[]) valuesArray.ToArray ();
+			AddConfigValue (confValue);
 		}
 		
 		public void AddConfigValue (ConfigValue val)
 		{
-			AddConfigValue (val.Section, val.Name, val.Value);
+			if (values == null) {
+				values = new ConfigValue[1];
+				values[0] = val;
+			} else {
+				ConfigValue[] tmp = new ConfigValue[values.Length + 1];
+				
+				for (int i = 0; i < values.Length; i++)
+					tmp[i] = values[i];
+					
+				tmp[tmp.Length - 1] = new ConfigValue();
+				tmp[tmp.Length - 1] = val;
+				values = tmp;
+			}
+			
+			//ArrayList valuesArray = new ArrayList (values);
+			
+			//valuesArray.Add (val);
+			
+			//values = (ConfigValue[]) valuesArray.ToArray ();
+			//values[0] = val;
 		}
 		
 		// These methods are used to get default configurations from C Git(mostly in UNIX systems)
@@ -141,7 +166,8 @@ namespace Mono.Git.Core.Repository
 		
 		public static string GetDefaultTemplateDir ()
 		{
-			return "";
+			// FIXME: So UNIX name, not right for multiplatform
+			return "/usr/share/git-core/templates";
 		}
 		
 		public static string GetDefaultConfigDir ()
@@ -153,5 +179,6 @@ namespace Mono.Git.Core.Repository
 		{
 			return "Unnamed repository; edit this file to name it for gitweb.";
 		}
+		
 	}
 }

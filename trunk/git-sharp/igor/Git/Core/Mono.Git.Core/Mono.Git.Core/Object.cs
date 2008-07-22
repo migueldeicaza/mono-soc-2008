@@ -46,155 +46,23 @@ namespace Mono.Git.Core
 	}
 	
 	/// <summary>
-	/// Struct that represent a SHA1 hash
-	/// </summary>
-	public struct SHA1
-	{
-		public byte[] bytes;
-	}
-	
-	/// <summary>
 	/// Class that holds the basic object information
 	/// </summary>
 	public abstract class Object
 	{
 		protected SHA1 id;
-		protected Type type;
 		
-		public Type Type {
-			get {
-				return type;
-			}
-			set {
-				type = value;
-			}
-		}
+		public abstract Type Type { get; }
 		
-		public SHA1 Id {
+		public SHA1 Id
+		{
 			get {
 				return id;
 			}
-			set {
-				id = value;
-			}
 		}
 		
-		public Object (Type t)
+		public Object ()
 		{
-			id.bytes = new byte[160];
-			type = t;
-		}
-		
-		public string ToHexString ()
-		{
-			return BytesToHexString (id.bytes);
-		}
-		
-		// Static helper functions
-		
-		/// <summary>
-		/// Create a header for a Git hash
-		/// </summary>
-		/// <param name="objType">
-		/// Type of the object to hash<see cref="Type"/>
-		/// </param>
-		/// <param name="dataSize">
-		/// Size of the object to hash<see cref="System.Int32"/>
-		/// </param>
-		/// <returns>
-		/// Header<see cref="System.Byte"/>
-		/// </returns>
-		public static byte[] CreateHashHeader (Type objType, int dataSize)
-		{
-			return Encoding.Default.GetBytes (String.Format ("{0} {1}\0",
-			                                                 TypeToString (objType),
-			                                                 dataSize.ToString ()));
-		}
-		
-		/// <summary>
-		/// Convert a Byte array to Hexadecimal format
-		/// </summary>
-		/// <param name="bytes">
-		/// A byte array<see cref="System.Byte"/>
-		/// </param>
-		/// <returns>
-		/// A String of a byte array converted to Hexadecimial format<see cref="System.String"/>
-		/// </returns>
-		public static string BytesToHexString (byte[] data)
-		{
-			StringBuilder hexString = new StringBuilder (data.Length);
-			
-			foreach (byte b in data) {
-				hexString.Append (b.ToString ("x2"));
-			}
-			
-			return hexString.ToString ();
-		}
-		
-		/// <summary>
-		/// Convert a Byte array to string
-		/// </summary>
-		/// <param name="bytes">
-		/// A byte array<see cref="System.Byte"/>
-		/// </param>
-		/// <returns>
-		/// A String of a byte array converted to String format<see cref="System.String"/>
-		/// </returns>
-		public static string BytesToString (byte[] data)
-		{
-			StringBuilder str = new StringBuilder (data.Length);
-			
-			foreach (byte b in data) {
-				str.Append (b.ToString ());
-			}
-			
-			return str.ToString ();
-		}
-		
-		/// <summary>
-		/// Compute the byte array to a SHA1 hash
-		/// </summary>
-		/// <param name="bytes">
-		/// A byte array to convert<see cref="System.Byte"/>
-		/// </param>
-		/// <returns>
-		/// A SHA1 byte array<see cref="System.Byte"/>
-		/// </returns>
-		public static byte[] ComputeSHA1Hash (byte[] bytes)
-		{
-			return System.Security.Cryptography.SHA1.Create ().ComputeHash (bytes);
-		}
-		
-		/// <summary>
-		/// Hash a single file by a given Filename
-		/// </summary>
-		/// <param name="filename">
-		/// A file path<see cref="System.String"/>
-		/// </param>
-		/// <returns>
-		/// A sha1 hash<see cref="System.Byte"/>
-		/// </returns>
-		public static byte[] HashFile (Type objType, string filename)
-		{
-			byte[] bytes;
-			byte[] data = new byte [160];
-			byte[] header;
-			
-			FileStream fd = File.OpenRead (filename);
-			
-			bytes = new BinaryReader (fd).ReadBytes ((int) fd.Length);
-			
-			// Closing stream
-			fd.Close ();
-			
-			header = CreateHashHeader (objType, bytes.Length);
-			
-			data = new byte[header.Length + bytes.Length];
-			
-			header.CopyTo (data, 0);
-			bytes.CopyTo (data, header.Length);
-			
-			return ComputeSHA1Hash (data);
 		}
 		
 		/// <summary>
@@ -260,63 +128,63 @@ namespace Mono.Git.Core
 			return retVal;
 		}
 		
-		/// <summary>
-		/// TODO: 
-		/// </summary>
-		/// <param name="filePath">
-		/// A <see cref="System.String"/>
-		/// </param>
-		public static void Write (string filePath)
-		{
-			Blob b = new Blob (filePath);
-			b.AddContent (filePath);
-			
-			FileStream f = new FileStream (b.ToHexString (), FileMode.Create);
-			//FileStream f = new FileStream ("hello.object", FileMode.Create);
-			
-			byte[] bytesHeader;
-			bytesHeader = Object.CreateHashHeader (Mono.Git.Core.Type.Blob, b.Content.Length);
-			
-			//f.Write (bytesHeader, 0, bytesHeader.Length);
-			
-			// Reading the file content
-			FileStream st = new FileStream (filePath, FileMode.Open);
-			FileInfo fileInfo = new FileInfo (filePath);
-			BinaryReader br = new BinaryReader (st);
-			
-			byte[] data = new byte[bytesHeader.Length + fileInfo.Length];
-			bytesHeader.CopyTo (data, 0); 
-			br.ReadBytes (Convert.ToInt32 (fileInfo.Length.ToString ())).CopyTo (data, bytesHeader.Length);
-			
-			//f.Write (data, 0, data.Length);
-			
-			MemoryStream ms = new MemoryStream ();
-			DeflateStream ds = new DeflateStream (ms, CompressionMode.Compress, true);
-			ds.Write (data, 0, data.Length);
-			ds.Close ();
-			
-			Console.WriteLine ("Original size {0}, Compressed size {1}", data.Length, ms.Length);
-			
-			f.Write (ms.GetBuffer (), 0, ms.GetBuffer ().Length);
-			
-			f.Close ();
-		}
-		
-		/// <summary>
-		/// TODO: 
-		/// </summary>
-		/// <param name="filePath">
-		/// A <see cref="System.String"/>
-		/// </param>
-		public static void Read (string filePath)
-		{
-			FileStream fs = new FileStream (filePath, FileMode.Open);
-			BinaryReader br = new BinaryReader (fs);
-			
-			byte[] data = br.ReadBytes (Convert.ToInt32 (fs.Length));
-			
-			Console.WriteLine (Object.BytesToString (data));
-		}
+//		/// <summary>
+//		/// TODO: 
+//		/// </summary>
+//		/// <param name="filePath">
+//		/// A <see cref="System.String"/>
+//		/// </param>
+//		public static void Write (string filePath)
+//		{
+//			Blob b = new Blob (filePath);
+//			b.AddContent (filePath);
+//			
+//			//FileStream f = new FileStream (b.ToHexString (), FileMode.Create);
+//			//FileStream f = new FileStream ("hello.object", FileMode.Create);
+//			
+//			byte[] bytesHeader;
+//			//bytesHeader = Object.CreateHashHeader (Mono.Git.Core.Type.Blob, b.Content.Length);
+//			
+//			//f.Write (bytesHeader, 0, bytesHeader.Length);
+//			
+//			// Reading the file content
+//			FileStream st = new FileStream (filePath, FileMode.Open);
+//			FileInfo fileInfo = new FileInfo (filePath);
+//			BinaryReader br = new BinaryReader (st);
+//			
+//			byte[] data = new byte[bytesHeader.Length + fileInfo.Length];
+//			bytesHeader.CopyTo (data, 0); 
+//			br.ReadBytes (Convert.ToInt32 (fileInfo.Length.ToString ())).CopyTo (data, bytesHeader.Length);
+//			
+//			//f.Write (data, 0, data.Length);
+//			
+//			MemoryStream ms = new MemoryStream ();
+//			DeflateStream ds = new DeflateStream (ms, CompressionMode.Compress, true);
+//			ds.Write (data, 0, data.Length);
+//			ds.Close ();
+//			
+//			Console.WriteLine ("Original size {0}, Compressed size {1}", data.Length, ms.Length);
+//			
+//			f.Write (ms.GetBuffer (), 0, ms.GetBuffer ().Length);
+//			
+//			f.Close ();
+//		}
+//		
+//		/// <summary>
+//		/// TODO: 
+//		/// </summary>
+//		/// <param name="filePath">
+//		/// A <see cref="System.String"/>
+//		/// </param>
+//		public static void Read (string filePath)
+//		{
+//			FileStream fs = new FileStream (filePath, FileMode.Open);
+//			BinaryReader br = new BinaryReader (fs);
+//			
+//			//byte[] data = br.ReadBytes (Convert.ToInt32 (fs.Length));
+//			
+//			//Console.WriteLine (Object.BytesToString (data));
+//		}
 		
 		/// <summary>
 		/// Convert a type to its string representation

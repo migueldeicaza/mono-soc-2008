@@ -35,7 +35,7 @@ namespace Mono.Git.Tests
 	{
 		public BlobTest(string path)
 		{
-			Blob.Read (path);
+			//Blob.Read (path);
 		}
 	}
 }

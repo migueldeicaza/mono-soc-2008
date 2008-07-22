@@ -39,9 +39,16 @@ namespace Mono.Git.Core
 		private Tree parent;
 		private TreeEntry[] entries;
 		
-		public Tree (Tree parent) : base (Type.Tree)
+		public Tree (Tree parent)
 		{
 			this.parent = parent;
+		}
+		
+		public override Type Type
+		{
+			get {
+				return Type.Tree;
+			}
 		}
 		
 		public Tree Parent {
@@ -120,22 +127,22 @@ namespace Mono.Git.Core
 			return newEntries;
 		}
 		
-		public bool Exists (TreeEntry entry)
-		{
-			if (entries.Length == 0) {
-				return false;
-			} else if (entries.Length == 1) {
-				return entries[0].Id.bytes == entry.Id.bytes ? true : false;
-			}
-			
-			bool exist = false;
-			
-			foreach (TreeEntry en in entries) {
-				if (en.Id.bytes == entry.Id.bytes)
-					exist = true;
-			}
-			
-			return exist;
-		}
+//		public bool Exists (TreeEntry entry)
+//		{
+//			if (entries.Length == 0) {
+//				return false;
+//			} else if (entries.Length == 1) {
+//				return entries[0].Id.bytes == entry.Id.bytes ? true : false;
+//			}
+//			
+//			bool exist = false;
+//			
+//			foreach (TreeEntry en in entries) {
+//				if (en.Id.bytes == entry.Id.bytes)
+//					exist = true;
+//			}
+//			
+//			return exist;
+//		}
 	}
 }

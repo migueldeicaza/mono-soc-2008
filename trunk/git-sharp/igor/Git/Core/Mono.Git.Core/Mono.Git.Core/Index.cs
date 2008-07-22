@@ -124,7 +124,8 @@ namespace Mono.Git.Core
 		
 		public void Init ()
 		{
-			header = new IndexHeader (entries);
+			// FIXME: Here we should add the entries before using them
+			//header = new IndexHeader (entries);
 			stage = (uint) IndexStage.Normal;
 		}
 		
@@ -166,6 +167,57 @@ namespace Mono.Git.Core
 				if (te.IsTree (repo))
 					ReadTree (name, tree, repo);
 			}
+		}
+		
+		public static IndexHeader GetHeader (BinaryReader br)
+		{
+			IndexHeader indexHeader = new IndexHeader ();
+			
+			indexHeader.Signature = br.ReadInt32 ();
+			indexHeader.Version = br.ReadInt32 ();
+			indexHeader.Entries = br.ReadInt32 ();
+			
+			//TODO:
+			return indexHeader;
+		}
+		
+		public static IndexEntry GetNextEntry (BinaryReader br)
+		{
+			IndexEntry entry = new IndexEntry ();
+			
+			// Content
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			
+			// SHA1 5x32 = 160
+			//??? Console.WriteLine (Mono.Git.Core.Object.BytesToHexString (br.ReadBytes (20)));
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			Console.WriteLine (br.ReadInt32 ());
+			
+			//entry = br.ReadInt16 (); // flag
+			Console.Write ("Characters: ");
+			
+			for (;;) {
+				char c = br.ReadChar ();
+				if (c == '\0')
+					break;
+				Console.Write (c);
+			}
+			
+			Console.Write ('\n');
+			
+			return entry;
 		}
 	}
 }

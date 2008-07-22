@@ -34,57 +34,47 @@ namespace Mono.Git.Core
 	public class Tag : Object
 	{
 		private User tagger;
-		private string tag;
-		private string message;
 		private Commit commit;
+		private string tag_string;
+		private string message;
+		
+		public override Type Type {
+			get {
+				return Type.Tag;
+			}
+		}
 		
 		public User Tagger
 		{
-			set {
-				tagger = value;
-			}
 			get {
 				return tagger;
 			}
 		}
 		
 		public string TagString {
-			set {
-				tag = value;
-			}
 			get {
-				return tag;
+				return tag_string;
 			}
 		}
 		
 		public string Message {
-			set {
-				message = value;
-			}
 			get {
 				return message;
 			}
 		}
 		
 		public Commit Commit {
-			set {
-				commit = value;
-			}
 			get {
 				return commit;
 			}
 		}
 		
-		public Tag () : base (Type.Tag)
+		public Tag (string tag, User tagger, string message, Commit commit)
 		{
-		}
-		
-		public Tag (string tag, User tagger, string message, Commit commit) : base (Type.Tag)
-		{
-			this.tag = tag;
-			this.tagger = tagger;
-			this.message = message;
-			this.commit = commit;
+			tag_string = tag;
+			tagger = tagger;
+			message = message;
+			commit = commit;
 		}
 	}
 }

@@ -27,6 +27,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
 {
@@ -37,45 +38,19 @@ namespace Mono.Git.Core
 	{
 		private byte[] content;
 		
-		public byte[] Content
+		public byte[] Content { get { return content; } }
+		
+		public override Type Type
 		{
 			get {
-				return content;
-			}
-			set {
-				content = value;
+				return Type.Blob;
 			}
 		}
 		
-		/// <summary>
-		/// Initialize the object type and the bytes
-		/// </summary>
-		public Blob () : base (Type.Blob)
+		public Blob (byte[] blobContent)
 		{
-		}
-		
-		/// <summary>
-		/// Initialize the Object with a given file path
-		/// </summary>
-		/// <param name="objType">
-		/// A type of object<see cref="Type"/>
-		/// </param>
-		/// <param name="filePath">
-		/// A path represented by a string<see cref="System.String"/>
-		/// </param>
-		public Blob (string filePath) : base (Type.Blob)
-		{
-			id.bytes = HashFile (type, filePath);
-			AddContent (filePath);
-		}
-		
-		public void AddContent (string filePath)
-		{
-			FileStream f = File.Open (filePath, FileMode.Open);
-			
-			content = new BinaryReader (f).ReadBytes ((int) f.Length);
-			
-			f.Close ();
+			content = blobContent;
+			id = new SHA1 (content, this.Type);
 		}
 	}
 }

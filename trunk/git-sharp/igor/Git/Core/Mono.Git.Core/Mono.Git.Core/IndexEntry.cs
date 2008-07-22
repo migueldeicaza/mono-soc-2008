@@ -30,17 +30,29 @@ namespace Mono.Git.Core
 {
 	public class IndexEntry
 	{
-		DateTime ctime; // TODO: A conversion method to handle this
-		DateTime mtime; // TODO: A conversion method to handle this
-		uint dev;
-		uint ino; // Inode
-		uint mode; // Create mode(umask)
-		uint uid; // we don't really need this(jgit has as trick for this)
-		uint gid; // apply jgit trick here too
-		uint size;
-		bool modified; // merged or not?
-		SHA1 id; // ID
-		string name; // whole path
+		private int ctime; // TODO: A conversion method to handle this
+		private int mtime; // TODO: A conversion method to handle this
+		private int dev;
+		private int ino; // Inode
+		private int mode; // Create mode(umask)
+		private int uid; // we don't really need this(jgit has as trick for this)
+		private int gid; // apply jgit trick here too
+		private int size;
+		private bool modified; // merged or not?
+		private SHA1 id; // ID
+		private string name; // whole path
+		
+		public int Ctime { get; set; }
+		public int Mtime { get; set; }
+		public int Dev { get; set; }
+		public int Ino { get; set; }
+		public int Mode { get; set; }
+		public int Uid { get; set; }
+		public int Gid { get; set; }
+		public int Size { get; set; }
+		public bool Modified { get; set; }
+		public SHA1 Id { get; set; }
+		public string Name { get; set; }
 		
 		public IndexEntry ()
 		{
