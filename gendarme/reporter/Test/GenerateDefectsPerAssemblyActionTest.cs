@@ -64,7 +64,8 @@ namespace Gendarme.Reporter.Test {
 		[ExpectedException (typeof (ArgumentException))]
 		public void PassMoreThanOneDocumentTest ()
 		{
-			new GenerateDefectsPerAssemblyAction ().Process (XDocument.Load (xmlFile), XDocument.Load (xmlFile));
+			XDocument document = XDocument.Load (xmlFile);
+			new GenerateDefectsPerAssemblyAction ().Process (document, document);
 		}
 
 		[Test]
