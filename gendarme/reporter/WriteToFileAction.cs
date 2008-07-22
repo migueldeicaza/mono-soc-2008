@@ -58,7 +58,7 @@ namespace Gendarme.Reporter {
 			XDocument document = documents[0];
 
 			using (XmlWriter writer = XmlWriter.Create (destinationFile, new XmlWriterSettings { Indent = true, CloseOutput = true}))
-					document.Save (writer);
+				document.Save (writer);
 			return documents;
 		}
 	}
