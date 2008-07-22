@@ -36,6 +36,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Forms;
 using System.Net;
+using System.Net.Sockets;
 
 using Tamir.SharpSsh;
 
@@ -69,7 +70,7 @@ namespace CloverleafShared.Remote.WebTest
             String host = txtHostName.Text;
             String user = txtUsername.Text;
             String password = txtPassword.Text;
-            Int32 port = 8080;
+			Int32 port = FirstOpenPort(host, 60000, 65000);
 
             String zipDirectory = CloverleafEnvironment.CloverleafAppDataPath;
             String zipFileName = "web." + host + "." + user + "." + DateTime.Now.Ticks.ToString() + ".zip";
@@ -233,5 +234,29 @@ namespace CloverleafShared.Remote.WebTest
                 txtHostName.Text = serviceIPDict[lstAvailableHosts.SelectedItem.ToString()];
             }
         }
+
+		private Int32 FirstOpenPort(String host, Int32 startPort, Int32 endPort)
+		{
+			TcpClient tcp = new TcpClient();
+
+
+			for (Int32 currentPort = startPort; currentPort < endPort; currentPort++)
+			{
+				try
+				{
+					tcp.Connect(host, currentPort);
+				}
+				catch (SocketException e)
+				{
+					// Should be an unused port, so you're off to the races.
+					// We could worry about no-host-found issues, but seeing as how
+					// Zeroconf just picked up the host, I don't think that's a huge
+					// deal.
+					return currentPort;
+				}
+			}
+
+			throw new Exception("Couldn't find an open port on the host '" + host + "'.");
+		}
     }
 }
