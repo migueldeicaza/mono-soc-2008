@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Linq;
@@ -42,7 +43,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
-			document = new GenerateDefectsPerAssemblyAction ().Process (new XDocument[] {document})[0];
+			document = new GenerateDefectsPerAssemblyAction ().Process (document)[0];
 			Assert.IsNotNull (document);
 		}
 
@@ -57,6 +58,13 @@ namespace Gendarme.Reporter.Test {
 		{
 			foreach (string file in Directory.GetFiles (Directory.GetCurrentDirectory (), "*.xml")) 
 				File.Delete (file);
+		}
+
+		[Test]
+		[ExpectedException (typeof (ArgumentException))]
+		public void PassMoreThanOneDocumentTest ()
+		{
+			new GenerateDefectsPerAssemblyAction ().Process (XDocument.Load (xmlFile), XDocument.Load (xmlFile));
 		}
 
 		[Test]
