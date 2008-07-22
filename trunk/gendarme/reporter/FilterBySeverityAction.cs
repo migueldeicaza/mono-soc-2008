@@ -89,7 +89,7 @@ namespace Gendarme.Reporter {
 			RemoveDefectsWithoutSeverity (Medium, medium);
 			RemoveDefectsWithoutSeverity (Low, low);
 
-			if (writeAction == null);
+			if (writeAction == null)
 				writeAction = new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName));
 			
 			WriteToFile (String.Format ("{0}.Critical.xml", assemblyName), critical); 
