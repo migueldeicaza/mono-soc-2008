@@ -41,14 +41,16 @@ namespace System.Threading.Tasks
 			workQueue = new ConcurrentStack<Task>();
 			workers = new ThreadWorker[maxWorker];
 			
-			participant = new LazyInit<ThreadWorker>(delegate {
+			/*participant = new LazyInit<ThreadWorker>(delegate {
 				return new ThreadWorker(this, workers, workQueue, false, 0, ThreadPriority.Normal);
-			});
+			});*/
 			
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
 				workers[i] = new ThreadWorker(this, workers, workQueue, maxStackSize, priority);
 			}
+			
+			participant = new ThreadWorker(this, workers, workQueue, false, 0, ThreadPriority.Normal);
 		}
 		
 		public void AddWork(Task t)
@@ -72,7 +74,7 @@ namespace System.Threading.Tasks
 			ThreadWorker participant = GetLocalThreadWorker();
 			
 			participant.WorkerMethod(delegate {
-				return task.IsCompleted;	
+				return task.IsCompleted;
 			});
 		}
 		
@@ -124,14 +126,15 @@ namespace System.Threading.Tasks
 			isPulsable = true;
 		}
 
-		LazyInit<ThreadWorker> participant;
+		//LazyInit<ThreadWorker> participant;
+		ThreadWorker participant;
 		
 		// This one has no participation as it has no Dequeue suitable for stealing
 		// that's why it's not in the workers array
 		ThreadWorker GetLocalThreadWorker()
 		{
 			// It's ok to do the lazy init like this as there is only one thread which call this method (if the user don't mess up !)
-			return participant.Value;
+			return participant;
 		}
 	}
 }

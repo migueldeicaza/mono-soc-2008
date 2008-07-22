@@ -75,7 +75,8 @@ namespace System.Threading
 			Thread.BeginCriticalRegion();
 			while (true)  {
 				// If resource available, set it to in-use and return
-				if (Interlocked.Exchange(ref lockState, isOwned) == isFree) {
+				int result = Interlocked.Exchange(ref lockState, isOwned);
+				if (result == isFree) {
 					threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
 					return;
 				}
@@ -143,7 +144,7 @@ namespace System.Threading
 
 		public void Exit() 
 		{ 
-			Exit(false);
+			lockState = isFree;
 		}
 
 		public void Exit(bool flushReleaseWrites) 

@@ -79,19 +79,33 @@ namespace System.Linq
 			}, source.Dop(), block, null);
 		}
 		
+		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
+		{
+			source.IsNotLast();
+			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
+			
+			Parallel.SpawnBestNumber(delegate {
+				TSource item;
+				int i;
+				while (feedEnum.MoveNext(out item, out i)) {
+					//Console.WriteLine("Work from {0} for {1}", Thread.CurrentThread.ManagedThreadId, item.ToString());
+					action(i, item);
+				}
+			}, source.Dop(), block, null);
+		}
+		
 		static IParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
-		                                                    Func<Action<TResult, bool>, int, TSource, bool> action)
+		                                                    Func<Action<TResult, bool, int>, int, TSource, bool> action)
 		{
 			source.IsNotLast();
 			
 			BlockingCollection<TResult>  resultBuffer = new BlockingCollection<TResult>();
 			
-			Func<IParallelEnumerator<TSource>, Action<TResult, bool>, Action<int>, bool> a 
-			                        = delegate(IParallelEnumerator<TSource> feedEnum, Action<TResult, bool> adder, Action<int> indexCallback) {
+			Func<IParallelEnumerator<TSource>, Action<TResult, bool, int>, bool> a 
+			                  = delegate(IParallelEnumerator<TSource> feedEnum, Action<TResult, bool, int> adder) {
 				TSource item;
 				int i;
 				if (feedEnum.MoveNext (out item, out i)) {
-					indexCallback(i);
 					return action (adder, i, item);
 				} else {
 					return false;
@@ -111,8 +125,8 @@ namespace System.Linq
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
-			return Process<TSource, TResult> (source, delegate (Action<TResult, bool> adder, int i, TSource e) {
-				adder(selector(e, i), true);
+			return Process<TSource, TResult> (source, delegate (Action<TResult, bool, int> adder, int i, TSource e) {
+				adder(selector(e, i), true, i);
 				return true;
 			});
 		}
@@ -128,11 +142,12 @@ namespace System.Linq
 		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, bool> predicate)
 		{
-			return Process<TSource, TSource> (source, delegate (Action<TSource, bool> adder, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
 				if (predicate(e, i))
-					adder(e, true);
+					// TODO: Make the given back index correct 
+					adder(e, true, i);
 				else
-					adder(default(TSource), false);
+					adder(default(TSource), false, i);
 				return true;
 			});
 		}
@@ -172,7 +187,7 @@ namespace System.Linq
 		#region ForAll
 		public static void ForAll<T>(this IParallelEnumerable<T> source, Action<T> action)
 		{
-			Process(source, (i, e) => { action(e); return true; }, true);
+			Process(source, (i, e) => { action(e); }, true);
 		}
 		#endregion
 		
@@ -194,7 +209,6 @@ namespace System.Linq
 				int i = Interlocked.Increment(ref index) % count;
 				// Reduce results on each domain
 				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
-				return true;
 			}, true);
 			// Reduce the final domains into a single one
 			for (int i = 1; i < count; i++) {
@@ -211,11 +225,12 @@ namespace System.Linq
 		{
 			source.IsNotLast();
 			second.IsNotLast();
+			
 			IParallelEnumerable<TSource> temp = 
 				ParallelEnumerableFactory.GetFromIParallelEnumerable(source.Dop(), source, second);
 			
-			return Process<TSource, TSource>(temp, delegate (Action<TSource, bool> adder, int i, TSource e) {
-				adder(e, true);
+			return Process<TSource, TSource>(temp, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
+				adder(e, true, i);
 				return true;
 			});
 		}
@@ -226,9 +241,9 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return Process<TSource, TSource> (source, delegate (Action<TSource, bool> adder, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
 				if (Interlocked.Increment(ref counter) <= count) {
-					adder(e, true);
+					adder(e, true, i);
 					return true;
 				} else {
 					return false;

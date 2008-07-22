@@ -50,7 +50,7 @@ namespace System.Threading.Tasks
 		Action<object> action;
 		object state;
 		
-		internal event EventHandler Completed;
+		private event EventHandler Completed;
 		
 		internal ThreadStart threadStart;
 			
@@ -153,7 +153,7 @@ namespace System.Threading.Tasks
 		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
 			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
-			if (isCompleted) {
+			if (IsCompleted) {
 				continuation.Schedule();
 				return continuation;
 			}
