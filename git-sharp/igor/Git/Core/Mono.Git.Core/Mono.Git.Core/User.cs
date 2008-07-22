@@ -34,25 +34,8 @@ namespace Mono.Git.Core
 		private string name;
 		private string email;
 		
-		public string Name
-		{
-			set {
-				name = value;
-			}
-			get {
-				return name;
-			}
-		}
-		
-		public string Email
-		{
-			set {
-				email = value;
-			}
-			get {
-				return email;
-			}
-		}
+		public string Name { set; get; }
+		public string Email { set; get; }
 		
 		public User ()
 		{

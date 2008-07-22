@@ -41,88 +41,22 @@ namespace Mono.Git.Core
 		private User commiter; // the commiter name
 		private string message; // message in the commit
 		
-		private Repo repository; // repository where it belongs
-		
-		public User Author
-		{
-			set {
-				author = value;
-			}
+		public override Type Type {
 			get {
-				return author;
+				return Type.Commit;
 			}
 		}
 		
-		public User Commiter
-		{
-			set {
-				commiter = value;
-			}
-			get {
-				return commiter;
-			}
-		}
+		public User Author { get { return author; } }
+		public User Commiter { get { return commiter; } }
+		public string Message { get { return message; } }
+		public SHA1 Tree { get { return tree; } }
+		public SHA1 Parent { get { return parent; } }
 		
-		public string Message
-		{
-			set {
-				message = value;
-			}
-			get {
-				return message;
-			}
-		}
-		
-		public SHA1 Tree
-		{
-			set {
-				tree = value;
-			}
-			get {
-				return tree;
-			}
-		}
-		
-		public SHA1 Parent
-		{
-			set {
-				parent = value;
-			}
-			get {
-				return parent;
-			}
-		}
-		
-		public Repo Repository
-		{
-			set {
-				repository = value;
-			}
-			get {
-				return repository;
-			}
-		}
-		
-		/// <summary>
-		/// Creating an empty commit
-		/// </summary>
-		public Commit () : base (Type.Commit)
-		{
-			parent = new SHA1 ();
-			tree = new SHA1 ();
-		}
-		
-		public Commit (Repo repo) : base (Type.Commit)
-		{
-			repository = repo;
-			parent.bytes = null;
-		}
-		
-		public Commit (Repo repo, SHA1 treeId, SHA1 parentId, string authorName,
+		public Commit (SHA1 treeId, SHA1 parentId, string authorName,
 		               string commiterName, string authorEmail, string commiterEmail, 
-		               string messageContent) : base (Type.Commit)
+		               string messageContent)
 		{
-			repository = repo;
 			tree = treeId;
 			parent = parentId;
 			

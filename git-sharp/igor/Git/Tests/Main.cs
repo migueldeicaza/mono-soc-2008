@@ -32,7 +32,12 @@ namespace Mono.Git.Tests
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine (args[0]);
+			if (args.Length != 1) {
+				Console.WriteLine ("No argument provided");
+				return;
+			} else {
+				Console.WriteLine (args[0]);
+			}
 			
 			switch (args[0]) {
 			case "blob":
@@ -40,6 +45,11 @@ namespace Mono.Git.Tests
 				break;
 			case "repo":
 				new RepositoryTest ();
+				RepositoryTest.ConfigurationTests ();
+				break;
+			case "index":
+				new IndexTest ();
+				IndexTest.IndexTest1 ();
 				break;
 			}
 		}

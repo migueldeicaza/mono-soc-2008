@@ -61,19 +61,19 @@ namespace Mono.Git.Core
 			}
 		}
 		
-		public SHA1 Id
-		{
-			set {
-				if (parent != null && value.bytes != null) {
-					id = value;
-				} else {
-					id.bytes = null;
-				}
-			}
-			get {
-				return id;
-			}
-		}
+//		public SHA1 Id
+//		{
+//			set {
+//				if (parent != null && value.bytes != null) {
+//					id = value;
+//				} else {
+//					id.bytes = null;
+//				}
+//			}
+//			get {
+//				return id;
+//			}
+//		}
 		
 		/// <summary>
 		/// Helper to get the last char in a tree entry

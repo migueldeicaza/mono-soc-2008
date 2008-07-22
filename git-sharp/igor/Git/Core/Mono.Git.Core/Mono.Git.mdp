@@ -37,8 +37,10 @@
     <File name="Mono.Git.Core/SymlinkTreeEntry.cs" subtype="Code" buildaction="Compile" />
     <File name="Mono.Git.Core/IndexHeader.cs" subtype="Code" buildaction="Compile" />
     <File name="Mono.Git.Core.Repository/ConfigValue.cs" subtype="Code" buildaction="Compile" />
+    <File name="Mono.Git.Core/SHA1.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   </References>
+  <GtkDesignInfo gtkVersion="2.12.1" />
 </Project>

@@ -35,25 +35,27 @@ namespace Mono.Git.Core
 		private int version;
 		private int entries;
 		
-		public int Signature
-		{
-			get {
-				return signature;
-			}
+		public int Signature {
+			get;
+			set;
 		}
 		
-		public int Version
-		{
-			get {
-				return version;
-			}
+		public int Version {
+			get;
+			set;
 		}
 		
 		public int Entries
 		{
-			get {
-				return entries;
-			}
+			get;
+			set;
+		}
+		
+		public IndexHeader ()
+		{
+			signature = 0x44495243;
+			version = 2;
+			//entries = indexEntries.Length;
 		}
 		
 		public IndexHeader (IndexEntry[] indexEntries)

@@ -44,14 +44,14 @@ namespace Mono.Git.Core
 			return mode;
 		}
 		
-		public override string ToString ()
-		{
-			StringBuilder sb = new StringBuilder ();
-			sb.Append (Object.BytesToHexString (Id.bytes));
-			sb.Append (" S ");
-			sb.Append (Name);
-			
-			return sb.ToString ();
-		}
+//		public override string ToString ()
+//		{
+//			StringBuilder sb = new StringBuilder ();
+//			sb.Append (Object.BytesToHexString (Id.bytes));
+//			sb.Append (" S ");
+//			sb.Append (Name);
+//			
+//			return sb.ToString ();
+//		}
 	}
 }

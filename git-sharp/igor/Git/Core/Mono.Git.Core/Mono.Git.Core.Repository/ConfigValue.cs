@@ -64,6 +64,10 @@ namespace Mono.Git.Core.Repository
 			}
 		}
 		
+		public ConfigValue ()
+		{
+		}
+		
 		public ConfigValue (string confSection, string confName, string confValue)
 		{
 			config_section = confSection;

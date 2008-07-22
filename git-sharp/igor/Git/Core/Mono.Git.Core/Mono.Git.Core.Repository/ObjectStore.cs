@@ -26,6 +26,7 @@
 
 using System;
 using System.Collections;
+using System.IO;
 using Mono.Git.Core;
 
 namespace Mono.Git.Core.Repository
@@ -90,29 +91,36 @@ namespace Mono.Git.Core.Repository
 			objects = (Object[]) array.ToArray ();
 		}
 		
-		public Object GetObjectById (SHA1 objIdSHA1)
+		public static byte[] GetFileContent (string path)
 		{
-			return GetObjectById (objIdSHA1.bytes);
+			FileStream fs = File.Open (path, FileMode.Open);
+			
+			return new BinaryReader (fs).ReadBytes ((int) fs.Length);
 		}
 		
-		public Object GetObjectById (byte[] objIdBytes)
-		{
-			foreach (Object obj in objects) {
-				if (obj.Id.bytes == objIdBytes)
-					return obj;
-			}
-			
-			return null;
-		}
-		
-		public Object GetOjectById (string objIdSHA1)
-		{
-			foreach (Object obj in objects) {
-				if (Object.BytesToHexString (obj.Id.bytes) == objIdSHA1)
-					return obj;
-			}
-			
-			return null;
-		}
+//		public Object GetObjectById (SHA1 objIdSHA1)
+//		{
+//			return GetObjectById (objIdSHA1.bytes);
+//		}
+//		
+//		public Object GetObjectById (byte[] objIdBytes)
+//		{
+//			foreach (Object obj in objects) {
+//				if (obj.Id.bytes == objIdBytes)
+//					return obj;
+//			}
+//			
+//			return null;
+//		}
+//		
+//		public Object GetOjectById (string objIdSHA1)
+//		{
+//			foreach (Object obj in objects) {
+//				if (Object.BytesToHexString (obj.Id.bytes) == objIdSHA1)
+//					return obj;
+//			}
+//			
+//			return null;
+//		}
 	}
 }

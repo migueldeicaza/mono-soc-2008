@@ -61,7 +61,7 @@ namespace Mono.Git.Core
 		public override string ToString ()
 		{
 			StringBuilder sb = new StringBuilder();
-			sb.Append (Object.BytesToHexString (Id.bytes));
+			//sb.Append (SHA1.BytesToHexString (Id));
 			sb.Append (" ");
 			sb.Append (IsExecutable () ? "X" : "F");
 			sb.Append (" ");
