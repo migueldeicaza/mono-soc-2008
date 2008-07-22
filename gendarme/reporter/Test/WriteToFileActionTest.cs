@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.IO;
 using System.Xml.Linq;
 using NUnit.Framework;
@@ -41,7 +42,7 @@ namespace Gendarme.Reporter.Test {
 			XDocument document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
-			document = new WriteToFileAction (destinationFile).Process (new XDocument[] {document})[0];
+			document = new WriteToFileAction (destinationFile).Process (document)[0];
 			Assert.IsNotNull (document);
 			return document;
 		}
@@ -62,6 +63,14 @@ namespace Gendarme.Reporter.Test {
 		public void FixtureTearDown ()
 		{
 			RemoveGenerated ();
+		}
+
+		[Test]
+		[ExpectedException (typeof (ArgumentException))]
+		public void PassMoreThanOneArgumentTest ()
+		{
+			XDocument document = XDocument.Load (xmlFile);
+			new WriteToFileAction (destinationFile).Process (document, document);
 		}
 
 		[Test]
