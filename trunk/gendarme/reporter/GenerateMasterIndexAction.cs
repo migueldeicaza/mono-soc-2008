@@ -79,16 +79,16 @@ namespace Gendarme.Reporter {
 
 		public XDocument[] Process (params XDocument[] documents)
 		{
-			List<XDocument> results = new List<XDocument> ();
-			foreach (XDocument document in documents) {
-				originalDocument = document;
-				XDocument newDocument = CreateStandardXmlDocument ();
+			if (documents.Length != 1)
+				throw new ArgumentException ("You should pass only one document.", "documents");
+
+			originalDocument = documents[0];
+			XDocument newDocument = CreateStandardXmlDocument ();
 	
-				newDocument.Add (CreateRootElementFrom (document.Root));
-				newDocument.Root.Add (CreateAssembliesSectionFrom (document.Root.Element ("files")));
-				results.Add (newDocument);
-			}
-			return results.ToArray ();
+			newDocument.Add (CreateRootElementFrom (originalDocument.Root));
+			newDocument.Root.Add (CreateAssembliesSectionFrom (originalDocument.Root.Element ("files")));
+			
+			return new XDocument[] {newDocument};
 		}
 	}
 }
