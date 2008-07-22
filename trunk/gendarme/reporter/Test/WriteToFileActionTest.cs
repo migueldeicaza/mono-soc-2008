@@ -36,10 +36,11 @@ namespace Gendarme.Reporter.Test {
 	public class WriteToFileActionTest {
 		static readonly string xmlFile = "Test/Fakes/06-18-2008.xml";
 		static readonly string destinationFile = "new-generated.xml";
+		XDocument document;
 
 		private XDocument GetProcessedDocument ()
 		{
-			XDocument document = XDocument.Load (xmlFile);
+			document = XDocument.Load (xmlFile);
 			Assert.IsNotNull (document);
 
 			document = new WriteToFileAction (destinationFile).Process (document)[0];
@@ -69,8 +70,21 @@ namespace Gendarme.Reporter.Test {
 		[ExpectedException (typeof (ArgumentException))]
 		public void PassMoreThanOneArgumentTest ()
 		{
-			XDocument document = XDocument.Load (xmlFile);
 			new WriteToFileAction (destinationFile).Process (document, document);
+		}
+
+		[Test]
+		[ExpectedException (typeof (ArgumentException))]
+		public void PassAnStringEmptyToActionTest ()
+		{
+			new WriteToFileAction (String.Empty).Process (document);
+		}
+
+		[Test]
+		[ExpectedException (typeof (ArgumentException))]
+		public void PassNullToActionTest ()
+		{
+			new WriteToFileAction (null).Process (document);
 		}
 
 		[Test]
