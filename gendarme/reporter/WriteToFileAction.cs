@@ -36,7 +36,18 @@ namespace Gendarme.Reporter {
 
 		public WriteToFileAction (string destinationFile)
 		{
-			this.destinationFile = destinationFile;
+			DestinationFile = destinationFile;
+		}
+
+		public string DestinationFile {
+			get {
+				return destinationFile;
+			}
+			set {
+				if (String.IsNullOrEmpty (value))
+					throw new ArgumentException ("You should pass a valid file", "value");
+				destinationFile = value;
+			}
 		}
 
 		public XDocument[] Process (params XDocument[] documents)
