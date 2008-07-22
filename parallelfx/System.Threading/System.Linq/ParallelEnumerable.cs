@@ -265,6 +265,35 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region First
+		public static TSource First<TSource>(this IParallelEnumerable<TSource> source)
+		{
+			TSource first;
+			int index;
+			
+			source.IsNotLast();
+			bool result = source.GetParallelEnumerator().MoveNext(out first, out index);
+			source.IsLast();
+			
+			if (!result)
+				throw new InvalidOperationException("source is empty");
+			
+			return first;
+		}
+		
+		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source)
+		{
+			TSource first;
+			int index;
+			
+			source.IsNotLast();
+			bool result = source.GetParallelEnumerator().MoveNext(out first, out index);
+			source.IsLast();
+			
+			return result ? first : default(TSource);
+		}
+		#endregion
+		
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
