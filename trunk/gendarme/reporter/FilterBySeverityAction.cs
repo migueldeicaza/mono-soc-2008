@@ -36,6 +36,8 @@ namespace Gendarme.Reporter {
 		static readonly string High = "High";
 		static readonly string Medium = "Medium";
 		static readonly string Low = "Low";
+		
+		WriteToFileAction writeAction;
 
 		public XDocument CloneDocument (XDocument original)
 		{
@@ -60,6 +62,12 @@ namespace Gendarme.Reporter {
 			}
 		}
 
+		private void WriteToFile (string fileName, XDocument document)
+		{
+			writeAction.DestinationFile = fileName;
+			writeAction.Process (document);
+		}
+
 		public XDocument[] Process (params XDocument[] documents)
 		{
 			if (documents.Length != 1)
@@ -81,11 +89,13 @@ namespace Gendarme.Reporter {
 			RemoveDefectsWithoutSeverity (Medium, medium);
 			RemoveDefectsWithoutSeverity (Low, low);
 
-			//TODO: The actions should be separated units.
-			new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName)).Process (critical);
-			new WriteToFileAction (String.Format ("{0}.High.xml", assemblyName)).Process (high);
-			new WriteToFileAction (String.Format ("{0}.Medium.xml", assemblyName)).Process (medium);
-			new WriteToFileAction (String.Format ("{0}.Low.xml", assemblyName)).Process (low);
+			if (writeAction == null);
+				writeAction = new WriteToFileAction (String.Format ("{0}.Critical.xml", assemblyName));
+			
+			WriteToFile (String.Format ("{0}.Critical.xml", assemblyName), critical); 
+			WriteToFile (String.Format ("{0}.High.xml", assemblyName), high); 
+			WriteToFile (String.Format ("{0}.Medium.xml", assemblyName), medium); 
+			WriteToFile (String.Format ("{0}.Low.xml", assemblyName), low); 
 
 			return new XDocument[] {critical, high, medium, low};
 		}
