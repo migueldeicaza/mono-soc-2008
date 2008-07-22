@@ -34,6 +34,7 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class GenerateDefectsPerAssemblyAction : IAction {
+		WriteToFileAction writeAction;
 
 		private XDocument AddFilesSection (XDocument generated, string assemblyName, XElement filesSection)
 		{
@@ -95,7 +96,11 @@ namespace Gendarme.Reporter {
 				generatedDocument = AddResultsSection (generatedDocument, file, document.Root.Element ("results"));
 			
 				results.Add (generatedDocument);
-				new WriteToFileAction (String.Format ("{0}.xml", file)).Process (new XDocument[] {generatedDocument});
+				if (writeAction == null)
+					writeAction = new WriteToFileAction (String.Format ("{0}.xml", file));
+
+				writeAction.DestinationFile = String.Format ("{0}.xml", file);
+				writeAction.Process (generatedDocument);
 			}
 			return results.ToArray ();
 		}
