@@ -14,7 +14,9 @@ reporter_sources = \
 	ValidateInputXmlAction.cs \
 	WriteToFileAction.cs \
 	GenerateDefectsPerAssemblyAction.cs \
-	FilterBySeverityAction.cs
+	FilterBySeverityAction.cs \
+	IPipeline.cs \
+	MasterReportPipeline.cs
 
 reporter_resources = \
 	gendarme-output.xsd
