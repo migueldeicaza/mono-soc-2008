@@ -35,6 +35,7 @@ namespace Gendarme.Reporter {
 		IAction generateMaster = new GenerateMasterIndexAction ();
 		IAction addXSL = AddXSLProcessingInstructionAction.MasterStyle;
 		WriteToFileAction writeTo = new WriteToFileAction ("master-index.xml");
+		IAction filterBy = new FilterBySeverityAction ();
 
 
 		public XDocument[] ApplyActions (params XDocument[] documents)
@@ -42,7 +43,9 @@ namespace Gendarme.Reporter {
 			XDocument[] results;
 			results = validateInput.Process (documents);
 			results = generateDefects.Process (results);
-			//write to file?
+			foreach (XDocument assemblyDefects in results) 
+				filterBy.Process (assemblyDefects);
+
 			results = generateMaster.Process (documents);
 			results = addXSL.Process (results);
 			results = writeTo.Process (results);
