@@ -31,18 +31,6 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class Driver {
-		static Pipeline DefaultPipeline {
-			get {
-				Pipeline pipeline = new Pipeline ();
-				pipeline.Append (new ValidateInputXmlAction ());
-				pipeline.Append (new GenerateDefectsPerAssemblyAction ());
-				pipeline.Append (new GenerateMasterIndexAction ());
-				pipeline.Append (AddXSLProcessingInstructionAction.MasterStyle);
-				pipeline.Append (new WriteToFileAction ("master-index.xml"));
-				return pipeline;
-			}
-		}
-
 		static void Main (string[] args) 
 		{
 			if (args.Length != 1) {
@@ -50,7 +38,7 @@ namespace Gendarme.Reporter {
 				return;
 			}
 			XDocument original = XDocument.Load (args[0]);
-			DefaultPipeline.ApplyActions (new XDocument[] {original});
+			new MasterReportPipeline ().ApplyActions (new XDocument[] {original});
 		}
 	}
 }
