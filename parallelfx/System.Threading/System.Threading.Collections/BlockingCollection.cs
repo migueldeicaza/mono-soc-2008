@@ -39,7 +39,7 @@ namespace System.Threading.Collections
 		//const int blockingTime = 100;
 		readonly SpinWait sw = new SpinWait();
 		
-		bool isComplete;
+		volatile bool isComplete;
 		
 		#region ctors
 		public BlockingCollection():
@@ -151,7 +151,6 @@ namespace System.Threading.Collections
 		public void CompleteAdding()
 		{
 			isComplete = true;
-			//Console.WriteLine("Complete adding");
 		}
 		
 		public void CopyTo(Array array, int index)

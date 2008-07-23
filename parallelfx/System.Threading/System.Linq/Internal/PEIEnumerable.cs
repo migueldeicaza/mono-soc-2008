@@ -47,7 +47,7 @@ namespace System.Linq
 			
 			IEnumerator<T> enumerator;
 			T current;
-			int currIndex;
+			int currIndex = -1;
 			
 			/*T[] buffer = new T[chunkSize];
 			int fillIndex;*/
@@ -76,9 +76,8 @@ namespace System.Linq
 				
 				try {
 					sl.Enter();
-					if (enumerator.MoveNext()) {
+					if (result = enumerator.MoveNext()) {
 						current = enumerator.Current;
-						result = true;
 					}
 				} finally {
 					sl.Exit();
@@ -87,32 +86,28 @@ namespace System.Linq
 				return result;
 			}
 			
-			readonly object syncRoot = new object();
+			//readonly object syncRoot = new object();
 			
 			public bool MoveNext(out T item, out int index)
 			{
 				bool result = false;
 				index = -1;
 				
-				/*try {
+				try {
 					sl.Enter();
-					if (enumerator.MoveNext()) {
+					if (result = enumerator.MoveNext()) {
 						current = item = enumerator.Current;
-						index = currIndex++; 
-						result = true;
+						index = Interlocked.Increment(ref currIndex);
 					}
-					
-					if (!result)
-						Console.WriteLine("PEIEnumerable : " + currIndex.ToString());
 				} finally {
 					sl.Exit();
-				}*/
-				lock (syncRoot) {
+				}
+				/*lock (syncRoot) {
 					if (result = enumerator.MoveNext()) {
 						item = enumerator.Current;
 						index = currIndex++;
 					}
-				}
+				}*/
 				
 				return result;
 			}
@@ -129,12 +124,7 @@ namespace System.Linq
 			
 			public void Dispose()
 			{
-				try {
-					sl.Enter();
-					enumerator.Dispose();
-				} finally {
-					sl.Exit();
-				}
+				
 			}
 		}
 		

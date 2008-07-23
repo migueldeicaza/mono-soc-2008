@@ -72,7 +72,7 @@ namespace System.Threading
 		
 		public void Enter() 
 		{
-			Thread.BeginCriticalRegion();
+			//Thread.BeginCriticalRegion();
 			while (true)  {
 				// If resource available, set it to in-use and return
 				int result = Interlocked.Exchange(ref lockState, isOwned);
@@ -93,7 +93,7 @@ namespace System.Threading
 		
 		public bool TryEnter()
 		{
-			Thread.BeginCriticalRegion();
+			//Thread.BeginCriticalRegion();
 
 			// If resource available, set it to in-use and return
 			if (Interlocked.Exchange(ref lockState, isOwned) == isFree) {
@@ -110,7 +110,7 @@ namespace System.Threading
 		
 		public bool TryEnter(int milliSeconds)
 		{
-			Thread.BeginCriticalRegion();
+			//Thread.BeginCriticalRegion();
 			
 			Stopwatch sw = Stopwatch.StartNew();
 			bool result = false;
@@ -132,7 +132,7 @@ namespace System.Threading
 		
 		public void TryReliableEnter(int milliSeconds, ref bool lockTaken)
 		{
-			Thread.BeginCriticalRegion();
+			//Thread.BeginCriticalRegion();
 			
 			Stopwatch sw = Stopwatch.StartNew();
 			
@@ -144,19 +144,18 @@ namespace System.Threading
 
 		public void Exit() 
 		{ 
-			lockState = isFree;
+			Thread.VolatileWrite(ref lockState, isFree);
 		}
 
 		public void Exit(bool flushReleaseWrites) 
 		{ 
 			// Mark the resource as available
 			if (flushReleaseWrites) {
-				//Interlocked.Exchange(ref lockState, isFree);
 				lockState = isFree;
 			} else {
 				Thread.VolatileWrite(ref lockState, isFree);
 			}
-			Thread.EndCriticalRegion();
+			//Thread.EndCriticalRegion();
 		}
 	}
 }
