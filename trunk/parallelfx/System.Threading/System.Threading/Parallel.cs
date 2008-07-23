@@ -106,17 +106,36 @@ namespace System.Threading
 		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
 		{
-			throw new NotImplementedException();
-		}
-		
-		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
-		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			throw new NotImplementedException();
+			For<TLocal>(fromInclusive, toExclusive, 1, threadLocalSelector, body);
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
+		{
+			int num = GetBestWorkerNumber();
+
+			Task[] tasks = new Task[num];
+			ParallelState<TLocal> state = new ParallelState<TLocal>(tasks, threadLocalSelector);
+			
+			int currentIndex = fromInclusive;
+			
+			Action<object> workerMethod = delegate {
+				int index;
+				while ((index = Interlocked.Add(ref currentIndex, step) - step) < toExclusive && !state.IsStopped) {
+					body (index, state);
+				}
+			};
+			
+			for (int i = 0; i < num; i++) {
+				tasks[i] = Task.Create(workerMethod);
+			}
+			
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
+		}
+		
+		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
+		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
 		{
 			throw new NotImplementedException();
 		}
@@ -194,10 +213,50 @@ namespace System.Threading
 			HandleExceptions(tasks);
 		}
 		
-		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector,
-		                                            Action<TSource, int, ParallelState<TLocal>> body)
+		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> enumerable, Func<TLocal> threadLocalSelector,
+		                                            Action<TSource, int, ParallelState<TLocal>> action)
 		{
-			throw new NotImplementedException();
+			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
+			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
+			// most collection.
+			SpinLock sl = new SpinLock(false);
+			
+			int num = GetBestWorkerNumber();
+
+			Task[] tasks = new Task[num];
+			ParallelState<TLocal> state = new ParallelState<TLocal>(tasks, threadLocalSelector);
+			
+			IEnumerator<TSource> enumerator = enumerable.GetEnumerator();
+			int currentIndex = 0;
+			bool isFinished = false;
+			
+			Action<object> workerMethod = delegate {
+				int index = -1;
+				TSource element = default(TSource);
+				
+				while (!isFinished && !state.IsStopped) {
+					try {
+						sl.Enter();
+						// From here it's thread-safe
+						index      = currentIndex++;
+						isFinished = !enumerator.MoveNext();
+						if (isFinished) return;
+						element = enumerator.Current;
+						// End of thread-safety
+					} finally {
+						sl.Exit();
+					}
+					
+					action(element, index, state);
+				}
+			};
+			
+			for (int i = 0; i < num; i++) {
+				tasks[i] = Task.Create(workerMethod);
+			}
+			
+			Task.WaitAll(tasks);
+			HandleExceptions(tasks);
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
@@ -243,6 +302,8 @@ namespace System.Threading
 			HandleExceptions(ts);
 		}
 		
+		
+		// Used by PLinq
 		internal static Task[] SpawnBestNumber(Action action, Action callback)
 		{
 			return SpawnBestNumber(action, -1, callback);
