@@ -16,7 +16,7 @@ reporter_sources = \
 	GenerateDefectsPerAssemblyAction.cs \
 	FilterBySeverityAction.cs \
 	IPipeline.cs \
-	MasterReportPipeline.cs
+	DefaultPipeline.cs
 
 reporter_resources = \
 	gendarme-output.xsd

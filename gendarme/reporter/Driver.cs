@@ -38,7 +38,7 @@ namespace Gendarme.Reporter {
 				return;
 			}
 			XDocument original = XDocument.Load (args[0]);
-			new MasterReportPipeline ().ApplyActions (new XDocument[] {original});
+			new DefaultPipeline ().ApplyActions (new XDocument[] {original});
 		}
 	}
 }

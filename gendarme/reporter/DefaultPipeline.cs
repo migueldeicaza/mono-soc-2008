@@ -1,5 +1,5 @@
 //
-// Gendarme.Reporter.MasterReportPipeline class
+// Gendarme.Reporter.DefaultPipeline class
 //
 // Authors:
 //	Néstor Salceda <nestor.salceda@gmail.com>
@@ -29,7 +29,7 @@
 using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
-	public class MasterReportPipeline : IPipeline {
+	public class DefaultPipeline : IPipeline {
 		IAction validateInput = new ValidateInputXmlAction ();
 		IAction generateDefects = new GenerateDefectsPerAssemblyAction ();
 		IAction generateMaster = new GenerateMasterIndexAction ();
