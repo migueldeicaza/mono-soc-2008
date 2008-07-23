@@ -30,9 +30,24 @@ using System.Xml.Linq;
 
 namespace Gendarme.Reporter {
 	public class MasterReportPipeline : IPipeline {
+		IAction validateInput = new ValidateInputXmlAction ();
+		IAction generateDefects = new GenerateDefectsPerAssemblyAction ();
+		IAction generateMaster = new GenerateMasterIndexAction ();
+		IAction addXSL = AddXSLProcessingInstructionAction.MasterStyle;
+		WriteToFileAction writeTo = new WriteToFileAction ("master-index.xml");
+
+
 		public XDocument[] ApplyActions (params XDocument[] documents)
 		{
-			return documents;
+			XDocument[] results;
+			results = validateInput.Process (documents);
+			results = generateDefects.Process (results);
+			//write to file?
+			results = generateMaster.Process (documents);
+			results = addXSL.Process (results);
+			results = writeTo.Process (results);
+
+			return results;
 		}
 	}
 }
