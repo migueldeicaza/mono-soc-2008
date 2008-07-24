@@ -64,7 +64,7 @@ namespace System.Linq
 	#region BlockingCollectionOrderedEnumerator
 	internal class BlockingCollectionOrderedEnumerator<TSource, T>: BlockingCollectionEnumeratorBase<T>
 	{
-		struct Tuple<U, V>
+		/*struct Tuple<U, V>
 		{
 			public readonly U First;
 			public readonly V Second;
@@ -74,16 +74,16 @@ namespace System.Linq
 				First = first;
 				Second = second;
 			}
-		}
+		}*/
 		
 		readonly SpinLock sl = new SpinLock(false);
+		readonly SpinWait sw = new SpinWait();
 		readonly Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
 		readonly IParallelEnumerator<TSource> enumerator;
 		// first element of the tuple is the index and the second is the element of the IEnumerator
-		readonly BlockingCollection<Tuple<int, T>> buffer = new BlockingCollection<Tuple<int, T>>();
-		
-		bool isValid;
-		int currIndex = -1;
+		//readonly BlockingCollection<Tuple<int, T>> buffer = new BlockingCollection<Tuple<int, T>>();
+
+		int  currIndex = -1;
 		
 		public BlockingCollectionOrderedEnumerator(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
 		                                           IParallelEnumerator<TSource> enumerator)
@@ -92,20 +92,10 @@ namespace System.Linq
 			this.enumerator = enumerator;
 		}
 		
-		void CurrentAdder(T element, bool isValid, int index)
-		{
-			if (this.isValid = isValid)
-				current = element;
-		}
-		
 		public override bool MoveNext()
 		{
-			bool result;
-			do {
-				result = action(enumerator, CurrentAdder);
-			} while (!isValid && result);
-			
-			return result;
+			int index;
+			return MoveNext(out current, out index);
 		}
 		
 		public override bool MoveNext(out T item, out int index)
@@ -121,38 +111,27 @@ namespace System.Linq
 				}
 			};
 			
-			try {
-				sl.Enter();
-				do {
-					result = action(enumerator, adder);
-					if (!isValid)
-						currIndex++;
-				} while (!isValid && result);
-				
-				if (result) {
-					// If we have the right element index-speaking then everything is fine
-					if (i == currIndex + 1) {
+			bool hasGoodValue = false;
+			while (!hasGoodValue) {
+				try {
+					sl.Enter();
+					do {
+						result = action(enumerator, adder);
+						if (!isValid)
+							currIndex++;
+					} while (!isValid && result);
+					
+					if (result && i == currIndex + 1) {
+						// If we have the right element index-speaking then everything is fine
 						currIndex++;
 						current = item  = privElement;
 						index = i;
-					} else {
-						int indexSearched = currIndex + 1;
-						// Else we check in the buffer if our index is there
-						foreach (var e in buffer.GetConsumingEnumerable()) {
-							if (e.First == indexSearched) {
-								current = item = e.Second;
-								index = e.First;
-								break;
-							}
-							// Re-add the consummed element to the buffer Queue
-							buffer.Add(e);
-						}
-						// Add the computer in the buffer for future use by MoveNext
-						buffer.Add(new Tuple<int, T>(i, privElement));
 					}
+				} finally {
+					sl.Exit();
 				}
-			} finally {
-				sl.Exit();
+				if (!hasGoodValue)
+					sw.SpinOnce();
 			}
 			
 			return result;

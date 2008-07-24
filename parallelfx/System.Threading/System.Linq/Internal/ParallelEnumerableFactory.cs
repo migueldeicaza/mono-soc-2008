@@ -31,35 +31,35 @@ namespace System.Linq
 	
 	internal static class ParallelEnumerableFactory
 	{
-		public static IParallelEnumerable<T> GetFromBlockingCollection<TSource, T>(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
+		public static ParallelEnumerableBase<T> GetFromBlockingCollection<TSource, T>(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
 		                                                                           IParallelEnumerable<TSource> source)
 		{
 			return new System.Linq.PEBlockingCollection<TSource, T>(new BlockingCollection<T>(), action, source, source.Dop());
 		}
 		
-		public static IParallelEnumerable<T> GetFromBlockingCollection<TSource, T>(BlockingCollection<T> coll,
+		public static ParallelEnumerableBase<T> GetFromBlockingCollection<TSource, T>(BlockingCollection<T> coll,
 		                                                                  Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
 		                                                                  IParallelEnumerable<TSource> source)
 		{
 			return new System.Linq.PEBlockingCollection<TSource, T>(coll, action, source, source.Dop());
 		}
 		
-		public static IParallelEnumerable<T> GetFromIEnumerable<T>(IEnumerable<T> coll, int dop)
+		public static ParallelEnumerableBase<T> GetFromIEnumerable<T>(IEnumerable<T> coll, int dop)
 		{
 			return new System.Linq.PEIEnumerable<T>(coll, dop);
 		}
 		
-		public static IParallelEnumerable<T> GetFromIParallelEnumerable<T>(int dop, params IParallelEnumerable<T>[] enumerables)
+		public static ParallelEnumerableBase<T> GetFromIParallelEnumerable<T>(int dop, params IParallelEnumerable<T>[] enumerables)
 		{
 			return new System.Linq.PEConcat<T>(enumerables, dop);
 		}
 		
-		public static IParallelEnumerable<int> GetFromRange(int start, int count, int dop)
+		public static ParallelEnumerableBase<int> GetFromRange(int start, int count, int dop)
 		{
 			return new PERange(start, count, dop);
 		}
 		
-		public static IParallelEnumerable<T> GetFromRepeat<T>(T element, int count, int dop)
+		public static ParallelEnumerableBase<T> GetFromRepeat<T>(T element, int count, int dop)
 		{
 			return new PERepeat<T>(element, count, dop);
 		}

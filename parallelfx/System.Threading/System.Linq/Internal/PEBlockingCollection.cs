@@ -80,10 +80,10 @@ namespace System.Linq
 							if (!isValid) {
 								// Just increment the index because to let the next possible
 								// valid item going in
-								index++;
+								indexToBeAdded++;
 							} else {
 								bColl.Add(element);
-								index++;
+								indexToBeAdded++;
 							}
 							added = true;
 						}	
@@ -93,6 +93,7 @@ namespace System.Linq
 					
 					if (!added)
 						sw.SpinOnce();
+					//Console.WriteLine("Not added : " + index + " ; " + element);
 				}
 			};
 				

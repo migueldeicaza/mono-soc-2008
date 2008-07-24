@@ -50,7 +50,7 @@ namespace System.Threading.Tasks
 		Action<object> action;
 		object state;
 		
-		private event EventHandler Completed;
+		EventHandler Completed;
 		
 		internal ThreadStart threadStart;
 			
