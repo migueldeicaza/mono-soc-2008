@@ -46,6 +46,13 @@ namespace System.Threading
 			}
 		}
 		
+		static void InitTasks(Task[] tasks, Action<object> action, int count)
+		{
+			for (int i = 0; i < count; i++) {
+				tasks[i] = Task.Create(action);
+			}
+		}
+		
 		public static void For(int from, int to, Action<int> action)
 		{
 			For(from, to, 1, action);
@@ -66,9 +73,7 @@ namespace System.Threading
 				}
 			};
 			
-			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(workerMethod);
-			}
+			InitTasks(tasks, workerMethod, num);
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
@@ -95,9 +100,7 @@ namespace System.Threading
 				}
 			};
 			
-			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(workerMethod);
-			}
+			InitTasks(tasks, workerMethod, num);
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
@@ -126,9 +129,7 @@ namespace System.Threading
 				}
 			};
 			
-			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(workerMethod);
-			}
+			InitTasks(tasks, workerMethod, num);
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
@@ -205,9 +206,7 @@ namespace System.Threading
 				}
 			};
 			
-			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(workerMethod);
-			}
+			InitTasks(tasks, workerMethod, num);	
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
@@ -251,9 +250,7 @@ namespace System.Threading
 				}
 			};
 			
-			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(workerMethod);
-			}
+			InitTasks(tasks, workerMethod, num);	
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
@@ -276,27 +273,26 @@ namespace System.Threading
 		{
 			if (actions.Length == 0)
 				throw new ArgumentException("actions is empty");
-			// Execute it directly
-			if (actions.Length == 1)
-				actions[0]();
 			
-			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
-				return Task.Create((o) => a());
-			});
-			Task.WaitAll(ts);
-			HandleExceptions(ts);
+			Invoke(actions, (Action a) => Task.Create((o) => a()));
 		}
 		
 		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
 			if (actions.Length == 0)
 				throw new ArgumentException("actions is empty");
+			
+			Invoke(actions, (Action a) => Task.Create((o) => a(), tm, tco));
+		}
+		
+		public static void Invoke(Action[] actions, Func<Action, Task> taskCreator)
+		{
 			// Execute it directly
 			if (actions.Length == 1)
 				actions[0]();
 			
 			Task[] ts = Array.ConvertAll(actions, delegate (Action a) {
-				return Task.Create((o) => a(), tm, tco);
+				return taskCreator(a);
 			});
 			Task.WaitAll(ts);
 			HandleExceptions(ts);

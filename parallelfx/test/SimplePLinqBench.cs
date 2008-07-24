@@ -14,7 +14,7 @@ class MainClass
 		long synch;
 		
 		sw.Start();
-		foreach (int i in Enumerable.Range(1, 2000).Where(i => i % 10 == 0).Select(i => { /*Thread.Sleep(1);*/  return i + 1; })) {
+		foreach (int i in Enumerable.Range(1, 20000).Where(i => i % 10 == 0).Select(i => { /*Thread.Sleep(1);*/  return i + 1; })) {
 			Console.Write(i + ", ");
 			//Thread.Sleep(1); 
 		}
@@ -26,7 +26,7 @@ class MainClass
 		
 		sw.Start();
 		ParallelEnumerable.ForAll(
-			ParallelEnumerable.Range(1, 2000).Where(i => { return i % 10 == 0; }).Select(i => { /*Thread.Sleep(1);*/ return i + 1; }), delegate (int i) {
+			ParallelEnumerable.Range(1, 20000).Where(i => { return i % 10 == 0; }).Select(i => { /*Thread.Sleep(1);*/ return i + 1; }), delegate (int i) {
 			Console.Write(i + ", ");
 			//Thread.Sleep(1); 	
 		});

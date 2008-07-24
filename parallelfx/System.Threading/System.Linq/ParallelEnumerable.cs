@@ -87,6 +87,30 @@ namespace System.Linq
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			return temp.GetParallelEnumerator();
 		}
+		
+		internal static IList<T> AsIList<T>(this IParallelEnumerable<T> source)
+		{
+			return AsInterface<T, IList<T>>(source);
+		}
+		
+		internal static ICollection<T> AsICollection<T>(this IParallelEnumerable<T> source)
+		{
+			return AsInterface<T, ICollection<T>>(source);
+		}
+		
+		static U AsInterface<T, U>(IParallelEnumerable<T> source) where U : class
+		{
+			// For PERange and PERepeat
+			var coll = source as U;
+			if (coll != null)
+				return coll;
+			
+			var peEnumerable = source as PEIEnumerable<T>;
+			if (peEnumerable != null)
+				coll = peEnumerable.Enumerable as U;
+			
+			return coll;
+		}
 		#endregion
 		
 		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
@@ -189,6 +213,9 @@ namespace System.Linq
 		{
 			int count = 0;
 			
+			var coll = source.AsICollection();
+			if (coll != null) return coll.Count;
+			
 			Process(source, delegate (int i, TSource element) {
 				if (predicate(element))
 					Interlocked.Increment(ref count);
@@ -202,6 +229,10 @@ namespace System.Linq
 		#region Any
 		public static bool Any<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			// Little short-circuit
+			var coll = source.AsICollection();
+			if (coll != null) return coll.Count > 0;
+			
 			source.IsNotLast();
 			bool result = source.GetParallelEnumerator().MoveNext();
 			source.IsLast();
@@ -290,6 +321,10 @@ namespace System.Linq
 		#region ElementAt
 		public static TSource ElementAt<TSource>(this IParallelEnumerable<TSource> source, int index)
 		{
+			// Little short-circuit taken from Enumerable.cs
+			var list = source.AsIList();
+			if (list != null) return list[index];
+			
 			TSource result = default(TSource);
 			int currIndex = -1;
 			
@@ -309,6 +344,15 @@ namespace System.Linq
 		#region First
 		public static TSource First<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			// Little short-circuit taken from Enumerable.cs
+			var list = source.AsIList();
+			if (list != null) {
+				if (list.Count > 0)
+					return list [0];
+				else
+					throw new InvalidOperationException("source is empty");
+			}
+			
 			TSource first;
 			int index;
 			
@@ -324,6 +368,11 @@ namespace System.Linq
 		
 		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			// Little short-circuit taken from Enumerable.cs
+			var list = source.AsIList();
+			if (list != null)
+				return (list.Count > 0) ? list [0] : default(TSource);
+			
 			TSource first;
 			int index;
 			

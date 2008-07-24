@@ -29,7 +29,7 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
-	internal class PERepeat<T>: ParallelEnumerableBase<T>
+	internal class PERepeat<T>: ParallelEnumerableBase<T>, ICollection<T>, IList<T>
 	{
 		int count;
 		T element;
@@ -95,5 +95,76 @@ namespace System.Linq
 		{
 			return new PERepeatEnumerator(element, count);
 		}
+		
+		
+		#region IList`1[System.Int32] implementation 
+		
+		public int IndexOf (T item)
+		{
+			// No real index, we may just be interested if the value is different from -1
+			return Contains(item) ? 1 : -1;
+		}
+		
+		public void Insert (int index, T item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public void RemoveAt (int index)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public T this[int index] {
+			get {
+				return index < count ? element : default(T);	
+			}
+			set {
+				throw new NotImplementedException();
+			}
+		}
+		
+		#endregion 
+		
+		#region ICollection`1[System.Int32] implementation 
+		
+		public void Add (T item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public void Clear ()
+		{
+			throw new NotImplementedException();
+		}
+		
+		public bool Contains (T item)
+		{
+			return item.Equals(element);
+		}
+		
+		public void CopyTo (T[] array, int arrayIndex)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public bool Remove (T item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public int Count {
+			get {
+				return count;
+			}
+		}
+		
+		public bool IsReadOnly {
+			get {
+				return true;
+			}
+		}
+		
+		#endregion 
 	}
 }

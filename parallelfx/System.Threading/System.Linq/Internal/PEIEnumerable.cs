@@ -33,6 +33,12 @@ namespace System.Linq
 	{
 		IEnumerable<T> enumerable;
 		
+		internal IEnumerable<T> Enumerable {
+			get {
+				return enumerable;
+			}
+		}
+		
 		public PEIEnumerable(IEnumerable<T> enumerable, int dop): base(dop)
 		{
 			this.enumerable = enumerable;
