@@ -309,6 +309,15 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region Zip
+		public static IParallelEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IParallelEnumerable<TFirst> first,
+		                                                                         IEnumerable<TSecond> second,
+		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
+		{
+			return null;
+		}
+		#endregion
+		
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
