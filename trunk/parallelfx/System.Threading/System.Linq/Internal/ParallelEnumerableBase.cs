@@ -46,7 +46,7 @@ namespace System.Linq
 			return GetParallelEnumerator();
 		}
 		
-		protected abstract IParallelEnumerator<T> GetParallelEnumerator();
+		public abstract IParallelEnumerator<T> GetParallelEnumerator();
 		
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()

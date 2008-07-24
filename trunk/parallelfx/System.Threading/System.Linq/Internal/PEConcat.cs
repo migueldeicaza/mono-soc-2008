@@ -123,7 +123,7 @@ namespace System.Linq
 			}
 		}
 		
-		protected override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator()
 		{
 			return new PEIConcatEnumerator(enumerables);
 		}

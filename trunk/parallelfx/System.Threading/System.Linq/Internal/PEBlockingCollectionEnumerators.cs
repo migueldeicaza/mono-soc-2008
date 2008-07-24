@@ -111,21 +111,23 @@ namespace System.Linq
 				}
 			};
 			
+			result = action(enumerator, adder);
+				
 			bool hasGoodValue = false;
-			while (!hasGoodValue) {
+			while (!hasGoodValue && result) {
 				try {
 					sl.Enter();
-					do {
-						result = action(enumerator, adder);
-						if (!isValid)
-							currIndex++;
-					} while (!isValid && result);
-					
 					if (result && i == currIndex + 1) {
 						// If we have the right element index-speaking then everything is fine
 						currIndex++;
-						current = item  = privElement;
-						index = i;
+						// If the element is invalid we just udpate the currIndex and fetch a new element
+						if (isValid) {
+							current = item  = privElement;
+							index = i;
+							hasGoodValue = true;
+						} else {
+							result = action(enumerator, adder);
+						}
 					}
 				} finally {
 					sl.Exit();
