@@ -27,6 +27,8 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
+	// TODO: keeping state about isOrdered and isLast is bad because a part of the query may be used directly
+	// and then chained back to another so isLast is false in this case
 	public static class ParallelQuery
 	{
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
@@ -44,12 +46,13 @@ namespace System.Linq
 			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
 		}
 		
-		public static IParallelEnumerable<T> AsOrdered(this IParallelEnumerable<T> source)
+		public static IParallelEnumerable<T> AsOrdered<T>(this IParallelEnumerable<T> source)
 		{
-			
+			source.IsOrdered();
+			return source;
 		}
 		
-		public static IEnumerable<T> AsSequential<T>(this IParallelEnumerable source)
+		public static IEnumerable<T> AsSequential<T>(this IParallelEnumerable<T> source)
 		{
 			source.IsLast();
 			return (IEnumerable<T>)source;

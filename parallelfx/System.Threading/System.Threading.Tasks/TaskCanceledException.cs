@@ -24,15 +24,21 @@
 
 using System;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
-	
-	
-	public class TaskCanceledException
+	public class TaskCanceledException: Exception
 	{
+		Task task;
 		
-		public TaskCanceledException()
+		public TaskCanceledException(Task task): base ("The Task was canceled")
 		{
+			this.task = task;
+		}
+		
+		public Task Task {
+			get {
+				return task;
+			}
 		}
 	}
 }

@@ -32,183 +32,6 @@ namespace System.Linq
 {	
 	internal class PEBlockingCollection<TSource, T>: ParallelEnumerableBase<T>
 	{
-		#region Enumerators
-		/*class BlockingCollectionOrderedEnumerator: BlockingCollectionEnumerator
-		{
-			SpinLock sl = new SpinLock(false);
-			
-			public BlockingCollectionEnumerator(BlockingCollection<T> bColl, bool isLast, 
-			                                    Func<Action<T>, Action<int>, bool> action, Func<int> indexGetter): 
-				base(bColl, isLast, action, indexGetter)
-			{
-			}
-			
-		}*/
-		
-		// TODO: Refactor these two classes in a hierarchy for common methods
-		#region not last Enumerator
-		class BlockingCollectionEnumerator: IParallelEnumerator<T>
-		{
-			T current;
-			readonly Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
-			readonly IParallelEnumerator<TSource> enumerator;
-			
-			bool isValid;
-			
-			public BlockingCollectionEnumerator(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
-			                                    IParallelEnumerator<TSource> enumerator)
-			{
-				this.action = action;
-				this.enumerator = enumerator;
-			}
-			
-			T IEnumerator<T>.Current {
-				get {
-					return current;
-				}
-			}
-			
-			object IEnumerator.Current {
-				get {
-					return (object) current;
-				}
-			}
-			
-			void CurrentAdder(T element, bool isValid, int index)
-			{
-				if (this.isValid = isValid)
-					current = element;
-			}
-			
-			public bool MoveNext()
-			{
-				//Console.WriteLine("Attempting child action from : " + Thread.CurrentThread.ManagedThreadId);
-				bool result;
-				do {
-					result = action(enumerator, CurrentAdder);
-				} while (!isValid && result);
-				
-				return result;
-			}
-			
-			public virtual bool MoveNext(out T item, out int index)
-			{				
-				//Console.WriteLine("Attempting child action from : " + Thread.CurrentThread.ManagedThreadId);
-				T privElement = default(T);
-				int i = -1;
-				bool isValid = false;
-				bool result  = false;
-				Action<T, bool, int> adder = delegate (T e, bool v, int ind) {
-					if (isValid = v) {
-						privElement = e;
-						i = ind;
-					}
-				};
-				
-				/*if (sw == null)
-					sw = Stopwatch.StartNew();
-				else
-					sw.Start();*/
-				do {
-					result = action(enumerator, adder);
-				} while(!isValid && result);
-				//sw.Stop();
-				
-				current = item  = privElement;
-				index = i;
-				
-				//if (!result)
-					//Console.WriteLine("Elapsed in PEB : " + sw.Elapsed);
-				
-				return result;
-			}
-			
-			public void Reset()
-			{
-			}
-			
-			public void Dispose()
-			{
-			}
-		}
-		#endregion
-		
-		#region IsLastEnumerator
-		class BlockingCollectionIsLastEnumerator: IParallelEnumerator<T>
-		{
-			T current;
-			readonly BlockingCollection<T> bColl;
-			
-			public BlockingCollectionIsLastEnumerator(BlockingCollection<T> bColl)
-			{
-				this.bColl =  bColl;
-			}
-			
-			T IEnumerator<T>.Current {
-				get {
-					return current;
-				}
-			}
-			
-			object IEnumerator.Current {
-				get {
-					return (object) current;
-				}
-			}
-			
-			public bool MoveNext()
-			{
-				if (bColl.IsCompleted)
-					return false;
-				
-				//Console.WriteLine("Main operator yielding");
-				if (bColl.IsCompleted)
-					return false;
-				
-				try {
-					current = bColl.Remove();
-				} catch {
-					return false;
-				}
-				
-				return true;
-			}
-			
-			public virtual bool MoveNext(out T item, out int index)
-			{
-				index = -1;
-				item = default(T);
-				
-				if (bColl.IsCompleted)
-					return false;
-				
-				//Console.WriteLine("Main operator yielding");
-				if (bColl.IsCompleted)
-					return false;
-				
-				try {
-					item = bColl.Remove();
-				} catch {
-					item = default(T);
-					return false;
-				}
-				
-				current = item;
-				
-				return true;
-			}
-			
-			public void Reset()
-			{
-			}
-			
-			public void Dispose()
-			{
-			}
-		}
-		#endregion
-		#endregion 
-		
 		BlockingCollection<T> bColl;
 		Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
 		IParallelEnumerable<TSource> source;
@@ -231,57 +54,73 @@ namespace System.Linq
 			}
 		}
 		
+		void LaunchUnorderedLast(IParallelEnumerator<TSource> enumerator)
+		{
+			Parallel.SpawnBestNumber(delegate {
+				while (!bColl.IsAddingComplete) {
+					//Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
+					if (!action(enumerator, BlockingCollectionAdder))
+						break;
+				}
+			}, dop, () => bColl.CompleteAdding());
+		}
+		
+		void LaunchOrderedLast(IParallelEnumerator<TSource> enumerator)
+		{
+			SpinLock sl = new SpinLock(false);
+			SpinWait sw = new SpinWait();
+			int indexToBeAdded = -1;
+			
+			Action<T, bool, int> adderFunc = delegate (T element, bool isValid, int index) {
+				bool added = false;
+				while (!added) {
+					try {
+						sl.Enter();
+						if (index == indexToBeAdded + 1) {
+							if (!isValid) {
+								// Just increment the index because to let the next possible
+								// valid item going in
+								index++;
+							} else {
+								bColl.Add(element);
+								index++;
+							}
+							added = true;
+						}	
+					} finally {
+						sl.Exit();
+					}
+					
+					if (!added)
+						sw.SpinOnce();
+				}
+			};
+				
+			Parallel.SpawnBestNumber(delegate {
+				while (!bColl.IsAddingComplete)
+					if (!action(enumerator, adderFunc)) 
+						break;
+			}, dop, () => bColl.CompleteAdding());
+		}
+		
 		protected override IParallelEnumerator<T> GetParallelEnumerator()
 		{
 			IParallelEnumerator<TSource> enumerator = source.GetParallelEnumerator();
 			
 			if (isLast) {
-				//if (!isOrdered) {
-				//Console.WriteLine("Starting main parallel looping " + Thread.CurrentThread.ManagedThreadId);
-				Parallel.SpawnBestNumber(delegate {
-					while (!bColl.IsAddingComplete) {
-						//Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
-						if (!action(enumerator, BlockingCollectionAdder))
-							break;
-					}
-				}, dop, () => bColl.CompleteAdding());
-				
-				/*} else {
-					//Console.WriteLine("Starting main parallel looping " + Thread.CurrentThread.ManagedThreadId);
-					SpinLock sl = new SpinLock(false);
-					SpinWait sw = new SpinWait();
-					int indexToBeAdded = -1;
-					
-					Parallel.SpawnBestNumber(delegate {
-						int index;
-						while (!bColl.IsAddingComplete) {
-							if (!action(delegate (T element, bool isValid) {
-								if (!isValid) {
-									Interlocked.Increment(ref indexToBeAdded);
-									continue;
-								}
-								
-								bool added = false;
-								while (!added) {
-									try {
-										sl.Enter();
-										if (index == indexToBeAdded + 1) {
-											blocking
-										}	
-									}
-								}
-							}, (i) => index = i)) 
-								break;
-						}
-					}, dop, () => bColl.CompleteAdding());
-				}*/
+				if (isOrdered)
+					LaunchOrderedLast(enumerator);
+				else
+					LaunchUnorderedLast(enumerator);
 			}
 			
-			IParallelEnumerator<T> result;
+			BlockingCollectionEnumeratorBase<T> result;
 			if (isLast)
-				result = new BlockingCollectionIsLastEnumerator (bColl);
+				result = new BlockingCollectionIsLastEnumerator<T>(bColl);
+			else if (isOrdered)
+				result = new BlockingCollectionOrderedEnumerator<TSource, T>(action, enumerator);
 			else
-				result = new BlockingCollectionEnumerator (action, enumerator);
+				result = new BlockingCollectionEnumerator<TSource, T>(action, enumerator);
 			
 			return result;
 		}

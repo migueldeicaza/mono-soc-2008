@@ -34,8 +34,6 @@ namespace System.Threading
 		// The number of step until SpinOnce yield on multicore machine
 		const    int  step = 10;
 		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
-		static readonly int  osName = (int) Environment.OSVersion.Platform;
-		static readonly bool isWindows = (osName != 4) && (osName != 128);
 		
 		int ntime;
 		public void SpinOnce() 
@@ -43,8 +41,6 @@ namespace System.Threading
 			// On a single-CPU system, spinning does no good
 			if (isSingleCpu) {
 				Yield();
-			// scheld_yield() is a POSIX function so it should work on other system (Linux, BSD)
-			// than Windows (it's the equivalent of SwitchToThread()), at least present in libc
 			} else {
 				if (Interlocked.Increment(ref ntime) % step == 0) {
 					Yield();
@@ -57,10 +53,13 @@ namespace System.Threading
 		
 		void Yield()
 		{
-			if (isWindows)
+			// Replace by Thread.Sleep(0) which does almost the same thing
+			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
+			Thread.Sleep(0);
+			/*if (isWindows)
 				SwitchToThread();
 			else
-				sched_yield();
+				sched_yield();*/
 		}
 		
 		public void Reset()
@@ -77,10 +76,12 @@ namespace System.Threading
 			}
 		}
 
-		[DllImport("kernel32.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
+		// scheld_yield() is a POSIX function so it should work on other system (Linux, BSD)
+		// than Windows (it's the equivalent of SwitchToThread()), at least present in libc
+		/*[DllImport("kernel32.dll", ExactSpelling = true), SuppressUnmanagedCodeSecurity]
 		private static extern void SwitchToThread();
 
 		[DllImport("libc.so.6"), SuppressUnmanagedCodeSecurity]
-		private static extern void sched_yield();
+		private static extern void sched_yield();*/
 	}
 }

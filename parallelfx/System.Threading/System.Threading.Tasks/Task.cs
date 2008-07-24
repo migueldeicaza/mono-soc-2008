@@ -82,7 +82,10 @@ namespace System.Threading.Tasks
 					} catch (Exception e) {
 						exception = e;
 					}
+				} else {
+					this.exception = new TaskCanceledException(this);
 				}
+				
 				isCompleted = true;
 				// Call the event in the correct style
 				EventHandler tempCompleted = Completed;
@@ -274,8 +277,12 @@ namespace System.Threading.Tasks
 		{
 			int numFinished = 0;
 			int indexFirstFinished = -1;
+			int index = 0;
 			
 			foreach (Task t in tasks) {
+				if (t.IsCompleted) {
+					return index;
+				}
 				t.Completed += delegate (object sender, EventArgs e) {
 					int result = Interlocked.Increment(ref numFinished);
 					// Check if we are the first to have finished
@@ -284,6 +291,7 @@ namespace System.Threading.Tasks
 						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
 					}
 				};	
+				index++;
 			}
 			
 			TaskManager.Current.WaitForTasksUntil(delegate {

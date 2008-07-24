@@ -33,6 +33,7 @@ namespace System.Linq
 	{
 		public const int DefaultDop = -1;
 		
+		#region Internally used operators
 		internal static int Dop<T>(this IParallelEnumerable<T> source)
 		{
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
@@ -57,11 +58,30 @@ namespace System.Linq
 			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
+		internal static void IsNotOrdered<T>(this IParallelEnumerable<T> source)
+		{
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
+			if (temp == null)
+				return;
+			temp.IsOrdered = false;
+			//Console.WriteLine("Correctly IsNotLast-ed");
+		}
+		
+		internal static void IsOrdered<T>(this IParallelEnumerable<T> source)
+		{
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
+			if (temp == null)
+				return;
+			temp.IsOrdered = true;
+			//Console.WriteLine("Correctly IsNotLast-ed");
+		}
+		
 		internal static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
 		{
 			IParallelEnumerator<T> temp = source.GetEnumerator() as IParallelEnumerator<T>;
 			return temp;
 		}
+		#endregion
 		
 		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
 		{
@@ -99,8 +119,6 @@ namespace System.Linq
 		{
 			source.IsNotLast();
 			
-			BlockingCollection<TResult>  resultBuffer = new BlockingCollection<TResult>();
-			
 			Func<IParallelEnumerator<TSource>, Action<TResult, bool, int>, bool> a 
 			                  = delegate(IParallelEnumerator<TSource> feedEnum, Action<TResult, bool, int> adder) {
 				TSource item;
@@ -112,7 +130,7 @@ namespace System.Linq
 				}
 			};
 			
-			return ParallelEnumerableFactory.GetFromBlockingCollection<TSource, TResult>(resultBuffer, a, source);
+			return ParallelEnumerableFactory.GetFromBlockingCollection<TSource, TResult>(a, source);
 		}
 		
 		#region Select
