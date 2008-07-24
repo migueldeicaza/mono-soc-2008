@@ -48,7 +48,13 @@ namespace System.Linq
 		
 		public static IParallelEnumerable<T> AsOrdered<T>(this IParallelEnumerable<T> source)
 		{
-			source.IsOrdered();
+			source.SetOrdered();
+			return source;
+		}
+		
+		public static IParallelEnumerable<T> AsUnordered<T>(this IParallelEnumerable<T> source)
+		{
+			source.SetUnordered();
 			return source;
 		}
 		

@@ -119,7 +119,7 @@ namespace ParallelFxTests
 		[TestAttribute]
 		public void SkipTestCase()
 		{
-			IParallelEnumerable<int> async = baseEnumerable.AsParallel().Skip(200);
+			IParallelEnumerable<int> async = baseEnumerable.AsParallel().AsOrdered().Skip(200);
 			IEnumerable<int> sync = baseEnumerable.Skip(200);
 			
 			AreEquivalent(sync, async, 1);
@@ -127,7 +127,7 @@ namespace ParallelFxTests
 			async = baseEnumerable.AsParallel().Skip(100);
 			sync = baseEnumerable.Skip(100);
 			
-			AreEquivalent(sync, async, 2);
+			Assert.AreEqual(sync.Count(), async.Count(), "#2");
 		}
 		
 		[TestAttribute]

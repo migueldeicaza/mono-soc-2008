@@ -58,22 +58,28 @@ namespace System.Linq
 			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
-		internal static void IsNotOrdered<T>(this IParallelEnumerable<T> source)
+		internal static bool IsOrdered<T>(this IParallelEnumerable<T> source)
+		{
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
+			if (temp == null)
+				return false;
+			return temp.IsOrdered;
+		}
+		
+		internal static void SetUnordered<T>(this IParallelEnumerable<T> source)
 		{
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			if (temp == null)
 				return;
 			temp.IsOrdered = false;
-			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
-		internal static void IsOrdered<T>(this IParallelEnumerable<T> source)
+		internal static void SetOrdered<T>(this IParallelEnumerable<T> source)
 		{
 			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
 			if (temp == null)
 				return;
 			temp.IsOrdered = true;
-			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
 		internal static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
@@ -92,7 +98,6 @@ namespace System.Linq
 				TSource item;
 				int i;
 				while (feedEnum.MoveNext(out item, out i)) {
-					//Console.WriteLine("Work from {0} for {1}", Thread.CurrentThread.ManagedThreadId, item.ToString());
 					if (!action(i, item))
 						break;
 				}
@@ -108,7 +113,6 @@ namespace System.Linq
 				TSource item;
 				int i;
 				while (feedEnum.MoveNext(out item, out i)) {
-					//Console.WriteLine("Work from {0} for {1}", Thread.CurrentThread.ManagedThreadId, item.ToString());
 					action(i, item);
 				}
 			}, source.Dop(), block, null);
@@ -130,7 +134,11 @@ namespace System.Linq
 				}
 			};
 			
-			return ParallelEnumerableFactory.GetFromBlockingCollection<TSource, TResult>(a, source);
+			ParallelEnumerableBase<TResult> result = ParallelEnumerableFactory.GetFromBlockingCollection<TSource, TResult>(a, source);
+			if (source.IsOrdered())
+				result.IsOrdered = true;
+			
+			return result;
 		}
 		
 		#region Select
@@ -275,7 +283,7 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return source.Where((element, index) => Interlocked.Increment(ref counter) >= count);
+			return source.Where((element, index) => Interlocked.Increment(ref counter) > count);
 		}
 		#endregion
 		
