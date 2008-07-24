@@ -43,5 +43,16 @@ namespace System.Linq
 			
 			return ParallelEnumerableFactory.GetFromIEnumerable<T>(source, dop);
 		}
+		
+		public static IParallelEnumerable<T> AsOrdered(this IParallelEnumerable<T> source)
+		{
+			
+		}
+		
+		public static IEnumerable<T> AsSequential<T>(this IParallelEnumerable source)
+		{
+			source.IsLast();
+			return (IEnumerable<T>)source;
+		}
 	}
 }

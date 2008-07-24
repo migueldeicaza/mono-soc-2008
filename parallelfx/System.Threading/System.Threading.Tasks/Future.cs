@@ -126,5 +126,41 @@ namespace System.Threading.Tasks
 			
 			return future;
 		}
+		
+		public Task ContinueWith(Action<Future<T>> a)
+		{
+			return ContinueWith(a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+		}
+		
+		public Task ContinueWith(Action<Future<T>> a, TaskContinuationKind kind)
+		{
+			return ContinueWith(a, kind, TaskCreationOptions.None);
+		}
+		
+		public Task ContinueWith(Action<Future<T>> a, TaskContinuationKind kind, TaskCreationOptions option)
+		{
+			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
+			ContinueWithCore(continuation, kind, false);
+			
+			return continuation;
+		}
+		
+		public Future<U> ContinueWith<U>(Func<Future<T>, U> a)
+		{
+			return ContinueWith(a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+		}
+		
+		public Future<U> ContinueWith<U>(Func<Future<T>, U> a, TaskContinuationKind kind)
+		{
+			return ContinueWith(a, kind, TaskCreationOptions.None);
+		}
+		
+		public Future<U> ContinueWith<U>(Func<Future<T>, U> a, TaskContinuationKind kind, TaskCreationOptions option)
+		{
+			Future<U> continuation = new Future<U>(TaskManager.Current, delegate { return a(this); }, option, false);
+			ContinueWithCore(continuation, kind, false);
+			
+			return continuation;
+		}
 	}
 }

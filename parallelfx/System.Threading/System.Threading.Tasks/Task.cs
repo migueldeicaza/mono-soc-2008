@@ -153,9 +153,15 @@ namespace System.Threading.Tasks
 		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
 			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
+			ContinueWithCore(continuation, kind, false);
+			return continuation;
+		}
+		
+		protected void ContinueWithCore(Task continuation, TaskContinuationKind kind, bool executeSync)
+		{
 			if (IsCompleted) {
 				continuation.Schedule();
-				return continuation;
+				return;
 			}
 				
 			this.Completed += delegate {
@@ -177,8 +183,6 @@ namespace System.Threading.Tasks
 						break;
 				}
 			};
-			
-			return continuation;
 		}
 		
 		public static Task Current {
