@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Exceptions;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -45,6 +46,28 @@ namespace Test.Rules.Exceptions {
 		public void SuccessOnEmptyMethods ()
 		{
 			AssertRuleSuccess (SimpleMethods.EmptyMethod);
+		}
+
+		void ArgumentExceptionWithTwoParametersInGoodOrder (int parameter)
+		{
+			throw new ArgumentException ("Invalid parameter", "parameter");
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithTwoParametersInGoodOrderTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTwoParametersInGoodOrder");
+		}
+
+		public void ArgumentExceptionWithTwoParametersInBadOrder (int parameter)
+		{
+			throw new ArgumentException ("parameter", "Invalid parameter");
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithTwoParametersInBadOrderTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTwoParametersInBadOrder", 1);
 		}
 	}
 }
