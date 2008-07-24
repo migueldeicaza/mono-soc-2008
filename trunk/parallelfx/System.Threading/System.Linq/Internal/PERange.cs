@@ -29,7 +29,8 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
-	internal class PERange: ParallelEnumerableBase<int>
+	// Some dummy interface implementation to provide optimization for some PLinq operators
+	internal class PERange: ParallelEnumerableBase<int>, ICollection<int>, IList<int>
 	{
 		int start, count;
 		
@@ -92,5 +93,80 @@ namespace System.Linq
 		{
 			return new PERangeEnumerator(start, count);
 		}
+
+		#region IList`1[System.Int32] implementation 
+		
+		public int IndexOf (int item)
+		{
+			if (!Contains(item))
+				return -1;
+			
+			return item - start;
+		}
+		
+		public void Insert (int index, int item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public void RemoveAt (int index)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public int this[int index] {
+			get {
+				if (start + index <= count)
+					return start + index;
+				else
+					return -1;
+			}
+			set {
+				throw new NotImplementedException();
+			}
+		}
+		
+		#endregion 
+		
+		#region ICollection`1[System.Int32] implementation 
+		
+		public void Add (int item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public void Clear ()
+		{
+			throw new NotImplementedException();
+		}
+		
+		public bool Contains (int item)
+		{
+			return start <= item && item <= start + count - 1;
+		}
+		
+		public void CopyTo (int[] array, int arrayIndex)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public bool Remove (int item)
+		{
+			throw new NotImplementedException();
+		}
+		
+		public int Count {
+			get {
+				return count;
+			}
+		}
+		
+		public bool IsReadOnly {
+			get {
+				return true;
+			}
+		}
+		
+		#endregion 		
 	}
 }
