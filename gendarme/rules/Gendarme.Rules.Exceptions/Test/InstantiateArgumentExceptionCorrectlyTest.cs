@@ -29,9 +29,22 @@
 using Gendarme.Rules.Exceptions;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rules.Exceptions {
 	[TestFixture]
 	public class InstantiateArgumentExceptionCorrectlyTest : MethodRuleTestFixture<InstantiateArgumentExceptionCorrectlyRule> {
+
+		[Test]
+		public void SkipOnBodylessMethods ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.ExternalMethod);
+		}
+
+		[Test]
+		public void SuccessOnEmptyMethods ()
+		{
+			AssertRuleSuccess (SimpleMethods.EmptyMethod);
+		}
 	}
 }

@@ -35,6 +35,8 @@ namespace Gendarme.Rules.Exceptions {
 	public class InstantiateArgumentExceptionCorrectlyRule : Rule, IMethodRule {
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
+			if (!method.HasBody)
+				return RuleResult.DoesNotApply;
 			return Runner.CurrentRuleResult;
 		}
 	}
