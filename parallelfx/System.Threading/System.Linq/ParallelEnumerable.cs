@@ -84,8 +84,8 @@ namespace System.Linq
 		
 		internal static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
 		{
-			IParallelEnumerator<T> temp = source.GetEnumerator() as IParallelEnumerator<T>;
-			return temp;
+			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
+			return temp.GetParallelEnumerator();
 		}
 		#endregion
 		

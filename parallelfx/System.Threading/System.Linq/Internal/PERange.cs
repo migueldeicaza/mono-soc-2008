@@ -88,7 +88,7 @@ namespace System.Linq
 			}
 		}
 		
-		protected override IParallelEnumerator<int> GetParallelEnumerator()
+		public override IParallelEnumerator<int> GetParallelEnumerator()
 		{
 			return new PERangeEnumerator(start, count);
 		}

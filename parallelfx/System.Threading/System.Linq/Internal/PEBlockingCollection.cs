@@ -104,7 +104,7 @@ namespace System.Linq
 			}, dop, () => bColl.CompleteAdding());
 		}
 		
-		protected override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator()
 		{
 			IParallelEnumerator<TSource> enumerator = source.GetParallelEnumerator();
 			
