@@ -69,5 +69,27 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTwoParametersInBadOrder", 1);
 		}
+
+		public void ArgumentExceptionWithOneArgument (int parameter)
+		{
+			throw new ArgumentException ("parameter");
+		}
+
+		[Test]
+		public void FailOnArgumentExceptionWithOneArgumentTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithOneArgument", 1);
+		}
+
+		public void ArgumentExceptionWithOneMessage (int parameter)
+		{
+			throw new ArgumentException ("Invalid parameter");
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithOneMessageTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithOneMessage");
+		}
 	}
 }

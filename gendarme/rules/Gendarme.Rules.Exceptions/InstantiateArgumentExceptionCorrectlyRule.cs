@@ -56,10 +56,16 @@ namespace Gendarme.Rules.Exceptions {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
 					//The second operand, a parameter name
-					//(without space)
 					if (parameters == counter) {
-						if (operand.Contains (" "))
-							return false;
+						bool matched = false;
+						foreach (ParameterDefinition param in method.Parameters) {
+							if (String.Compare (param.Name, operand) == 0) {
+								matched = true;
+								break;
+							}
+						}
+						if (!matched)
+							return matched;
 					}
 					//The first operand, would be handy to
 					//have a description
@@ -75,6 +81,22 @@ namespace Gendarme.Rules.Exceptions {
 			return true;
 		}
 
+		public static bool IsCorrectArgument (Instruction throwInstruction)
+		{
+			Instruction current = throwInstruction;
+
+			while (current != null) {
+				if (current.OpCode == OpCodes.Ldstr) {
+					string operand = (string) current.Operand;
+					//Should be a description
+					if (!operand.Contains (" "))
+						return false;
+				}
+				current = current.Previous;
+			}
+			return true;
+		}
+
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody)
@@ -87,7 +109,14 @@ namespace Gendarme.Rules.Exceptions {
 				if (!IsThrowingArgumentException (current))	
 					continue;
 
-				if (!OperandsAreInCorrectOrder (method, current))
+				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
+
+				if (parameters == 1 && !IsCorrectArgument (current)) {
+					Runner.Report (method, current, Severity.High, Confidence.Low);
+					continue;
+				}
+				
+				if (parameters == 2 && !OperandsAreInCorrectOrder (method, current))
 					Runner.Report (method, current, Severity.High, Confidence.Low);
 			}
 
