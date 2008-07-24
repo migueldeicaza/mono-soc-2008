@@ -51,11 +51,13 @@ namespace System.Linq
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{
+			this.IsLast();
 			return (IEnumerator<T>)GetParallelEnumerator();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator()
 		{
+			this.IsLast();
 			return (IEnumerator)GetParallelEnumerator();
 		}
 		

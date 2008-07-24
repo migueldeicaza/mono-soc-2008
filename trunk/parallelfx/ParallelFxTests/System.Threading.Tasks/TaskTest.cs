@@ -77,8 +77,8 @@ namespace ParallelFxTests
 			}, 1);
 			int index = Task.WaitAny(tasks);
 			Assert.AreNotEqual(0, achieved, "#1");
-			Assert.GreaterOrEqual(index, 0, "#2");
 			Assert.Less(index, max, "#3");
+			Assert.GreaterOrEqual(index, 0, "#2");
 		}
 		
 		[TestAttribute]
