@@ -33,8 +33,11 @@ namespace System.Threading
 	{
 		public static int GetBestWorkerNumber()
 		{
-			TaskManagerPolicy policy = TaskManager.Current.Policy;
-			
+			return GetBestWorkerNumber(TaskManager.Current.Policy);
+		}
+		
+		public static int GetBestWorkerNumber(TaskManagerPolicy policy)
+		{	
 			return policy.IdealProcessors * policy.IdealThreadsPerProcessor;
 		}
 		

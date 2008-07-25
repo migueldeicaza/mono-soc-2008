@@ -50,7 +50,7 @@ namespace System.Threading.Tasks
 		
 		#region Sleep related fields
 		const int sleepTimeBeforeRetry = 0;
-		const int sleepThreshold = 1000;
+		const int sleepThreshold = 100000;
 		#endregion
 		
 		Action threadInitializer;
@@ -137,11 +137,10 @@ namespace System.Threading.Tasks
 				Thread.Sleep(sleepTimeBeforeRetry);
 				// If the Thread has been more sleeping than working shut it down
 				if (result) sleepTime = 0;
-				if (sleepTime++ > sleepThreshold)
+				if (sleepTime++ > sleepThreshold) 
 					break;
-				
 			}
-			
+
 			started = 0;
 		}
 		

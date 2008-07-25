@@ -248,6 +248,19 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region OrderBy
+		public static IParallelEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                  Func<TSource, TKey> keySelector) where TKey : IComparable<TKey>
+		{
+			/*List<TSource> temp = source.Aggregate(() => new List<TSource>(),
+			                                      (list, e) => { list.Add(e); return list; },
+			                                      (list, list2) => { list.AddRange(list2); return list; }
+			                                      (list) => list);
+			temp.Sort();*/	
+			throw new NotImplementedException();
+		}
+		#endregion
+		
 		#region Aggregate
 		public static TResult Aggregate<TSource, TAccumulate, TResult>(this IParallelEnumerable<TSource> source,
 		                                                               Func<TAccumulate> seedFactory,
@@ -383,13 +396,40 @@ namespace System.Linq
 			return result ? first : default(TSource);
 		}
 		#endregion
+	
+		#region
+		public static IParallelEnumerable<T> DefaultIfEmpty<T>(this IParallelEnumerable<T> source)
+		{
+			return source.DefaultIfEmpty(default(T));
+		}
+		
+		public static IParallelEnumerable<T> DefaultIfEmpty<T>(this IParallelEnumerable<T> source, T defValue)
+		{
+			if (source.Any())
+				return source;
+			else
+				return ParallelEnumerable.Repeat(defValue, 1);
+		}
+		#endregion
+		
+		#region
+		public static T[] ToArray<T>(this IParallelEnumerable<T> source)
+		{
+			List<T> temp = source.Aggregate(() => new List<T>(),
+			                                      (list, e) => { list.Add(e); return list; },
+			                                      (list, list2) => { list.AddRange(list2); return list; },
+			                                      (list) => list);
+			return temp.ToArray();
+			
+		}
+		#endregion
 		
 		#region Zip
 		public static IParallelEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IParallelEnumerable<TFirst> first,
 		                                                                         IEnumerable<TSecond> second,
 		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
 		{
-			return null;
+			throw new NotImplementedException();
 		}
 		#endregion
 		

@@ -104,7 +104,7 @@ namespace System.Threading.Tasks
 				newNode = new Node();
 				newNode.Next = currNode;
 				currNode.Previous = newNode;
-				newIndex = ArraySize - 1;
+				newIndex = newNode.Data.Length - 1;
 			}
 			bottom = EncodeBottom(newNode, newIndex);
 		}
@@ -119,7 +119,6 @@ namespace System.Threading.Tasks
 			int currTopTag, newTopTag;
 			
 			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
-			//Console.WriteLine("Popping top at " + currTopIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			
 			if (EmptinessTest(currTop, currBottom)) {
 				result = null;
@@ -242,7 +241,7 @@ namespace System.Threading.Tasks
 			if (top == bot && (tInd == bInd || tInd + 1 == bInd))
 				return true;
 			// Over-crossing state
-			else if (bot == top.Next && bInd == 0 && tInd == ArraySize - 1)
+			else if (bot == top.Next && bInd == 0 && tInd == top.Data.Length - 1)
 				return true;
 			return false;
 		}

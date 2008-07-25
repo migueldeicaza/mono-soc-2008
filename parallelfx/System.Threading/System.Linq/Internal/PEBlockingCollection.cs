@@ -35,7 +35,7 @@ namespace System.Linq
 		BlockingCollection<T> bColl;
 		Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
 		IParallelEnumerable<TSource> source;
-		int index;
+		//int index;
 		
 		public PEBlockingCollection(BlockingCollection<T> bColl,
 		                            Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
@@ -50,7 +50,7 @@ namespace System.Linq
 		{
 			if (isValid) {
 				bColl.TryAdd(element);
-				this.index = index;
+				//this.index = index;
 			}
 		}
 		
