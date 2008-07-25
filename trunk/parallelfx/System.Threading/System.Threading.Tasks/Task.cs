@@ -37,6 +37,9 @@ namespace System.Threading.Tasks
 		[System.ThreadStatic]
 		internal static Action<Task> childWorkAdder;
 		
+		static int id = 0;
+		
+		int taskId;
 		WaitHandle asyncWaitHandle;
 		Exception exception;
 		bool  isCanceled;
@@ -58,8 +61,9 @@ namespace System.Threading.Tasks
 		{
 			this.taskCreationOptions = taskCreationOptions;
 			this.tm = TaskManager.Current = tm;
-			this.action = action;
+			this.action = action == null ? delegate (object o) { } : action;
 			this.state = state;
+			this.taskId = Interlocked.Increment(ref id);
 
 			// Process taskCreationOptions
 			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached))
@@ -69,6 +73,7 @@ namespace System.Threading.Tasks
 			
 			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
 				Task.Create(action, state, tm, taskCreationOptions);
+			
 		}
 		
 		protected void Schedule()
@@ -90,7 +95,7 @@ namespace System.Threading.Tasks
 				// Call the event in the correct style
 				EventHandler tempCompleted = Completed;
 				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
-				
+				Finish();
 			};
 			
 			// If worker is null it means it is a local one, revert to the old behavior
@@ -108,6 +113,10 @@ namespace System.Threading.Tasks
 		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)
 		{
 			return (opt & member) == member;
+		}
+		
+		~Task() {
+			Dispose(false);
 		}
 		
 		public static Task Create(Action<object> action)
@@ -334,13 +343,21 @@ namespace System.Threading.Tasks
 		
 		protected void Finish()
 		{
-			
+			Dispose();
 		}
 		#endregion
 		
 		public void Dispose()
 		{
-			throw new NotImplementedException();
+			Dispose(true);
+		}
+		
+		protected virtual void Dispose(bool disposeManagedRes)
+		{
+			// Set action to null so that the GC can collect the delegate and thus
+			// any big object references that the user might have captured in a anonymous method
+			if (disposeManagedRes)
+				action = null;
 		}
 		
 		public Exception Exception {
@@ -396,5 +413,17 @@ namespace System.Threading.Tasks
 				return asyncWaitHandle;
 			}
 		}
+		
+		public int Id {
+			get {
+				return taskId;
+			}
+		}
+		
+		public override string ToString ()
+		{
+			return Id.ToString();
+		}
+
 	}
 }
