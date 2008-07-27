@@ -211,7 +211,7 @@ namespace ParallelFxTests
 			Assert.AreEqual (5, data.Max ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestMin ()
 		{
 			int [] data = {3, 5, 2, 6, 1, 7};
@@ -268,7 +268,7 @@ namespace ParallelFxTests
 			AssertAreSame (new [] {0, 1, 2, 3}, ParallelEnumerable.Range (0, 4));
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestOrderBy ()
 		{
 				int [] array = { 14, 53, 3, 9, 11, 14, 5, 32, 2 };
@@ -334,7 +334,7 @@ namespace ParallelFxTests
 			};
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestOrderByAgeAscendingTheByNameDescending ()
 		{
 			var q = from b in CreateBazCollection ()
@@ -372,7 +372,7 @@ namespace ParallelFxTests
 			};
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestOrderByIdDescendingThenByNameAscending ()
 		{
 			var q = from d in CreateData ()
