@@ -252,13 +252,128 @@ namespace System.Linq
 		public static IParallelEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
 		                                                                  Func<TSource, TKey> keySelector) where TKey : IComparable<TKey>
 		{
-			/*List<TSource> temp = source.Aggregate(() => new List<TSource>(),
-			                                      (list, e) => { list.Add(e); return list; },
-			                                      (list, list2) => { list.AddRange(list2); return list; }
-			                                      (list) => list);
-			temp.Sort();*/	
-			throw new NotImplementedException();
+			return OrderByInternal<TSource>(source, (e1, e2) => keySelector(e1).CompareTo(keySelector(e2)));
 		}
+		
+		public static IParallelEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                  Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
+		{
+			return OrderByInternal<TSource>(source, (e1, e2) => comparer.Compare(keySelector(e1), keySelector(e2)));
+		}
+		
+		public static IParallelEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                  Func<TSource, TKey> keySelector) where TKey : IComparable<TKey>
+		{
+			return OrderByInternal<TSource>(source, (e1, e2) => keySelector(e2).CompareTo(keySelector(e1)));
+		}
+		
+		public static IParallelEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                  Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
+		{
+			return OrderByInternal<TSource>(source, (e1, e2) => comparer.Compare(keySelector(e2), keySelector(e1)));
+		}
+		
+		static IParallelEnumerable<TSource> OrderByInternal<TSource>(IParallelEnumerable<TSource> source,
+		                                                           System.Comparison<TSource> comparer)
+		{
+			List<TSource> temp = source.Aggregate(() => new List<TSource>(),
+			                                      (list, e) => { list.Add(e); return list; },
+			                                      (list, list2) => { list.AddRange(list2); return list; },
+			                                      (list) => list);
+			
+			temp.Sort(comparer);
+			
+			IParallelEnumerable<TSource> enumerable = ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
+			// OrderBy explicitely turn on ordering
+			enumerable.SetOrdered();
+			
+			return enumerable;
+		}
+		#endregion
+		
+		#region Min - Max
+		public static int Min(this IParallelEnumerable<int> source)
+		{
+			return BestOrder(source, (first, second) => first < second, int.MaxValue);
+		}
+		
+		public static byte Min(this IParallelEnumerable<byte> source)
+		{
+			return BestOrder(source, (first, second) => first < second, byte.MaxValue);
+		}
+		
+		public static short Min(this IParallelEnumerable<short> source)
+		{
+			return BestOrder(source, (first, second) => first < second, short.MaxValue);
+		}
+		
+		public static long Min(this IParallelEnumerable<long> source)
+		{
+			return BestOrder(source, (first, second) => first < second, long.MaxValue);
+		}
+		
+		public static float Min(this IParallelEnumerable<float> source)
+		{
+			return BestOrder(source, (first, second) => first < second, float.MaxValue);
+		}
+		
+		public static double Min(this IParallelEnumerable<double> source)
+		{
+			return BestOrder(source, (first, second) => first < second, double.MaxValue);
+		}
+		
+		public static decimal Min(this IParallelEnumerable<decimal> source)
+		{
+			return BestOrder(source, (first, second) => first < second, decimal.MaxValue);
+		}
+		
+		public static int Max(this IParallelEnumerable<int> source)
+		{
+			return BestOrder(source, (first, second) => first > second, int.MinValue);
+		}
+		
+		public static byte Max(this IParallelEnumerable<byte> source)
+		{
+			return BestOrder(source, (first, second) => first > second, byte.MinValue);
+		}
+		
+		public static short Max(this IParallelEnumerable<short> source)
+		{
+			return BestOrder(source, (first, second) => first > second, short.MinValue);
+		}
+		
+		public static long Max(this IParallelEnumerable<long> source)
+		{
+			return BestOrder(source, (first, second) => first > second, long.MinValue);
+		}
+		
+		public static float Max(this IParallelEnumerable<float> source)
+		{
+			return BestOrder(source, (first, second) => first > second, float.MinValue);
+		}
+		
+		public static double Max(this IParallelEnumerable<double> source)
+		{
+			return BestOrder(source, (first, second) => first > second, double.MinValue);
+		}
+		
+		public static decimal Max(this IParallelEnumerable<decimal> source)
+		{
+			return BestOrder(source, (first, second) => first > second, decimal.MinValue);
+		}
+		
+		// For bestSelector, if first arg is better than second returns true
+		static T BestOrder<T>(IParallelEnumerable<T> source, Func<T, T, bool> bestSelector, T seed)
+		{
+			T best = seed;
+			
+			best = source.Aggregate(() => seed,
+			                        (first, second) => (bestSelector(first, second)) ? first : second,
+			                        (first, second) => (bestSelector(first, second)) ? first : second,
+			                        (e) => e);
+			return best;
+		}
+		
 		#endregion
 		
 		#region Aggregate

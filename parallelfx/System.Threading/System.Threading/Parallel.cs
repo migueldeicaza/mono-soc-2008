@@ -315,11 +315,16 @@ namespace System.Threading
 		
 		internal static Task[] SpawnBestNumber(Action action, int dop, bool wait, Action callback)
 		{
-			int num = dop == -1 ? GetBestWorkerNumber() : dop;
+			// Get the optimum amount of worker to create
+			int num = dop == -1 ? (wait ? GetBestWorkerNumber() : GetBestWorkerNumber() - 1) : dop;
+			
+			// Initialize worker
 			Task[] tasks = new Task[num];
 			for (int i = 0; i < num; i++) {
 				tasks[i] = Task.Create(_ => action());
 			}
+			
+			// Register wait callback if any
 			if (callback != null) {
 				for (int j = 0; j < num; j++) {
 					tasks[j].ContinueWith(delegate {
@@ -332,6 +337,7 @@ namespace System.Threading
 				}
 			}
 
+			// If explicitely told, wait for all workers to complete and thus let main thread participate in the processing
 			if (wait)
 				Task.WaitAll(tasks);
 			
