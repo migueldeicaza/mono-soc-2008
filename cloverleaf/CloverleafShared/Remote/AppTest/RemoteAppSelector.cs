@@ -230,6 +230,7 @@ namespace CloverleafShared.Remote.AppTest
 
         private void lstAvailableHosts_SelectedIndexChanged(object sender, EventArgs e)
         {
+			if (lstAvailableHosts.SelectedItem == null) return;
             if (serviceIPDict.ContainsKey(lstAvailableHosts.SelectedItem.ToString()) == true)
             {
                 txtHostName.Text = serviceIPDict[lstAvailableHosts.SelectedItem.ToString()];

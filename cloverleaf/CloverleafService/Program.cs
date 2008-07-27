@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ServiceProcess;
 using System.Text;
 
 using Mono.Zeroconf;
@@ -20,20 +19,20 @@ namespace CloverleafService
         /// </remarks>
         static void Main()
         {
-            RegisterService service = new RegisterService();
-            service.Name = "Cloverleaf [" + Environment.MachineName + ", " +
-                    Environment.OSVersion.Platform.ToString() + "]";
-            service.RegType = "_http._tcp";
-            service.Port = 12321;
-            service.TxtRecord = new TxtRecord();
-            service.TxtRecord.Add(new TxtRecordItem("servicetype", "cloverleaf"));
+			Configuration.Initialize();
 
-            service.Register();
+			RegisterService service = new RegisterService();
+			service.Name = Configuration.ServiceName;
+			service.RegType = "_http._tcp";
+			service.Port = 12321;
+			service.TxtRecord = new TxtRecord();
+			service.TxtRecord.Add(new TxtRecordItem("servicetype", "cloverleaf"));
+			service.TxtRecord.Add(new TxtRecordItem("systemtype", Environment.MachineName + ", " +
+					Environment.OSVersion.ToString()));
 
-            while (true)
-            {
-                System.Threading.Thread.Sleep(0);
-            }
+			service.Register();
+
+			while (true) System.Threading.Thread.Sleep(5000);
         }
     }
 }

@@ -35,7 +35,8 @@ namespace CloverleafShared.Remote
 
         private void OnServiceResolved(object o, ServiceResolvedEventArgs args)
         {
-            if (serviceIPDict.ContainsKey(args.Service.Name) == false)
+			String servName = args.Service.Name + " [" + args.Service.TxtRecord["systemtype"].ValueString + "]";
+			if (serviceIPDict.ContainsKey(servName) == false)
             {
                 Boolean isCloverleafService = false;
                 for (int i = 0; i < args.Service.TxtRecord.Count; i++)
@@ -48,7 +49,7 @@ namespace CloverleafShared.Remote
 
                 if (isCloverleafService == true)
                 {
-                    serviceIPDict.Add(args.Service.Name,
+					serviceIPDict.Add(servName,
                         args.Service.HostEntry.AddressList[0].ToString());
                 }
             }
