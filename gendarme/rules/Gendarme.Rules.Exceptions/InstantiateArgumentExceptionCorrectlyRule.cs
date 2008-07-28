@@ -95,12 +95,12 @@ namespace Gendarme.Rules.Exceptions {
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
-					if (!operand.Contains (" "))
-						return false;
+					if (operand.Contains (" "))
+						return true;
 				}
 				current = current.Previous;
 			}
-			return true;
+			return false;
 		}
 
 		private static bool IsArgumentException (TypeReference exceptionType)
