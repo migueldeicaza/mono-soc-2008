@@ -263,5 +263,29 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithMessageAndConditionals");
 		}
+
+		public void MixedArgumentExceptionsAndConditionals (string name, int versionRequiredToExtract, int madeByInfo)
+		{
+			if (name == null)  {
+				//failed here
+				throw new System.ArgumentNullException("ZipEntry name");
+			}
+
+			if ( name.Length == 0 ) {
+				throw new ArgumentException("ZipEntry name is empty");
+			}
+
+			if (versionRequiredToExtract != 0 && versionRequiredToExtract < 10) {
+				throw new ArgumentOutOfRangeException("versionRequiredToExtract");
+			}
+		}
+		
+		[Test]
+		public void FailOnMixedArgumentExceptionsAndConditionalsTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("MixedArgumentExceptionsAndConditionals", 1);
+		}
+
+
 	}
 }

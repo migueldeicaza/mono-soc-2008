@@ -95,8 +95,7 @@ namespace Gendarme.Rules.Exceptions {
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
-					if (operand.Contains (" "))
-						return true;
+					return operand.Contains (" ");
 				}
 				current = current.Previous;
 			}
