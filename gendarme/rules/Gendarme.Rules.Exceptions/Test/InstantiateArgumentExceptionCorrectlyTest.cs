@@ -48,7 +48,7 @@ namespace Test.Rules.Exceptions {
 			AssertRuleSuccess (SimpleMethods.EmptyMethod);
 		}
 
-		void ArgumentExceptionWithTwoParametersInGoodOrder (int parameter)
+		public void ArgumentExceptionWithTwoParametersInGoodOrder (int parameter)
 		{
 			throw new ArgumentException ("Invalid parameter", "parameter");
 		}
@@ -69,6 +69,74 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTwoParametersInBadOrder", 1);
 		}
+
+		public void ArgumentNullExceptionWithTwoParametersInGoodOrder (int parameter)
+		{
+			throw new ArgumentNullException ("parameter", "This parameter is null");
+		}
+
+		[Test]
+		public void SuccessOnArgumentNullExceptionWithTwoParametersInGoodOrderTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentNullExceptionWithTwoParametersInGoodOrder");
+		}
+
+		public void ArgumentNullExceptionWithTwoParametersInBadOrder (int parameter)
+		{
+			throw new ArgumentNullException ("This parameter is null", "parameter");
+		}
+
+		[Test]
+		public void FailOnArgumentNullExceptionWithTwoParametersInBadOrderTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentNullExceptionWithTwoParametersInBadOrder", 1);
+		}
+
+		public void ArgumentOutOfRangeExceptionWithTwoParametersInGoodOrder (int parameter)
+		{
+			throw new ArgumentOutOfRangeException ("parameter", "This parameter is out of order");
+		}
+
+		[Test]
+		public void SuccessOnArgumentOutOfRangeExceptionWithTwoParametersInGoodOrderTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentOutOfRangeExceptionWithTwoParametersInGoodOrder");
+		}	
+		
+		public void ArgumentOutOfRangeExceptionWithTwoParametersInBadOrder (int parameter)
+		{
+			throw new ArgumentOutOfRangeException ("This parameter is out of order", "parameter");
+		}
+
+		[Test]
+		public void FailOnArgumentOutOfRangeExceptionWithTwoParametersInBadOrderTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentOutOfRangeExceptionWithTwoParametersInBadOrder", 1);
+		}
+
+		public void DuplicateWaitObjectExceptionWithTwoParametersInGoodOrder (int parameter)
+		{
+			throw new DuplicateWaitObjectException ("parameter", "A simple message");
+		}
+
+		[Test]
+		public void SuccessOnDuplicateWaitObjectExceptionWithTwoParametersInGoodOrderTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("DuplicateWaitObjectExceptionWithTwoParametersInGoodOrder");
+		}
+
+		public void DuplicateWaitObjectExceptionWithTwoParametersInBadOrder (int parameter)
+		{
+			throw new DuplicateWaitObjectException ("A simple message", "parameter");
+		}
+
+		[Test]
+		public void FailOnDuplicateWaitObjectExceptionWithTwoParametersInBadOrderTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("DuplicateWaitObjectExceptionWithTwoParametersInBadOrder", 1);
+		}
+
+		//
 
 		public void ArgumentExceptionWithOneArgument (int parameter)
 		{

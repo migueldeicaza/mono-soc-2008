@@ -147,6 +147,8 @@ namespace Gendarme.Rules.Exceptions {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
+					if (parameters == 2 && OperandsAreInCorrectOrder (method, current))
+						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 			}
 
