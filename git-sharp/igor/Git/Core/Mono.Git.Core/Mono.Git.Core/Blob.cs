@@ -36,8 +36,6 @@ namespace Mono.Git.Core
 	/// </summary>
 	public class Blob : Object
 	{
-		private byte[] content;
-		
 		public byte[] Content { get { return content; } }
 		
 		public override Type Type

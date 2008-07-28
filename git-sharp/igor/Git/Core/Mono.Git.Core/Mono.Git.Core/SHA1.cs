@@ -41,17 +41,13 @@ namespace Mono.Git.Core
 		
 		public SHA1 (byte[] obj, Type type)
 		{
-			bytes = HashObj (obj, type);
+			//bytes = HashObj (obj, type);
+			bytes = obj;
 		}
 		
 		public override int GetHashCode ()
 		{
-			byte[] tmp = new byte [4];
-			
-			for (int i = 0; i < 4; i++)
-				tmp[i] = bytes[i];
-			
-			return BitConverter.ToInt32 (tmp, 0);
+			return ((int)bytes[0]) | (((int)bytes[1]) << 8) | (((int)bytes[2]) << 16) | (((int)bytes[3]) << 24);
 		}
 		
 		/// <summary>
@@ -69,85 +65,53 @@ namespace Mono.Git.Core
 		}
 		
 		/// <summary>
-		/// Create a header for a Git hash
-		/// </summary>
-		/// <param name="objType">
-		/// Type of the object to hash<see cref="Type"/>
-		/// </param>
-		/// <param name="dataSize">
-		/// Size of the object to hash<see cref="System.Int32"/>
-		/// </param>
-		/// <returns>
-		/// Header<see cref="System.Byte"/>
-		/// </returns>
-		private static byte[] CreateHashHeader (Type objType, int dataSize)
-		{
-			return Encoding.Default.GetBytes (String.Format ("{0} {1}\0",
-			                                                 Object.TypeToString (objType),
-			                                                 dataSize.ToString ()));
-		}
-		
-		/// <summary>
 		/// Convert a Byte array to Hexadecimal format
 		/// </summary>
-		/// <param name="bytes">
-		/// A byte array<see cref="System.Byte"/>
-		/// </param>
 		/// <returns>
 		/// A String of a byte array converted to Hexadecimial format<see cref="System.String"/>
 		/// </returns>
-		public static string BytesToHexString (byte[] data)
+		public string ToHexString (int start, int size)
 		{
-			StringBuilder hexString = new StringBuilder (data.Length);
+			// Final length of the string will have 2 chars for every byte
+			StringBuilder hexString = new StringBuilder (size * 2);
 			
-			foreach (byte b in data) {
-				hexString.Append (b.ToString ("x2"));
-			}
+			for (int i = start; i < (start + size); i++)
+				hexString.Append (bytes[i].ToString ("x2"));
 			
 			return hexString.ToString ();
 		}
 		
-		/// <summary>
-		/// Convert a Byte array to string
-		/// </summary>
-		/// <param name="bytes">
-		/// A byte array<see cref="System.Byte"/>
-		/// </param>
-		/// <returns>
-		/// A String of a byte array converted to String format<see cref="System.String"/>
-		/// </returns>
-		public static string BytesToString (byte[] data)
+		public string ToHexString ()
 		{
-			StringBuilder str = new StringBuilder (data.Length);
-			
-			foreach (byte b in data) {
-				str.Append (b.ToString ());
-			}
-			
-			return str.ToString ();
+			// FIXME: I don't know about calculating the Length... isn't it always 20?
+			return ToHexString (0, bytes.Length);
 		}
 		
-		/// <summary>
-		/// Hash a single file by a given Filename
-		/// </summary>
-		/// <param name="filename">
-		/// A file path<see cref="System.String"/>
-		/// </param>
-		/// <returns>
-		/// A sha1 hash<see cref="System.Byte"/>
-		/// </returns>
-		private static byte[] HashObj (byte[] objContent, Type objType)
+		public string GetGitFileName ()
 		{
-			byte[] header;
-			byte[] data;
-			
-			header = CreateHashHeader (objType, objContent.Length);
-			data = new byte[header.Length + objContent.Length];
-			
-			header.CopyTo (data, 0);
-			objContent.CopyTo (data, header.Length);
-			
-			return ComputeSHA1Hash (data);
+			// FIXME: Again... is it always 20? I believe it should
+			return ToHexString (0, 2) + "/" + ToHexString (2, bytes.Length);
 		}
+		
+		public bool Equals (SHA1 o)
+		{
+			if (o.Bytes == null)
+				return false;
+			
+			if (o.Bytes.Length == 0)
+				return false;
+			
+			if (bytes == o.Bytes)
+				return true;
+			
+			for (int i = 0; i < o.Bytes.Length; i++) {
+				if (bytes[i] != o.Bytes[i]) {
+					return false;
+				}
+			}
+			
+			return true;
+		}
+		
 	}
 }

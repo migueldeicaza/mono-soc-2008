@@ -66,7 +66,7 @@ namespace Mono.Git.Tests
 			
 			// SHA1 5x32 = 160
 			//??? Console.WriteLine (Mono.Git.Core.Object.BytesToHexString (br.ReadBytes (160)));
-			Console.WriteLine (Mono.Git.Core.SHA1.BytesToHexString (br.ReadBytes (20)));
+			//Console.WriteLine (Mono.Git.Core.SHA1.BytesToHexString (br.ReadBytes (20)));
 //			Console.WriteLine (br.ReadInt32 ());
 //			Console.WriteLine (br.ReadInt32 ());
 //			Console.WriteLine (br.ReadInt32 ());

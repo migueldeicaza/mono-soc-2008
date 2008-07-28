@@ -164,8 +164,8 @@ namespace Mono.Git.Core
 				else
 					name = te.Name;
 				
-				if (te.IsTree (repo))
-					ReadTree (name, tree, repo);
+//				if (te.IsTree (repo))
+//					ReadTree (name, tree, repo);
 			}
 		}
 		
