@@ -53,7 +53,7 @@ namespace Gendarme.Rules.Exceptions {
 			return null;
 		}
 
-		public static bool OperandsAreInCorrectOrder (MethodDefinition method, Instruction throwInstruction)
+		public static bool ParameterNameIsLastOperand (MethodDefinition method, Instruction throwInstruction)
 		{
 			int parameters = ((MethodReference) throwInstruction.Previous.Operand).Parameters.Count;
 			
@@ -88,7 +88,7 @@ namespace Gendarme.Rules.Exceptions {
 			return true;
 		}
 
-		public static bool IsCorrectArgument (Instruction throwInstruction, Predicate<string> predicate)
+		public static bool IsDescription (Instruction throwInstruction)
 		{
 			Instruction current = throwInstruction;
 
@@ -96,8 +96,7 @@ namespace Gendarme.Rules.Exceptions {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
 					//Should be a description
-					//if (!operand.Contains (" "))
-					if (predicate (operand))
+					if (!operand.Contains (" "))
 						return false;
 				}
 				current = current.Previous;
@@ -126,28 +125,20 @@ namespace Gendarme.Rules.Exceptions {
 				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
 				
 				if (IsArgumentException (exceptionType)) {
-					if (parameters == 1 &&
-						!IsCorrectArgument (current,
-						delegate (string operand) {
-							return !operand.Contains(" ");
-						})) {
+					if (parameters == 1 && !IsDescription (current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
 				
-					if (parameters == 2 && !OperandsAreInCorrectOrder (method, current))
+					if (parameters == 2 && !ParameterNameIsLastOperand (method, current))
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 				else {
-					if (parameters == 1 &&
-						!IsCorrectArgument (current,
-						delegate (string operand) {
-							return operand.Contains (" ");
-						})) {
+					if (parameters == 1 && IsDescription (current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
-					if (parameters == 2 && OperandsAreInCorrectOrder (method, current))
+					if (parameters == 2 && ParameterNameIsLastOperand (method, current))
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 			}
