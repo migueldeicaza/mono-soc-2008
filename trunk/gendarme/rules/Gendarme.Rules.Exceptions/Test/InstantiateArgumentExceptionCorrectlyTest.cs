@@ -225,5 +225,16 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("DuplicateWaitObjectExceptionWithOneMessage", 1);
 		}
+
+		public void ArgumentExceptionWithOtherConstructor ()
+		{
+			throw new ArgumentException ("A sample message" , new Exception ("Other message"));
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithOtherConstructorTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithOtherConstructor");
+		}
 	}
 }
