@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections;
 using Gendarme.Rules.Exceptions;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -235,6 +236,32 @@ namespace Test.Rules.Exceptions {
 		public void SuccessOnArgumentExceptionWithOtherConstructorTest ()
 		{
 			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithOtherConstructor");
+		}
+
+		public void ArgumentExceptionWithMessageAndConditionals (Array array, int index)
+		{
+			if (array == null)
+				throw new ArgumentNullException ("array");
+			if (index < 0)
+				throw new IndexOutOfRangeException ("Index was outside the bounds of the array.");
+			if (array.Rank > 1)
+				throw new ArgumentException ("array is multidimensional");
+			if ((array.Length > 0) && (index >= array.Length))
+				throw new IndexOutOfRangeException ("Index was outside the bounds of the array.");
+			if (index > array.Length)
+				throw new IndexOutOfRangeException ("Index was outside the bounds of the array.");
+		
+			IEnumerator it = null;
+			int i = index;
+			while (it.MoveNext ()) {
+				array.SetValue (it.Current, i++);
+			}
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithMessageAndConditionalsTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithMessageAndConditionals");
 		}
 	}
 }
