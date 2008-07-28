@@ -91,5 +91,71 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithOneMessage");
 		}
+
+		public void ArgumentNullExceptionWithOneParameter (int parameter)
+		{
+			throw new ArgumentNullException ("parameter");
+		}
+
+		[Test]
+		public void SuccessOnArgumentNullExceptionWithOneParameterTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentNullExceptionWithOneParameter");
+		}
+
+		public void ArgumentNullExceptionWithOneMessage (int parameter)
+		{
+			throw new ArgumentNullException ("This argument is null " + parameter);
+		}
+
+		[Test]
+		public void FailOnArgumentNullExceptionWithOneMessageTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentNullExceptionWithOneMessage", 1);
+		}
+
+		public void ArgumentOutOfRangeExceptionWithOneParameter (int parameter)
+		{
+			throw new ArgumentOutOfRangeException ("parameter");
+		}
+
+		[Test]
+		public void SuccessOnArgumentOutOfRangeExceptionWithOneParameterTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentOutOfRangeExceptionWithOneParameter");
+		}
+
+		public void ArgumentOutOfRangeExceptionWithOneMessage (int parameter)
+		{
+			throw new ArgumentOutOfRangeException ("The parameter is out of range");
+		}
+
+		[Test]
+		public void FailOnArgumentOutOfRangeExceptionWithOneMessageTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentOutOfRangeExceptionWithOneMessage", 1);
+		}
+
+		public void DuplicateWaitObjectExceptionWithOneParameter (int parameter)
+		{
+			throw new DuplicateWaitObjectException ("parameter");
+		}
+
+		[Test]
+		public void SuccessOnDuplicateWaitObjectExceptionWithOneParameterTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("DuplicateWaitObjectExceptionWithOneParameter");
+		}
+
+		public void DuplicateWaitObjectExceptionWithOneMessage (int parameter)
+		{
+			throw new DuplicateWaitObjectException ("There are a duplicate wait object.");
+		}
+
+		[Test]
+		public void FailOnDuplicateWaitObjectExceptionWithOneMessageTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("DuplicateWaitObjectExceptionWithOneMessage", 1);
+		}
 	}
 }
