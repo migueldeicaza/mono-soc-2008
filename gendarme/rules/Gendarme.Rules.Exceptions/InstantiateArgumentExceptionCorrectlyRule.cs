@@ -88,14 +88,13 @@ namespace Gendarme.Rules.Exceptions {
 			return true;
 		}
 
-		public static bool IsDescription (Instruction throwInstruction)
+		public static bool ParameterIsDescription (Instruction throwInstruction)
 		{
 			Instruction current = throwInstruction;
 
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
-					//Should be a description
 					if (!operand.Contains (" "))
 						return false;
 				}
@@ -125,7 +124,7 @@ namespace Gendarme.Rules.Exceptions {
 				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
 				
 				if (IsArgumentException (exceptionType)) {
-					if (parameters == 1 && !IsDescription (current)) {
+					if (parameters == 1 && !ParameterIsDescription (current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
@@ -134,7 +133,7 @@ namespace Gendarme.Rules.Exceptions {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 				else {
-					if (parameters == 1 && IsDescription (current)) {
+					if (parameters == 1 && ParameterIsDescription (current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
