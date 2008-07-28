@@ -107,7 +107,16 @@ namespace Gendarme.Rules.Exceptions {
 		{
 			return Array.IndexOf (checkedExceptions, exceptionType.FullName) == 0;
 		}
-
+		
+		private static bool ContainsOnlyStringsAsParameters (MethodReference method)
+		{
+			foreach (ParameterDefinition parameter in method.Parameters) {
+				if (parameter.ParameterType.FullName != "System.String")
+					return false;
+			}
+			return true;
+		}
+	
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody)
@@ -121,7 +130,11 @@ namespace Gendarme.Rules.Exceptions {
 				if (exceptionType == null)	
 					continue;
 				
-				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
+				MethodReference constructor = (MethodReference) current.Previous.Operand;
+				if (!ContainsOnlyStringsAsParameters (constructor))
+					continue;
+					
+				int parameters =  constructor.Parameters.Count;
 				
 				if (IsArgumentException (exceptionType)) {
 					if (parameters == 1 && !ParameterIsDescription (current)) {
