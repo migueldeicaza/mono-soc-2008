@@ -35,15 +35,22 @@ namespace Gendarme.Rules.Exceptions {
 	[Problem ("")]
 	[Solution ("")]
 	public class InstantiateArgumentExceptionCorrectlyRule : Rule, IMethodRule {
+		static string[] checkedExceptions = {
+			"System.ArgumentException",
+			"System.ArgumentNullException",
+			"System.ArgumentOutOfRangeException",
+			"System.DuplicateWaitObjectException"
+			};
 
-		public static bool IsThrowingArgumentException (Instruction throwInstruction)
+		public static TypeReference GetArgumentExceptionThrown (Instruction throwInstruction)
 		{
 			if (throwInstruction.Previous.OpCode == OpCodes.Newobj) {
 				Instruction instantiation = throwInstruction.Previous;
 				MethodReference method = (MethodReference) instantiation.Operand;
-				return String.Compare (method.DeclaringType.FullName, "System.ArgumentException") == 0;
+				if (Array.IndexOf (checkedExceptions, method.DeclaringType.FullName) != -1)
+					return method.DeclaringType;
 			}
-			return false;
+			return null;
 		}
 
 		public static bool OperandsAreInCorrectOrder (MethodDefinition method, Instruction throwInstruction)
@@ -81,7 +88,7 @@ namespace Gendarme.Rules.Exceptions {
 			return true;
 		}
 
-		public static bool IsCorrectArgument (Instruction throwInstruction)
+		public static bool IsCorrectArgument (Instruction throwInstruction, Predicate<string> predicate)
 		{
 			Instruction current = throwInstruction;
 
@@ -89,12 +96,18 @@ namespace Gendarme.Rules.Exceptions {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
 					//Should be a description
-					if (!operand.Contains (" "))
+					//if (!operand.Contains (" "))
+					if (predicate (operand))
 						return false;
 				}
 				current = current.Previous;
 			}
 			return true;
+		}
+
+		private static bool IsArgumentException (TypeReference exceptionType)
+		{
+			return Array.IndexOf (checkedExceptions, exceptionType.FullName) == 0;
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
@@ -106,18 +119,35 @@ namespace Gendarme.Rules.Exceptions {
 				if (current.OpCode != OpCodes.Throw) 
 					continue;
 				
-				if (!IsThrowingArgumentException (current))	
+				TypeReference exceptionType = GetArgumentExceptionThrown (current);
+				if (exceptionType == null)	
 					continue;
-
-				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
-
-				if (parameters == 1 && !IsCorrectArgument (current)) {
-					Runner.Report (method, current, Severity.High, Confidence.Low);
-					continue;
-				}
 				
-				if (parameters == 2 && !OperandsAreInCorrectOrder (method, current))
-					Runner.Report (method, current, Severity.High, Confidence.Low);
+				int parameters =  ((MethodReference) current.Previous.Operand).Parameters.Count;
+				
+				if (IsArgumentException (exceptionType)) {
+					if (parameters == 1 &&
+						!IsCorrectArgument (current,
+						delegate (string operand) {
+							return !operand.Contains(" ");
+						})) {
+						Runner.Report (method, current, Severity.High, Confidence.Low);
+						continue;
+					}
+				
+					if (parameters == 2 && !OperandsAreInCorrectOrder (method, current))
+						Runner.Report (method, current, Severity.High, Confidence.Low);
+				}
+				else {
+					if (parameters == 1 &&
+						!IsCorrectArgument (current,
+						delegate (string operand) {
+							return operand.Contains (" ");
+						})) {
+						Runner.Report (method, current, Severity.High, Confidence.Low);
+						continue;
+					}
+				}
 			}
 
 			return Runner.CurrentRuleResult;
