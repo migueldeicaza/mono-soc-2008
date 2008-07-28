@@ -25,7 +25,8 @@
 //
 
 using System;
-
+using System.IO;
+using System.IO.Compression;
 using Mono.Git.Core;
 
 namespace Mono.Git.Tests
@@ -58,13 +59,68 @@ namespace Mono.Git.Tests
 		/// </returns>
 		public static bool CreateBlobHashTest ()
 		{
-			Blob b = new Blob ("hello.txt");
+			//Blob b = new Blob ("hello.txt");
 			//string hash = Mono.Git.Core.Object.BytesToHexString (b.Id.bytes);
 			
 			//if (hash != "7ca7efe6dbed6a3a0d73030134521c8b1048e6a7")
 			//	return false;
 			
 			return true;
+		}
+		
+		public static void ByteWriterTest ()
+		{
+			int num = 259;
+			byte[] bytes;
+			MemoryStream ms = new MemoryStream ();
+			BinaryWriter bw = new BinaryWriter (ms);
+			
+			bw.Write (num);
+			bytes = ms.GetBuffer ();
+			
+			int tmp = 0;
+			
+			for (int i = 0; i < 4; i++) {
+				tmp += bytes[i] * (int)System.Math.Pow (256, i);
+				Console.WriteLine ("#{0}", i);
+				Console.WriteLine ("tmp += bytes[i] * (int)System.Math.Pow (256, i);");
+				Console.WriteLine ("tmp += {0} * {1}", bytes[i], (int)System.Math.Pow (256, i));
+			}
+			
+			
+			
+			Console.WriteLine ("{0}, {1}, {2}, {3}", (bytes[0] - '0')*10, (bytes[1] - '0'), (bytes[2] - '0'), (bytes[3] - '0'));
+			Console.WriteLine ("Num: {0}", BitConverter.ToInt32 (bytes, 0));
+			Console.WriteLine ("Num: {0}", tmp);
+		}
+		
+		public static void ReadGitObj ()
+		{
+			//FileStream fs = new FileStream ("f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf", FileMode.Open);
+			FileStream fs = new FileStream ("4d9a46593467984153457aef51f049af038f59c9", FileMode.Open);
+			BinaryReader br = new BinaryReader (fs);
+			int len = (int)fs.Length;
+			
+			byte[] content = br.ReadBytes (len);
+			
+			Console.WriteLine ("First 2 bytes: {0} {1}", (int)content[0], (int)content[1]);
+			Console.WriteLine ("Last 4 bytes: {0}{1}{2}{3}", (int)content[len - 4], (int)content[len - 3], 
+			                   (int)content[len - 2], (int)content[len - 1]);
+			
+			byte[] dContent = new byte [len - 2];
+			
+			for (int i = 2; i < len; i++)
+				dContent[i - 2] = content[i];
+			
+			byte[] deflated = Mono.Git.Core.Repository.ObjectStore.Decompress (dContent);
+			
+			Console.Write ("Header: ");
+			foreach (byte b in deflated) {
+				if ((char)b == '\0')
+					Console.Write ("\n");
+				else
+					Console.Write ((char)b);
+			}
 		}
 	}
 }

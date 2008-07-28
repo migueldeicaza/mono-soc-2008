@@ -98,18 +98,18 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// A returned boolean<see cref="System.Boolean"/>
 		/// </returns>
-		public bool IsTree (Repo repository)
-		{
-			bool isTree = false;
-			
-			Object[] objects = repository.Objects.Objects;
-			
-			foreach (Object obj in objects) {
-				if (obj.Type == Type.Tree)
-					isTree = true;
-			}
-			
-			return isTree;
-		}
+//		public bool IsTree (Repo repository)
+//		{
+//			bool isTree = false;
+//			
+//			Object[] objects = repository.Objects.Objects;
+//			
+//			foreach (Object obj in objects) {
+//				if (obj.Type == Type.Tree)
+//					isTree = true;
+//			}
+//			
+//			return isTree;
+//		}
 	}
 }

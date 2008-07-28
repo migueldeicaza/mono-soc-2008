@@ -51,6 +51,12 @@ namespace Mono.Git.Tests
 				new IndexTest ();
 				IndexTest.IndexTest1 ();
 				break;
+			case "bytes":
+				ObjectTest.ByteWriterTest ();
+				break;
+			case "read":
+				ObjectTest.ReadGitObj ();
+				break;
 			}
 		}
 	}
