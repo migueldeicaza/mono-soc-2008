@@ -141,13 +141,13 @@ namespace ParallelFxTests
 			AssertAreSame (result, data.AsParallel().Skip (3));
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestSkipWhile ()
 		{
 			int [] data = {0, 1, 2, 3, 4, 5};
 			int [] result = {3, 4, 5};
 
-			AssertAreSame (result, data.SkipWhile (i => i < 3));
+			AssertAreSame (result, data.AsParallel().SkipWhile (i => i < 3));
 		}
 
 		[Test]
@@ -187,7 +187,7 @@ namespace ParallelFxTests
 			AssertAreSame (result, Enumerable.Range (0, 5).Reverse ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestSum ()
 		{
 			int [] data = {1, 2, 3, 4};
@@ -195,7 +195,7 @@ namespace ParallelFxTests
 			Assert.AreEqual (10, data.Sum ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void SumOnEmpty ()
 		{
 			int [] data = {};
@@ -203,12 +203,12 @@ namespace ParallelFxTests
 			Assert.AreEqual (0, data.Sum ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestMax ()
 		{
 			int [] data = {1, 3, 5, 2};
 
-			Assert.AreEqual (5, data.Max ());
+			Assert.AreEqual (5, data.AsParallel().Max ());
 		}
 
 		[Test]
@@ -216,22 +216,53 @@ namespace ParallelFxTests
 		{
 			int [] data = {3, 5, 2, 6, 1, 7};
 
-			Assert.AreEqual (1, data.Min ());
+			Assert.AreEqual (1, data.AsParallel().Min ());
 		}
-
-		[Test, IgnoreAttribute]
-		public void TestToList ()
+		
+		[Test]
+		public void TestToListOrdered ()
 		{
 			int [] data = {3, 5, 2};
 
-			var list = data.ToList ();
+			var list = data.AsParallel().AsOrdered().ToList ();
 
 			AssertAreSame (data, list);
+			AssertIsOrdered(list);
 
 			Assert.AreEqual (typeof (List<int>), list.GetType ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
+		public void TestToArrayOrdered ()
+		{
+			ICollection<int> coll = new List<int> ();
+			coll.Add (0);
+			coll.Add (1);
+			coll.Add (2);
+
+			int [] result = {0, 1, 2};
+
+			var array = coll.AsParallel().AsOrdered().ToArray ();
+
+			AssertAreSame (result, array);
+			AssertIsOrdered(array);
+
+			Assert.AreEqual (typeof (int []), array.GetType ());
+		}
+
+		[Test]
+		public void TestToList ()
+		{
+			int [] data = {3, 5, 2};
+
+			var list = data.AsParallel().ToList ();
+
+			CollectionAssert.AreEquivalent (data, list);
+
+			Assert.AreEqual (typeof (List<int>), list.GetType ());
+		}
+
+		[Test]
 		public void TestToArray ()
 		{
 			ICollection<int> coll = new List<int> ();
@@ -241,20 +272,20 @@ namespace ParallelFxTests
 
 			int [] result = {0, 1, 2};
 
-			var array = coll.ToArray ();
+			var array = coll.AsParallel().ToArray ();
 
-			AssertAreSame (result, array);
+			CollectionAssert.AreEquivalent (result, array);
 
 			Assert.AreEqual (typeof (int []), array.GetType ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestAverageOnInt32 ()
 		{
 			Assert.AreEqual (23.25, (new int [] { 24, 7, 28, 34 }).Average ());
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestAverageOnInt64 ()
 		{
 			Assert.AreEqual (23.25, (new long [] { 24, 7, 28, 34 }).Average ());
@@ -272,7 +303,7 @@ namespace ParallelFxTests
 		public void TestOrderBy ()
 		{
 				int [] array = { 14, 53, 3, 9, 11, 14, 5, 32, 2 };
-				var q = from i in array
+				var q = from i in array.AsParallel()
 						orderby i
 						select i;
 				AssertIsOrdered (q);
@@ -337,7 +368,7 @@ namespace ParallelFxTests
 		[Test]
 		public void TestOrderByAgeAscendingTheByNameDescending ()
 		{
-			var q = from b in CreateBazCollection ()
+			var q = from b in CreateBazCollection ().AsParallel()
 					orderby b.Age ascending, b.Name descending
 					select b;
 
@@ -348,6 +379,10 @@ namespace ParallelFxTests
 				new Baz ("jb", 25),
 				new Baz ("reg", 28),
 			};
+			
+			foreach (var b in q) {
+				Console.Write(b.Name + ", " + b.Age + "; ");
+			}
 
 			AssertAreSame (expected, q);
 		}
@@ -375,7 +410,7 @@ namespace ParallelFxTests
 		[Test]
 		public void TestOrderByIdDescendingThenByNameAscending ()
 		{
-			var q = from d in CreateData ()
+			var q = from d in CreateData ().AsParallel()
 					orderby d.ID descending, d.Name ascending
 					select d;
 
