@@ -76,7 +76,7 @@ namespace System.Linq
 			}
 		}*/
 		
-		readonly SpinLock sl = new SpinLock(false);
+		SpinLock sl = new SpinLock(false);
 		readonly SpinWait sw = new SpinWait();
 		readonly Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
 		readonly IParallelEnumerator<TSource> enumerator;

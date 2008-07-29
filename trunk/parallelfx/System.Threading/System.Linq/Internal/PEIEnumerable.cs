@@ -49,7 +49,7 @@ namespace System.Linq
 			const int chunkSize = 10;
 			
 			readonly IEnumerable<T> enumerable;
-			readonly SpinLock sl = new SpinLock(false);
+			SpinLock sl = new SpinLock(false);
 			
 			IEnumerator<T> enumerator;
 			T current;
@@ -110,8 +110,8 @@ namespace System.Linq
 				}
 				/*lock (syncRoot) {
 					if (result = enumerator.MoveNext()) {
-						item = enumerator.Current;
-						index = currIndex++;
+						current = item = enumerator.Current;
+						index = ++currIndex;
 					}
 				}*/
 				

@@ -147,7 +147,9 @@ namespace System.Linq
 		
 		public void CopyTo (int[] array, int arrayIndex)
 		{
-			throw new NotImplementedException();
+			int counter = start;
+			for (int i = arrayIndex; i < array.Length && i < (i - arrayIndex) + count; i++)
+				array[i] = counter++;
 		}
 		
 		public bool Remove (int item)

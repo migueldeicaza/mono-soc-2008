@@ -93,7 +93,6 @@ namespace System.Linq
 					
 					if (!added)
 						sw.SpinOnce();
-					//Console.WriteLine("Not added : " + index + " ; " + element);
 				}
 			};
 				
