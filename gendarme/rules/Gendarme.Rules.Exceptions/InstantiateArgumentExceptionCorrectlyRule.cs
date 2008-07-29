@@ -53,26 +53,16 @@ namespace Gendarme.Rules.Exceptions {
 			return null;
 		}
 
-		public static bool ParameterNameIsLastOperand (MethodDefinition method, Instruction throwInstruction)
+		public static bool ParameterNameIsLastOperand (MethodDefinition method, Instruction throwInstruction, int exceptionParameters)
 		{
-			int parameters = ((MethodReference) throwInstruction.Previous.Operand).Parameters.Count;
-			
 			Instruction current = throwInstruction;
-			int counter = parameters;
-			while (current != null && counter != 0) {
+			while (current != null && exceptionParameters != 0) {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
 					//The second operand, a parameter name
-					if (parameters == counter) {
-						bool matched = false;
-						foreach (ParameterDefinition param in method.Parameters) {
-							if (String.Compare (param.Name, operand) == 0) {
-								matched = true;
-								break;
-							}
-						}
-						if (!matched)
-							return matched;
+					if (exceptionParameters == 2) {
+						if (!MatchesAnyParameter (method, operand))
+							return false;
 					}
 					//The first operand, would be handy to
 					//have a description
@@ -80,18 +70,26 @@ namespace Gendarme.Rules.Exceptions {
 						//Where are you calling in order
 						//to get the message
 						if (current.Next != null && current.Next.OpCode.FlowControl == FlowControl.Call) {
-							counter--;
+							exceptionParameters--;
 							continue;
 						}
 						if (!operand.Contains (" "))
 							return false;
 					}
-					counter--;
+					exceptionParameters--;
 				}
 				current = current.Previous;
 			}
-			
 			return true;
+		}
+
+		static bool MatchesAnyParameter (MethodDefinition method, string operand)
+		{
+			foreach (ParameterDefinition parameter in method.Parameters) {
+				if (String.Compare (parameter.Name, operand) == 0)
+					return true;
+			}
+			return false;
 		}
 
 		public static bool ParameterIsDescription (MethodDefinition method, Instruction throwInstruction)
@@ -99,15 +97,8 @@ namespace Gendarme.Rules.Exceptions {
 			Instruction current = throwInstruction;
 
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldstr) {
-					string operand = (string) current.Operand;
-					foreach (ParameterDefinition parameter in method.Parameters) {
-						if (String.Compare (parameter.Name, operand) == 0) 
-							return false;
-					}
-					//I pick the next to the instruction.
-					break;
-				}
+				if (current.OpCode == OpCodes.Ldstr) 
+					return !MatchesAnyParameter (method, (string) current.Operand);
 				current = current.Previous;
 			}
 			return true;
@@ -152,7 +143,7 @@ namespace Gendarme.Rules.Exceptions {
 						continue;
 					}
 				
-					if (parameters == 2 && !ParameterNameIsLastOperand (method, current))
+					if (parameters == 2 && !ParameterNameIsLastOperand (method, current, parameters))
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 				else {
@@ -160,7 +151,7 @@ namespace Gendarme.Rules.Exceptions {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
-					if (parameters == 2 && ParameterNameIsLastOperand (method, current))
+					if (parameters == 2 && ParameterNameIsLastOperand (method, current, parameters))
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 			}
