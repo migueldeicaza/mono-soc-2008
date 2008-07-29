@@ -32,8 +32,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Exceptions {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("You are not passing the arguments in the correct order to ArgumentException and derived. You are hiding useful information to developers.")]
+	[Solution ("Fix the order of the parameters following the recomendations.")]
 	public class InstantiateArgumentExceptionCorrectlyRule : Rule, IMethodRule {
 		static string[] checkedExceptions = {
 			"System.ArgumentException",
@@ -139,20 +139,20 @@ namespace Gendarme.Rules.Exceptions {
 				
 				if (IsArgumentException (exceptionType)) {
 					if (parameters == 1 && !ParameterIsDescription (method, current)) {
-						Runner.Report (method, current, Severity.High, Confidence.Low);
+						Runner.Report (method, current, Severity.High, Confidence.Normal, "The parameter for this signature should be a description, not a parameter name.");
 						continue;
 					}
 				
 					if (parameters == 2 && !ParameterNameIsLastOperand (method, current, parameters))
-						Runner.Report (method, current, Severity.High, Confidence.Low);
+						Runner.Report (method, current, Severity.High, Confidence.Normal, "The parameter order should be first the description and second the parameter name.");
 				}
 				else {
 					if (parameters == 1 && ParameterIsDescription (method, current)) {
-						Runner.Report (method, current, Severity.High, Confidence.Low);
+						Runner.Report (method, current, Severity.High, Confidence.Normal, "The parameter for this signature should be the parameter name.");
 						continue;
 					}
 					if (parameters == 2 && ParameterNameIsLastOperand (method, current, parameters))
-						Runner.Report (method, current, Severity.High, Confidence.Low);
+						Runner.Report (method, current, Severity.High, Confidence.Normal, "The parameter order should be first the parameter name and second the description.");
 				}
 			}
 
