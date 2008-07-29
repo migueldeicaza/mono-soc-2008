@@ -27,8 +27,7 @@ using System.Diagnostics;
 
 namespace System.Threading
 {
-
-	public struct SpinLock
+	public class SpinLock
 	{
 		const int isFree = 0;
 		const int isOwned = 1;
@@ -72,15 +71,15 @@ namespace System.Threading
 		
 		public void Enter() 
 		{
+			int result = Interlocked.Exchange(ref lockState, isOwned);
+			
 			//Thread.BeginCriticalRegion();
-			while (true)  {
+			while (result == isOwned) {
 				// If resource available, set it to in-use and return
-				int result = Interlocked.Exchange(ref lockState, isOwned);
-				if (result == isFree) {
-					threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
-					return;
-				}
-
+				result = Interlocked.Exchange(ref lockState, isOwned);
+				if (result == isFree)
+					break;
+				
 				// Efficiently spin, until the resource looks like it might 
 				// be free. NOTE: Just reading here (as compared to repeatedly 
 				// calling Exchange) improves performance because writing 
@@ -89,6 +88,8 @@ namespace System.Threading
 					sw.SpinOnce();
 				}
 			}
+			
+			threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
 		}
 		
 		public bool TryEnter()
@@ -144,13 +145,13 @@ namespace System.Threading
 
 		public void Exit() 
 		{ 
-			Thread.VolatileWrite(ref lockState, isFree);
+			lockState = isFree;
 		}
 
 		public void Exit(bool flushReleaseWrites) 
 		{ 
 			// Mark the resource as available
-			if (flushReleaseWrites) {
+			if (!flushReleaseWrites) {
 				lockState = isFree;
 			} else {
 				Thread.VolatileWrite(ref lockState, isFree);

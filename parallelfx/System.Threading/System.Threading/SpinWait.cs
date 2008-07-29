@@ -23,8 +23,6 @@
 //
 
 using System;
-using System.Security;
-using System.Runtime.InteropServices;
 
 namespace System.Threading
 {
@@ -32,7 +30,7 @@ namespace System.Threading
 	public struct SpinWait
 	{
 		// The number of step until SpinOnce yield on multicore machine
-		const    int  step = 10;
+		const           int  step = 10;
 		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
 		
 		int ntime;
@@ -69,10 +67,7 @@ namespace System.Threading
 		
 		public bool NextSpinWillYield {
 			get {
-				if (isSingleCpu)
-					return true;
-				else
-					return ntime % step == 0;
+				return isSingleCpu ? true : ntime % step == 0;
 			}
 		}
 

@@ -46,7 +46,6 @@ namespace System.Linq
 			if (temp == null)
 				return;
 			temp.IsLast = false;
-			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
 		internal static void IsLast<T>(this IParallelEnumerable<T> source)
@@ -55,7 +54,6 @@ namespace System.Linq
 			if (temp == null)
 				return;
 			temp.IsLast = true;
-			//Console.WriteLine("Correctly IsNotLast-ed");
 		}
 		
 		internal static bool IsOrdered<T>(this IParallelEnumerable<T> source)
@@ -249,45 +247,134 @@ namespace System.Linq
 		#endregion
 		
 		#region OrderBy
-		public static IParallelEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
-		                                                                  Func<TSource, TKey> keySelector) where TKey : IComparable<TKey>
+		public static IParallelOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                         Func<TSource, TKey> keySelector)
 		{
-			return OrderByInternal<TSource>(source, (e1, e2) => keySelector(e1).CompareTo(keySelector(e2)));
+			return source.OrderBy(keySelector, Comparer<TKey>.Default);
 		}
 		
-		public static IParallelEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		public static IParallelOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                         Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
+		{
+			if (comparer == null)
+				throw new ArgumentNullException("comparer");
+			if (keySelector == null)
+				throw new ArgumentNullException("keySelector");
+			
+			return OrderByInternal<TSource>(source, (e1, e2) => {
+				if (e1 == null || e2 == null)
+					return 0;
+				return comparer.Compare(keySelector(e1), keySelector(e2));
+			});
+		}
+		
+		public static IParallelOrderedEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
+		                                                                                   Func<TSource, TKey> keySelector)
+		{
+			return source.OrderByDescending(keySelector, Comparer<TKey>.Default);
+		}
+		
+		public static IParallelOrderedEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
 		                                                                  Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
 		{
-			return OrderByInternal<TSource>(source, (e1, e2) => comparer.Compare(keySelector(e1), keySelector(e2)));
-		}
-		
-		public static IParallelEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
-		                                                                  Func<TSource, TKey> keySelector) where TKey : IComparable<TKey>
-		{
-			return OrderByInternal<TSource>(source, (e1, e2) => keySelector(e2).CompareTo(keySelector(e1)));
-		}
-		
-		public static IParallelEnumerable<TSource> OrderByDescending<TSource, TKey>(this IParallelEnumerable<TSource> source,
-		                                                                  Func<TSource, TKey> keySelector, IComparer<TKey> comparer)
-		{
+			if (comparer == null)
+				throw new ArgumentNullException("comparer");
 			return OrderByInternal<TSource>(source, (e1, e2) => comparer.Compare(keySelector(e2), keySelector(e1)));
 		}
 		
-		static IParallelEnumerable<TSource> OrderByInternal<TSource>(IParallelEnumerable<TSource> source,
-		                                                           System.Comparison<TSource> comparer)
+		static IParallelOrderedEnumerable<TSource> OrderByInternal<TSource>(IParallelEnumerable<TSource> source,
+		                                                           System.Comparison<TSource> comparison)
 		{
-			List<TSource> temp = source.Aggregate(() => new List<TSource>(),
-			                                      (list, e) => { list.Add(e); return list; },
-			                                      (list, list2) => { list.AddRange(list2); return list; },
-			                                      (list) => list);
+			return new POrderedEnumerable<TSource>(source, comparison);
+		}
+		#endregion
+		
+		#region ThenBy
+		public static IParallelOrderedEnumerable<T> ThenBy<T, TKey> (this IParallelOrderedEnumerable<T> source,
+		                                                             Func<T, TKey> keySelector)
+		{
+			return source.ThenBy(keySelector, Comparer<TKey>.Default);
+		}
+		
+		public static IParallelOrderedEnumerable<T> ThenBy<T, TKey> (this IParallelOrderedEnumerable<T> source,
+		                                                             Func<T, TKey> keySelector,
+		                                                             IComparer<TKey> comparer)
+		{
+			if (comparer == null)
+				throw new ArgumentNullException("comparer");
 			
-			temp.Sort(comparer);
+			return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, false);
+		}
+		
+		public static IParallelOrderedEnumerable<T> ThenByDescending<T, TKey> (this IParallelOrderedEnumerable<T> source,
+		                                                                       Func<T, TKey> keySelector)
+		{
+			return source.ThenByDescending(keySelector, Comparer<TKey>.Default);
+		}
+		
+		public static IParallelOrderedEnumerable<T> ThenByDescending<T, TKey> (this IParallelOrderedEnumerable<T> source,
+		                                                                       Func<T, TKey> keySelector,
+		                                                                       IComparer<TKey> comparer)
+		{
+			if (comparer == null)
+				throw new ArgumentNullException("comparer");
 			
-			IParallelEnumerable<TSource> enumerable = ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
-			// OrderBy explicitely turn on ordering
-			enumerable.SetOrdered();
-			
-			return enumerable;
+			return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, true);
+		}
+		#endregion 
+		
+		#region Average
+		public static double Average(this IParallelEnumerable<int> source)
+		{
+			return source.Aggregate(() => new int[2],
+			                        (acc, e) => { acc[0] += e; acc[1]++; return acc; },
+			                        (acc1, acc2) => { acc1[0] += acc2[0]; acc1[1] += acc2[1]; return acc1; },
+			                        (acc) => acc[0] / ((double)acc[1]));
+		}
+		
+		public static double Average(this IParallelEnumerable<long> source)
+		{
+			return source.Aggregate(() => new long[2],
+			                        (acc, e) => { acc[0] += e; acc[1]++; return acc; },
+			                        (acc1, acc2) => { acc1[0] += acc2[0]; acc1[1] += acc2[1]; return acc1; },
+			                        (acc) => acc[0] / ((double)acc[1]));
+		}
+		#endregion
+		
+		#region Sum
+		public static int Sum(IParallelEnumerable<int> source)
+		{
+			return source.Aggregate(0, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
+		}
+		
+		public static byte Sum(IParallelEnumerable<byte> source)
+		{
+			return source.Aggregate((byte)0, (e1, e2) => (byte)(e1 + e2), (sum1, sum2) => (byte)(sum1 + sum2), (sum) => sum);
+		}
+		
+		public static short Sum(IParallelEnumerable<short> source)
+		{
+			return source.Aggregate((short)0, (e1, e2) => (short)(e1 + e2), (sum1, sum2) => (short)(sum1 + sum2), (sum) => sum);
+		}
+		
+		public static long Sum(IParallelEnumerable<long> source)
+		{
+			return source.Aggregate((long)0, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
+		}
+		
+		public static float Sum(IParallelEnumerable<float> source)
+		{
+			return source.Aggregate(0.0f, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
+		}
+		
+		public static double Sum(IParallelEnumerable<double> source)
+		{
+			return source.Aggregate(0.0, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
+		}
+		
+		public static decimal Sum(IParallelEnumerable<decimal> source)
+		{
+			return source.Aggregate((decimal)0, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
 		}
 		#endregion
 		
@@ -378,6 +465,15 @@ namespace System.Linq
 		
 		#region Aggregate
 		public static TResult Aggregate<TSource, TAccumulate, TResult>(this IParallelEnumerable<TSource> source,
+		                                                               TAccumulate seed,
+		                                                               Func<TAccumulate, TSource, TAccumulate> intermediateReduceFunc,
+		                                                               Func<TAccumulate, TAccumulate, TAccumulate> finalReduceFunc,
+		                                                               Func<TAccumulate, TResult> resultSelector)
+		{
+			return source.Aggregate(() => seed, intermediateReduceFunc, finalReduceFunc, resultSelector);
+		}
+		
+		public static TResult Aggregate<TSource, TAccumulate, TResult>(this IParallelEnumerable<TSource> source,
 		                                                               Func<TAccumulate> seedFactory,
 		                                                               Func<TAccumulate, TSource, TAccumulate> intermediateReduceFunc,
 		                                                               Func<TAccumulate, TAccumulate, TAccumulate> finalReduceFunc,
@@ -385,16 +481,26 @@ namespace System.Linq
 		{
 			int count = Parallel.GetBestWorkerNumber();
 			TAccumulate[] accumulators = new TAccumulate[count];
+			int[] switches = new int[count];
 			for (int i = 0; i < count; i++) {
 				accumulators[i] = seedFactory();
 			}
 			
 			int index = -1;
+			
+			// Process to intermediate result into distinct domain
 			Process<TSource>(source, delegate (int j, TSource element) {
-				int i = Interlocked.Increment(ref index) % count;
+				int i;
+				
+				// HACK: do the local var thing on Process/SpawnBestNumber side
+				do {
+					i = Interlocked.Increment(ref index) % count;
+				} while (Interlocked.Exchange(ref switches[i], 1) == 1);
 				// Reduce results on each domain
 				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
+				switches[i] = 0;
 			}, true);
+			
 			// Reduce the final domains into a single one
 			for (int i = 1; i < count; i++) {
 				accumulators[0] = finalReduceFunc(accumulators[0], accumulators[i]);
@@ -435,6 +541,12 @@ namespace System.Linq
 				}
 			});
 		}
+		
+		/*public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source,
+		                                                              Func<TSource, int, bool> predicate)
+		{
+			
+		}*/
 		#endregion
 		
 		#region Skip
@@ -443,6 +555,28 @@ namespace System.Linq
 			int counter = 0;
 			
 			return source.Where((element, index) => Interlocked.Increment(ref counter) > count);
+		}
+		
+		public static IParallelEnumerable<TSource> SkipWhile<TSource>(this IParallelEnumerable<TSource> source, 
+		                                                              Func<TSource, bool> predicate)
+		{
+			return source.SkipWhile((e, i) => predicate(e));
+		}
+		
+		public static IParallelEnumerable<TSource> SkipWhile<TSource>(this IParallelEnumerable<TSource> source, 
+		                                                              Func<TSource, int, bool> predicate)
+		{
+			bool predicateStatus = true;
+			
+			return source.Where((element, index) => {
+				if (!predicateStatus)
+					return true;
+				
+				bool result = predicate(element, index);
+				if (!result)
+					predicateStatus = true;
+				return !result;
+			});
 		}
 		#endregion
 		
@@ -527,15 +661,19 @@ namespace System.Linq
 		}
 		#endregion
 		
-		#region
-		public static T[] ToArray<T>(this IParallelEnumerable<T> source)
+		#region ToArray - ToList
+		public static List<T> ToList<T>(this IParallelEnumerable<T> source)
 		{
 			List<T> temp = source.Aggregate(() => new List<T>(),
-			                                      (list, e) => { list.Add(e); return list; },
-			                                      (list, list2) => { list.AddRange(list2); return list; },
-			                                      (list) => list);
-			return temp.ToArray();
-			
+			                                (list, e) => { list.Add(e); return list; },
+			                                (list, list2) => { list.AddRange(list2); return list; },
+			                                (list) => list);
+			return temp;
+		}
+		
+		public static T[] ToArray<T>(this IParallelEnumerable<T> source)
+		{
+			return source.ToList().ToArray();	
 		}
 		#endregion
 		

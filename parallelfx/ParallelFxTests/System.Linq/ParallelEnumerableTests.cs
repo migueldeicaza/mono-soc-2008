@@ -46,12 +46,33 @@ namespace ParallelFxTests
 		
 		void AreEquivalent(IEnumerable<int> syncEnumerable, IEnumerable<int> asyncEnumerable, int count)
 		{
-			int[] sync  = syncEnumerable.ToArray();
-			int[] async = asyncEnumerable.ToArray();
+			int[] sync  = Enumerable.ToArray(syncEnumerable);
+			int[] async = Enumerable.ToArray(asyncEnumerable);
 			
 			// This is not AreEquals because IParallelEnumerable is not non-deterministic (IParallelOrderedEnumerable is)
 			// thus the order of the initial Enumerable might not be preserved
 			CollectionAssert.AreEquivalent(sync, async, "#" + count);
+		}
+		
+		static void AssertAreSame<T> (IEnumerable<T> expected, IEnumerable<T> actual)
+		{
+			if (expected == null) {
+				Assert.IsNull (actual);
+				return;
+			}
+
+			Assert.IsNotNull (actual);
+
+			IEnumerator<T> ee = expected.GetEnumerator ();
+			IEnumerator<T> ea = actual.GetEnumerator ();
+
+			while (ee.MoveNext ()) {
+				Assert.IsTrue (ea.MoveNext (), "'" + ee.Current + "' expected.");
+				Assert.AreEqual (ee.Current, ea.Current);
+			}
+
+			if (ea.MoveNext ())
+				Assert.Fail ("Unexpected element: " + ea.Current);
 		}
 
 		[TestAttribute]
@@ -133,19 +154,19 @@ namespace ParallelFxTests
 		[TestAttribute]
 		public void RangeTestCase()
 		{
-			int[] sync  = Enumerable.Range(1, 10).ToArray();
-			int[] async = ParallelEnumerable.Range(1, 10).ToArray();
+			IEnumerable<int> sync  = Enumerable.Range(1, 10);
+			IEnumerable<int> async = ParallelEnumerable.Range(1, 10);
 
-			CollectionAssert.AreEqual(sync, async, "#1");
+			AssertAreSame(sync, async);
 		}
 		
 		[TestAttribute]
 		public void RepeatTestCase()
 		{
-			int[] sync  = Enumerable.Repeat(1, 10).ToArray();
-			int[] async = ParallelEnumerable.Repeat(1, 10).ToArray();
+			IEnumerable<int> sync  = Enumerable.Repeat(1, 10);
+			IEnumerable<int> async = ParallelEnumerable.Repeat(1, 10);
 
-			CollectionAssert.AreEqual(sync, async, "#1");
+			AssertAreSame(sync, async);
 		}
 	}
 }

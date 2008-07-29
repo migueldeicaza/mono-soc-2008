@@ -54,6 +54,9 @@ namespace System.Linq
 		
 		public static IParallelEnumerable<T> AsUnordered<T>(this IParallelEnumerable<T> source)
 		{
+			// Add some logic that check if the ParallelEnumerable is a OrderedParallelEnumerable
+			// and thus that no other action occured after a OrderBy/ThenBy to remove that part
+			// of the query since it will be suffled anyway
 			source.SetUnordered();
 			return source;
 		}
