@@ -285,7 +285,22 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("MixedArgumentExceptionsAndConditionals", 1);
 		}
-
+		
+		private string GetString (string message)
+		{
+			return message;
+		}
+	
+		public void ArgumentExceptionsWithTranslatedMessage (int parameter)
+		{
+			throw new ArgumentException (GetString("Error"), "parameter");
+		}
+		
+		[Test]
+		public void SuccessOnArgumentExceptionsWithTranslatedMessageTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionsWithTranslatedMessage");
+		}
 
 	}
 }
