@@ -77,6 +77,12 @@ namespace Gendarme.Rules.Exceptions {
 					//The first operand, would be handy to
 					//have a description
 					else {
+						//Where are you calling in order
+						//to get the message
+						if (current.Next != null && current.Next.OpCode.FlowControl == FlowControl.Call) {
+							counter--;
+							continue;
+						}
 						if (!operand.Contains (" "))
 							return false;
 					}
@@ -88,18 +94,23 @@ namespace Gendarme.Rules.Exceptions {
 			return true;
 		}
 
-		public static bool ParameterIsDescription (Instruction throwInstruction)
+		public static bool ParameterIsDescription (MethodDefinition method, Instruction throwInstruction)
 		{
 			Instruction current = throwInstruction;
 
 			while (current != null) {
 				if (current.OpCode == OpCodes.Ldstr) {
 					string operand = (string) current.Operand;
-					return operand.Contains (" ");
+					foreach (ParameterDefinition parameter in method.Parameters) {
+						if (String.Compare (parameter.Name, operand) == 0) 
+							return false;
+					}
+					//I pick the next to the instruction.
+					break;
 				}
 				current = current.Previous;
 			}
-			return false;
+			return true;
 		}
 
 		private static bool IsArgumentException (TypeReference exceptionType)
@@ -136,7 +147,7 @@ namespace Gendarme.Rules.Exceptions {
 				int parameters =  constructor.Parameters.Count;
 				
 				if (IsArgumentException (exceptionType)) {
-					if (parameters == 1 && !ParameterIsDescription (current)) {
+					if (parameters == 1 && !ParameterIsDescription (method, current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
@@ -145,7 +156,7 @@ namespace Gendarme.Rules.Exceptions {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 				}
 				else {
-					if (parameters == 1 && ParameterIsDescription (current)) {
+					if (parameters == 1 && ParameterIsDescription (method, current)) {
 						Runner.Report (method, current, Severity.High, Confidence.Low);
 						continue;
 					}
