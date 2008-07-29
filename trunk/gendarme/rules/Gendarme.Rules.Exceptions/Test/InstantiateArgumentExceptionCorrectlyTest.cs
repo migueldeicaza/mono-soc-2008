@@ -314,5 +314,15 @@ namespace Test.Rules.Exceptions {
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTranslatedInverted", 1);
 		}
 
+		public void ArgumentExceptionWithTranslatedDescription (int parameter)
+		{
+			throw new ArgumentException (GetString ("Error"));
+		}
+
+		[Test]
+		public void SuccessOnArgumentExceptionWithTranslatedDescriptionTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTranslatedDescription");
+		}
 	}
 }
