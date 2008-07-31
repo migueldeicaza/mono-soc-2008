@@ -35,6 +35,9 @@ namespace Gendarme.Rules.Performance {
 	public class ConsiderInliningLocalsUsedOnceRule : Rule, IMethodRule {
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
+			if (!method.HasBody || method.Body.Variables.Count == 0)
+				return RuleResult.DoesNotApply;
+
 			return Runner.CurrentRuleResult;
 		}
 	}
