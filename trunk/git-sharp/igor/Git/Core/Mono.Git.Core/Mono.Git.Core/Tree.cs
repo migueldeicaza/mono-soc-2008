@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.Text;
 using System.Collections;
 using Mono.Git.Core;
 
@@ -39,7 +40,7 @@ namespace Mono.Git.Core
 		private Tree parent;
 		private TreeEntry[] entries;
 		
-		public Tree (Tree parent)
+		public Tree (Tree parent) : base (Type.Tree, Encoding.UTF8.GetBytes (parent.parent.ToString ())) // TODO: add a real encoding
 		{
 			this.parent = parent;
 		}

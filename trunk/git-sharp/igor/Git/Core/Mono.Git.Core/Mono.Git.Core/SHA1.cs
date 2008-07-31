@@ -39,10 +39,15 @@ namespace Mono.Git.Core
 		
 		public byte[] Bytes { get { return bytes; } }
 		
-		public SHA1 (byte[] obj, Type type)
+		public SHA1 (byte[] data, bool calculateHash)
 		{
-			//bytes = HashObj (obj, type);
-			bytes = obj;
+			if (calculateHash) {
+				bytes = ComputeSHA1Hash (data);
+			} else if (data.Length == 20) {
+				bytes = data;
+			} else {
+				throw new ArgumentException ("The data provided is not a SHA1 hash");
+			}
 		}
 		
 		public override int GetHashCode ()
@@ -95,23 +100,10 @@ namespace Mono.Git.Core
 		
 		public bool Equals (SHA1 o)
 		{
-			if (o.Bytes == null)
-				return false;
-			
-			if (o.Bytes.Length == 0)
-				return false;
-			
 			if (bytes == o.Bytes)
 				return true;
 			
-			for (int i = 0; i < o.Bytes.Length; i++) {
-				if (bytes[i] != o.Bytes[i]) {
-					return false;
-				}
-			}
-			
-			return true;
+			return bytes.Equals (o.Bytes);
 		}
-		
 	}
 }

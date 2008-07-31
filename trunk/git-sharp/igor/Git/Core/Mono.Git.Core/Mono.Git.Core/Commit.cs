@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.Text;
 using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
@@ -55,7 +56,7 @@ namespace Mono.Git.Core
 		
 		public Commit (SHA1 treeId, SHA1 parentId, string authorName,
 		               string commiterName, string authorEmail, string commiterEmail, 
-		               string messageContent)
+		               string messageContent) : base (Type.Commit, Encoding.UTF8.GetBytes (authorName)) // TODO: ENCODE
 		{
 			tree = treeId;
 			parent = parentId;

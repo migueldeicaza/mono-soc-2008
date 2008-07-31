@@ -25,6 +25,7 @@
 //
 
 using System;
+using System.Text;
 
 namespace Mono.Git.Core
 {
@@ -69,7 +70,7 @@ namespace Mono.Git.Core
 			}
 		}
 		
-		public Tag (string tag, User tagger, string message, Commit commit)
+		public Tag (string tag, User tagger, string message, Commit commit) : base (Type.Tag, Encoding.UTF8.GetBytes (tag)) // TODO: add a real encoding
 		{
 			tag_string = tag;
 			tagger = tagger;

@@ -57,20 +57,19 @@ namespace Mono.Git.Core
 		
 		public abstract Type Type { get; }
 		
-		public SHA1 Id
-		{
-			get {
-				return id;
-			}
-		}
-		
-		public Object ()
-		{
-		}
+		public SHA1 Id { get { return id; } }
 		
 		public Object (Type type, byte[] objContent)
 		{
-			content = objContent;
+			byte[] header = CreateObjectHeader (type, objContent.Length);
+			content = new byte[header.Length + objContent.Length];
+			
+			// filling the content
+			header.CopyTo (content, 0); // Copying the header first,
+			objContent.CopyTo (content, header.Length); // then the data, on the final data
+			
+			// initializing the id with the content
+			id = new SHA1 (content, true);
 		}
 		
 		/// <summary>
@@ -87,7 +86,7 @@ namespace Mono.Git.Core
 		/// </returns>
 		private static byte[] CreateObjectHeader (Type objType, int dataSize)
 		{
-			return Encoding.ASCII.GetBytes (String.Format ("{0} {1}\0",
+			return Encoding.UTF8.GetBytes (String.Format ("{0} {1}\0",
 			                                                 Object.TypeToString (objType),
 			                                                 dataSize.ToString ()));
 		}
@@ -193,57 +192,54 @@ namespace Mono.Git.Core
 		
 		protected static bool ParseString (byte[] input, ref int pos, out string str)
 		{
-			StringBuilder sb = new StringBuilder ();
 			str = null;
 			
 			if (input.Length == pos)
 				return false;
 			
-			pos++;
+			int start = pos;
 			
 			while (!ParseNewLine (input, ref pos) || !ParseZero (input, ref pos) || pos > input.Length)
-				sb.Append ((char)input[pos++]);
+				pos++;
 			
-			str = sb.ToString ();
+			str = Encoding.UTF8.GetString (input, start, pos);
 			
 			return true;
 		}
 		
 		protected static bool ParseNoSpaceString (byte[] input, ref int pos, out string str)
 		{
-			StringBuilder sb = new StringBuilder ();
 			str = null;
 			
 			if (input.Length == pos)
 				return false;
 			
-			pos++;
+			int start = pos;
 			
 			while (!ParseNewLine (input, ref pos) || !ParseSpace (input, ref pos) || !ParseZero (input, ref pos) || pos > input.Length)
-				sb.Append ((char)input[pos++]);
+				pos++;
 			
-			str = sb.ToString ();
+			str = Encoding.UTF8.GetString (input, start, pos);
 			
 			return true;
 		}
 		
-		protected bool ParseHeader (byte[] input, ref int pos, out byte[] header)
+		protected static bool ParseHeader (byte[] input, ref int pos, out byte[] header)
 		{
 			header = null;
 			
 			if (pos != 0)
 				return false;
 			
-			for (int i = 0; input[i] != '\0'; i++) {
+			for (int i = 0; input[i] != '\0'; i++, pos++) {
 				header[i] = input[i];
-				pos++;
 			}
 			
 			return true;
 		}
 		
 		
-		protected bool ParseType (byte[] input, ref int pos, out string type)
+		protected static bool ParseType (byte[] input, ref int pos, out string type)
 		{
 			type = null;
 			
@@ -282,7 +278,7 @@ namespace Mono.Git.Core
 		protected static void EncodeString (ref MemoryStream ms, string str)
 		{
 			BinaryWriter bw = new BinaryWriter (ms);
-			bw.Write (str);
+			bw.Write (Encoding.UTF8.GetBytes (str));
 			
 			bw.Close ();
 		}
@@ -310,26 +306,17 @@ namespace Mono.Git.Core
 		
 		protected static void EncodeZero (ref MemoryStream ms)
 		{
-			BinaryWriter bw = new BinaryWriter (ms);
-			bw.Write ('\0');
-			
-			bw.Close ();
+			ms.WriteByte ((byte)'\0');
 		}
 		
 		protected static void EncodeNewLine (ref MemoryStream ms)
 		{
-			BinaryWriter bw = new BinaryWriter (ms);
-			bw.Write ('\n');
-			
-			bw.Close ();
+			ms.WriteByte ((byte)'\n');
 		}
 		
 		protected static void EncodeSpace (ref MemoryStream ms)
 		{
-			BinaryWriter bw = new BinaryWriter (ms);
-			bw.Write (' ');
-			
-			bw.Close ();
+			ms.WriteByte ((byte)' ');
 		}
 		
 		/// <summary>
