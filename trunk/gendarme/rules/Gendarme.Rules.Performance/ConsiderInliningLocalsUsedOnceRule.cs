@@ -26,18 +26,41 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Collections.Generic;
 using Gendarme.Framework;
 using Mono.Cecil;
+using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Performance {
 	[Problem ("")]
 	[Solution ("")]
 	public class ConsiderInliningLocalsUsedOnceRule : Rule, IMethodRule {
+		
+		public static IDictionary<VariableDefinition, int> CountUses (MethodDefinition method)
+		{
+			IDictionary<VariableDefinition, int> result = new Dictionary<VariableDefinition, int> ();
+			foreach (VariableDefinition variable in method.Body.Variables) 
+				result.Add (variable, 0);
+			
+			foreach (Instruction instruction in method.Body.Instructions) {
+				if (instruction.OpCode == OpCodes.Ldloc_0)
+					result[method.Body.Variables[0]]++;
+			}
+
+			return result;
+		}
+
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (!method.HasBody || method.Body.Variables.Count == 0)
 				return RuleResult.DoesNotApply;
 
+			IDictionary<VariableDefinition, int> counted = CountUses (method);
+
+			foreach (VariableDefinition variable in counted.Keys) {
+				if (counted[variable] == 1)
+					Runner.Report (method, Severity.Medium, Confidence.Low);
+			}
 			return Runner.CurrentRuleResult;
 		}
 	}

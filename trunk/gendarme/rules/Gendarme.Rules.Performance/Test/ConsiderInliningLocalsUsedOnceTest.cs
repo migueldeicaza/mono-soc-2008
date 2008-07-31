@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Performance;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
@@ -45,6 +46,31 @@ namespace Test.Rule.Performance {
 		public void SkipOnMethodsWithoutLocalsTest ()
 		{
 			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
+
+		public void CallWithoutInlinedVariable ()
+		{
+			string message = "Hello world";
+			Console.WriteLine (message);	
+		}
+	
+		[Test]
+		public void FailOnCallWithoutInlinedVariableTest ()
+		{
+			AssertRuleFailure<ConsiderInliningLocalsUsedOnceTest> ("CallWithoutInlinedVariable", 1);
+		}
+
+		public void CallWithInlinedVariable ()
+		{
+			Console.WriteLine ("Hello world");
+		}
+
+		[Test]
+		public void SkipOnCallWithInlinedVariableTest ()
+		{
+			//This is because it doesn't define locals, perhaps I
+			//should return success. 
+			AssertRuleDoesNotApply<ConsiderInliningLocalsUsedOnceTest> ("CallWithInlinedVariable");
 		}
 	}
 }
