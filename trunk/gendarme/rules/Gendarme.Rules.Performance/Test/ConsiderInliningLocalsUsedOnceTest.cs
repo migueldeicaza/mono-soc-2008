@@ -29,9 +29,22 @@
 using Gendarme.Rules.Performance;
 using NUnit.Framework;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 
 namespace Test.Rule.Performance {
 	[TestFixture]
 	public class ConsiderInliningLocalsUsedOnceTest : MethodRuleTestFixture<ConsiderInliningLocalsUsedOnceRule> {
+
+		[Test]
+		public void SkipOnBodylessMethodsTest ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.ExternalMethod);
+		}
+
+		[Test]
+		public void SkipOnMethodsWithoutLocalsTest ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
 	}
 }
