@@ -63,6 +63,11 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
+			if (action == null)
+				throw new ArgumentNullException("action");
+			if (step < 0)
+				throw new ArgumentOutOfRangeException("step", "step must be positive");
+			
 			int num = GetBestWorkerNumber();
 
 			Task[] tasks = new Task[num];
@@ -118,6 +123,14 @@ namespace System.Threading
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
 		{
+			// TODO: could refactor this
+			if (body == null)
+				throw new ArgumentNullException("body");
+			if (step < 0)
+				throw new ArgumentOutOfRangeException("step", "step must be positive");
+			if (threadLocalSelector == null)
+				throw new ArgumentNullException("threadLocalSelector");
+			
 			int num = GetBestWorkerNumber();
 
 			Task[] tasks = new Task[num];
@@ -343,5 +356,24 @@ namespace System.Threading
 			
 			return tasks;
 		}
+		
+		// Faire une fonctio nfactory qui renvoit une fonction paramétré correctement avec le seed et ensuite
+		// passé normalement à SpawnBestNumber
+		/*internal static void SpawnBestNumber<T>(Action<T>, T seed, Func<T, T> incr, int dop)
+		{
+			// Get the optimum amount of worker to create
+			int num = dop == -1 ? GetBestWorkerNumber() : dop;
+			
+			// Initialize worker
+			Task[] tasks = new Task[num];
+			T acc = seed;
+			for (int i = 0; i < num; i++) {
+				T priv = acc;
+				tasks[i] = Task.Create(_ => action(priv));
+				acc = incr(acc);
+			}
+			
+			Task.WaitAll(tasks);
+		}*/
 	}
 }

@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
@@ -145,6 +146,102 @@ namespace System.Threading.Collections
 				Block();
 			}
 			return underlyingColl.Remove(out item);
+		}
+		#endregion
+		
+		#region static methods
+		static void CheckArray<T>(BlockingCollection<T>[] collections)
+		{
+			if (collections == null)
+				throw new ArgumentNullException("collections");
+			if (collections.Length == 0 || collections.Where(e => e == null).Any())
+				throw new ArgumentException("The collections argument is a 0-length array or contains a null element.", "collections");
+		}
+		
+		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryAdd(item))
+					return index;
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item, TimeSpan ts)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryAdd(item, ts))
+					return index;
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item, int millisecondsTimeout)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryAdd(item, millisecondsTimeout))
+					return index;
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int RemoveAny<T>(BlockingCollection<T>[] collections, out T item)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				try {
+					item = coll.Remove();
+					return index;
+				} catch {}
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryRemove(out item))
+					return index;
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item, TimeSpan ts)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryRemove(out item, ts))
+					return index;
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				if (coll.TryRemove(out item, millisecondsTimeout))
+					return index;
+				index++;
+			}
+			return -1;
 		}
 		#endregion
 		

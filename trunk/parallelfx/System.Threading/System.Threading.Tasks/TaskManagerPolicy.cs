@@ -30,7 +30,7 @@ namespace System.Threading.Tasks
 	
 	public class TaskManagerPolicy
 	{
-		static readonly int defaultIdealThreadsPerProcessor = 1;
+		static readonly int defaultIdealThreadsPerProcessor = 4;
 		static readonly int defaultIdealProcessors = Environment.ProcessorCount;
 		static readonly int defaultMinProcessors = 1;
 		static readonly int defaultStackSize = 0;

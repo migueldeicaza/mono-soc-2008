@@ -63,5 +63,11 @@ namespace System.Linq
 		{
 			return new PERepeat<T>(element, count, dop);
 		}
+		
+		public static IParallelOrderedEnumerable<T> GetOrdered<T>(IParallelEnumerable<T> source,
+		                                                          System.Comparison<T> comparison)
+		{
+			return new POrderedEnumerable<T>(source, comparison);
+		}
 	}
 }

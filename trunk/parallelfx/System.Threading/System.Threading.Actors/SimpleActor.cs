@@ -1,4 +1,4 @@
-// SpinWait.cs
+// SimpleActor.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,48 +23,23 @@
 //
 
 using System;
+using System.Threading.Tasks;
 
-namespace System.Threading
+namespace System.Threading.Actors
 {
-	
-	public struct SpinWait
+	// This actor simply wraps up Tasks
+	public class SimpleActor<T>: IActor<T>
 	{
-		// The number of step until SpinOnce yield on multicore machine
-		const           int  step = 10;
-		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
+		Action<T> action;
 		
-		int ntime;
-		public void SpinOnce() 
+		public SimpleActor(Action<T> action)
 		{
-			// On a single-CPU system, spinning does no good
-			if (isSingleCpu) {
-				Yield();
-			} else {
-				if (Interlocked.Increment(ref ntime) % step == 0) {
-					Yield();
-				} else {
-					// Multi-CPU system might be hyper-threaded, let other thread run
-					Thread.SpinWait(10);
-				}
-			}
+			this.action = action;
 		}
 		
-		void Yield()
+		public void Act(T data)
 		{
-			// Replace by Thread.Sleep(0) which does almost the same thing
-			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
-			Thread.Sleep(0);
-		}
-		
-		public void Reset()
-		{
-			ntime = 0;
-		}
-		
-		public bool NextSpinWillYield {
-			get {
-				return isSingleCpu ? true : ntime % step == 0;
-			}
+			Task.Create(_ => action(data));
 		}
 	}
 }

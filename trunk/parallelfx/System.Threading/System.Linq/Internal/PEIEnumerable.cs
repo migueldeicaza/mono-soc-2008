@@ -55,9 +55,6 @@ namespace System.Linq
 			T current;
 			int currIndex = -1;
 			
-			/*T[] buffer = new T[chunkSize];
-			int fillIndex;*/
-			
 			public PEIEnumerableEnumerator(IEnumerable<T> enumerable)
 			{
 				this.enumerable = enumerable;

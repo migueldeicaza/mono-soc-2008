@@ -35,7 +35,6 @@ namespace System.Linq
 		BlockingCollection<T> bColl;
 		Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
 		IParallelEnumerable<TSource> source;
-		//int index;
 		
 		public PEBlockingCollection(BlockingCollection<T> bColl,
 		                            Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
@@ -50,7 +49,6 @@ namespace System.Linq
 		{
 			if (isValid) {
 				bColl.TryAdd(element);
-				//this.index = index;
 			}
 		}
 		
@@ -58,7 +56,6 @@ namespace System.Linq
 		{
 			Parallel.SpawnBestNumber(delegate {
 				while (!bColl.IsAddingComplete) {
-					//Console.WriteLine("Attempting action from : " + Thread.CurrentThread.ManagedThreadId);
 					if (!action(enumerator, BlockingCollectionAdder))
 						break;
 				}
@@ -78,7 +75,7 @@ namespace System.Linq
 						sl.Enter();
 						if (index == indexToBeAdded + 1) {
 							if (!isValid) {
-								// Just increment the index because to let the next possible
+								// Just increment the index to let the next possible
 								// valid item going in
 								indexToBeAdded++;
 							} else {

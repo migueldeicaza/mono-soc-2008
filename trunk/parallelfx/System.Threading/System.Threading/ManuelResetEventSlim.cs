@@ -27,7 +27,7 @@ using System.Diagnostics;
 
 namespace System.Threading
 {	
-	public class ManuelResetEventSlim: IDisposable
+	public class ManualResetEventSlim: IDisposable
 	{
 		const int defaultSpinCount = 20;
 		const int isSet    = 1;
@@ -37,18 +37,25 @@ namespace System.Threading
 
 		int state;
 		
-		public ManuelResetEventSlim(): this(false, 20)
+		bool isDisposed;
+		
+		public ManualResetEventSlim(): this(false, 20)
 		{
 		}
 		
-		public ManuelResetEventSlim(bool initState): this(initState, 20)
+		public ManualResetEventSlim(bool initState): this(initState, 20)
 		{
 		}
 		
-		public ManuelResetEventSlim(bool initState, int spinCount)
+		public ManualResetEventSlim(bool initState, int spinCount)
 		{
 			this.state = initState ? isSet : isNotSet;
 			this.spinCount = spinCount;
+		}
+		
+		~ManualResetEventSlim()
+		{
+			Dispose(false);
 		}
 		
 		public bool IsSet {
@@ -87,6 +94,15 @@ namespace System.Threading
 		
 		public bool Wait(int millisecondsTimeout)
 		{
+			if (millisecondsTimeout < -1)
+				throw new ArgumentOutOfRangeException("millisecondsTimeout",
+				                                      "millisecondsTimeout is a negative number other than -1");
+			
+			if (millisecondsTimeout == -1) {
+				Wait();
+				return true;
+			}
+			
 			Stopwatch s = Stopwatch.StartNew();
 			
 			// First spin
@@ -116,9 +132,13 @@ namespace System.Threading
 		
 		public void Dispose ()
 		{
-			throw new NotImplementedException();
+			Dispose(true);
 		}
 		
+		protected virtual void Dispose(bool managedRes)
+		{
+			
+		}
 		#endregion 
 		
 	}
