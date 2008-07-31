@@ -1,4 +1,4 @@
-// SpinWait.cs
+// IActor.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,48 +23,14 @@
 //
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace System.Threading
+namespace System.Threading.Actors
 {
-	
-	public struct SpinWait
+	// The type T represents the type of the so-called message passed to the actor
+	public interface IActor<T>
 	{
-		// The number of step until SpinOnce yield on multicore machine
-		const           int  step = 10;
-		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
-		
-		int ntime;
-		public void SpinOnce() 
-		{
-			// On a single-CPU system, spinning does no good
-			if (isSingleCpu) {
-				Yield();
-			} else {
-				if (Interlocked.Increment(ref ntime) % step == 0) {
-					Yield();
-				} else {
-					// Multi-CPU system might be hyper-threaded, let other thread run
-					Thread.SpinWait(10);
-				}
-			}
-		}
-		
-		void Yield()
-		{
-			// Replace by Thread.Sleep(0) which does almost the same thing
-			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
-			Thread.Sleep(0);
-		}
-		
-		public void Reset()
-		{
-			ntime = 0;
-		}
-		
-		public bool NextSpinWillYield {
-			get {
-				return isSingleCpu ? true : ntime % step == 0;
-			}
-		}
+		void Act(T data);
 	}
 }

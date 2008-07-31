@@ -111,6 +111,17 @@ namespace System.Linq
 		}
 		#endregion
 		
+		
+		// ------------------------------------------------------------------------------------
+		
+		
+		#region Internal link to SpawnBestNumber
+		
+		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
+		{
+			Process(source, (i, s) => { action(i, s); return true; }, block);
+		}
+		
 		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
 		{
 			source.IsNotLast();
@@ -122,20 +133,6 @@ namespace System.Linq
 				while (feedEnum.MoveNext(out item, out i)) {
 					if (!action(i, item))
 						break;
-				}
-			}, source.Dop(), block, null);
-		}
-		
-		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
-		{
-			source.IsNotLast();
-			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
-			
-			Parallel.SpawnBestNumber(delegate {
-				TSource item;
-				int i;
-				while (feedEnum.MoveNext(out item, out i)) {
-					action(i, item);
 				}
 			}, source.Dop(), block, null);
 		}
@@ -162,6 +159,42 @@ namespace System.Linq
 			
 			return result;
 		}
+		#endregion
+		
+		
+		// ------------------------------------------------------------------------------------
+		
+		
+		#region Exception handling
+		static void AssertSourceNotNull<T>(IParallelEnumerable<T> source)
+		{
+			AssertNotNull(source, "source");
+		}
+		
+		static void AssertNotNull<T>(T obj, string paramName) where T : class
+		{
+			if (obj == null)
+				throw new ArgumentNullException(paramName);
+		}
+		
+		static void AssertInRange<T>(T e, Func<T, bool> rangePredicate, string paramName)
+		{
+			if (rangePredicate(e))
+				throw new ArgumentOutOfRangeException(paramName);
+		}
+		
+		static void Assert<T, TException>(T obj, Func<T, bool> predicate, Func<TException> exFactory) where TException : Exception
+		{
+			if (predicate(obj))
+				throw exFactory();
+		}
+		#endregion
+		
+		
+		
+		// ------------------------------------------------------------------------------------
+		
+		
 		
 		#region Select
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
@@ -246,6 +279,16 @@ namespace System.Linq
 		}
 		#endregion
 		
+		#region
+		public static IParallelEnumerable<T> Reverse<T>(this IParallelEnumerable<T> source)
+		{
+			// Maybe not an optimum
+			List<T> temp = source.ToList();
+			temp.Reverse();
+			return ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
+		}
+		#endregion
+		
 		#region OrderBy
 		public static IParallelOrderedEnumerable<TSource> OrderBy<TSource, TKey>(this IParallelEnumerable<TSource> source,
 		                                                                         Func<TSource, TKey> keySelector)
@@ -285,7 +328,7 @@ namespace System.Linq
 		static IParallelOrderedEnumerable<TSource> OrderByInternal<TSource>(IParallelEnumerable<TSource> source,
 		                                                           System.Comparison<TSource> comparison)
 		{
-			return new POrderedEnumerable<TSource>(source, comparison);
+			return ParallelEnumerableFactory.GetOrdered(source, comparison);
 		}
 		#endregion
 		
@@ -542,11 +585,26 @@ namespace System.Linq
 			});
 		}
 		
-		/*public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source,
+		public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source, 
+		                                                              Func<TSource, bool> predicate)
+		{
+			return source.SkipWhile((e, i) => predicate(e));
+		}
+		
+		public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source, 
 		                                                              Func<TSource, int, bool> predicate)
 		{
+			bool stopFlag = true;
 			
-		}*/
+			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
+				if (stopFlag && (stopFlag = predicate(e, i))) {
+					adder(e, true, i);
+					return true;
+				} else {
+					return false;
+				}
+			});
+		}
 		#endregion
 		
 		#region Skip
@@ -606,6 +664,8 @@ namespace System.Linq
 		#region First
 		public static TSource First<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			AssertSourceNotNull(source);
+			
 			// Little short-circuit taken from Enumerable.cs
 			var list = source.AsIList();
 			if (list != null) {
@@ -628,8 +688,34 @@ namespace System.Linq
 			return first;
 		}
 		
+		public static TSource First<TSource>(this IParallelEnumerable<TSource> source,
+		                                     Func<TSource, bool> predicate)
+		{
+			AssertSourceNotNull(source);
+			
+			TSource element = default(TSource);
+			
+			bool result = false;
+			
+			Process<TSource>(source, delegate (int i, TSource e) {
+				if (predicate(e)) {
+					element = e;
+					result = true;
+					return false;
+				} else {
+					return true;
+				}
+			}, true);
+			
+			Assert(result, (r) => !r, () => new Exception("No element found"));
+			
+			return element;
+		}
+		
 		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			AssertSourceNotNull(source);
+			
 			// Little short-circuit taken from Enumerable.cs
 			var list = source.AsIList();
 			if (list != null)
@@ -643,6 +729,25 @@ namespace System.Linq
 			source.IsLast();
 			
 			return result ? first : default(TSource);
+		}
+		
+		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source,
+		                                              Func<TSource, bool> predicate)
+		{
+			AssertSourceNotNull(source);
+			
+			TSource element = default(TSource);
+			
+			Process<TSource>(source, delegate (int i, TSource e) {
+				if (predicate(e)) {
+					element = e;
+					return false;
+				} else {
+					return true;
+				}
+			}, true);
+			
+			return element;
 		}
 		#endregion
 	
@@ -682,6 +787,10 @@ namespace System.Linq
 		                                                                         IEnumerable<TSecond> second,
 		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
 		{
+			/*IParallelEnumerable<TSecond> sTemp = ParallelEnumerableFactory.GetFromIEnumerable(second, DefaultDop);
+			IParallelEnumerator<TSecond> enumerator = sTemp.GetParallelEnumerator();
+			
+			return null;*/
 			throw new NotImplementedException();
 		}
 		#endregion

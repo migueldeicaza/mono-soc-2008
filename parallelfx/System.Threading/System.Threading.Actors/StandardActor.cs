@@ -1,4 +1,4 @@
-// SpinWait.cs
+// StandardActor.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,47 +23,45 @@
 //
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Threading.Collections;
 
-namespace System.Threading
+namespace System.Threading.Actors
 {
-	
-	public struct SpinWait
+	// This actors is similar to SimpleActor except that it enforces execution of the action
+	// by only one thread at a time. Additionnal actions are stored to a mailbox (queue) waiting for execution.
+	public class StandardActor<T>: IActor<T>
 	{
-		// The number of step until SpinOnce yield on multicore machine
-		const           int  step = 10;
-		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
+		ConcurrentQueue<T> mbox = new ConcurrentQueue<T>();
+		Action<T> action;
 		
-		int ntime;
-		public void SpinOnce() 
+		// Flag telling if there is processing occuring
+		int       isRunning;
+		const int running = 1;
+		const int idle    = 0;
+		
+		public StandardActor(Action<T> action)
 		{
-			// On a single-CPU system, spinning does no good
-			if (isSingleCpu) {
-				Yield();
+			this.action = action;
+		}
+		
+		public void Act(T data)
+		{
+			int result = Interlocked.Exchange(ref isRunning, running);
+			// If idle then we process the data and create a continuation to test if there has been
+			// further work added while we were processing
+			if (result == idle) {
+				Task.Create(delegate {
+					action(data);
+					T other;
+					while (mbox.Remove(out other)) {
+						action(other);
+					}
+					Thread.VolatileWrite(ref isRunning, idle);
+				});
 			} else {
-				if (Interlocked.Increment(ref ntime) % step == 0) {
-					Yield();
-				} else {
-					// Multi-CPU system might be hyper-threaded, let other thread run
-					Thread.SpinWait(10);
-				}
-			}
-		}
-		
-		void Yield()
-		{
-			// Replace by Thread.Sleep(0) which does almost the same thing
-			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
-			Thread.Sleep(0);
-		}
-		
-		public void Reset()
-		{
-			ntime = 0;
-		}
-		
-		public bool NextSpinWillYield {
-			get {
-				return isSingleCpu ? true : ntime % step == 0;
+				mbox.Add(data);
 			}
 		}
 	}

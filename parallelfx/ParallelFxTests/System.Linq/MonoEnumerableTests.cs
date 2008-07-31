@@ -86,7 +86,7 @@ namespace ParallelFxTests
 			Foo [] foos = new Foo [] {a, b, c};
 			Bar [] result = new Bar [] {a, b, c};
 
-			AssertAreSame (result, foos.Cast<Bar> ());
+			AssertAreSame (result, foos.AsParallel().Cast<Bar> ());
 		}
 
 		[Test, IgnoreAttribute]
@@ -159,13 +159,13 @@ namespace ParallelFxTests
 			AssertAreSame (result, data.AsParallel().Take (3));
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestTakeWhile ()
 		{
 			int [] data = {0, 1, 2, 3, 4, 5};
 			int [] result = {0, 1, 2};
 
-			AssertAreSame (result, data.TakeWhile (i => i < 3));
+			AssertAreSame (result, data.AsParallel().TakeWhile (i => i < 3));
 		}
 
 		[Test]
@@ -177,14 +177,14 @@ namespace ParallelFxTests
 			AssertAreSame (result, data.AsParallel().Where (i => i % 2 != 0));
 		}
 
-		[Test, IgnoreAttribute]
+		[Test]
 		public void TestReverse ()
 		{
 			int [] data = {0, 1, 2, 3, 4};
 			int [] result = {4, 3, 2, 1, 0};
 
-			AssertAreSame (result, data.Reverse ());
-			AssertAreSame (result, Enumerable.Range (0, 5).Reverse ());
+			AssertAreSame (result, data.AsParallel().Reverse ());
+			AssertAreSame (result, ParallelEnumerable.Range (0, 5).Reverse ());
 		}
 
 		[Test]
@@ -192,7 +192,7 @@ namespace ParallelFxTests
 		{
 			int [] data = {1, 2, 3, 4};
 
-			Assert.AreEqual (10, data.Sum ());
+			Assert.AreEqual (10, data.AsParallel().Sum ());
 		}
 
 		[Test]
@@ -200,7 +200,7 @@ namespace ParallelFxTests
 		{
 			int [] data = {};
 
-			Assert.AreEqual (0, data.Sum ());
+			Assert.AreEqual (0, data.AsParallel().Sum ());
 		}
 
 		[Test]
