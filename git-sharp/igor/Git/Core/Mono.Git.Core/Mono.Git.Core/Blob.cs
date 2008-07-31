@@ -45,10 +45,10 @@ namespace Mono.Git.Core
 			}
 		}
 		
-		public Blob (byte[] blobContent)
+		public Blob (byte[] blobContent) : base (Type.Blob, blobContent) // Here we need to encode
 		{
 			content = blobContent;
-			id = new SHA1 (content, this.Type);
+			id = new SHA1 (content, true);
 		}
 	}
 }

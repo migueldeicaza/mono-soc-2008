@@ -29,9 +29,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using Mono.Git.Core;
 
-namespace Mono.Git.Core.Repository
+namespace Mono.Git.Core
 {
 	/// <summary>
 	/// This class has all the information about the object store tipicaly
@@ -39,9 +38,9 @@ namespace Mono.Git.Core.Repository
 	/// </summary>
 	public class ObjectStore
 	{
-		Object[] objects;
-		
 		private Dictionary<SHA1, Object> cache;
+		private List<Object> writeQueue;
+		private string path;
 		
 		// Zlib first two bytes, these are the ones we are going to use writing
 		// those bytes(78 and 1) mean that we are in a 32bit environment and using the
@@ -49,19 +48,25 @@ namespace Mono.Git.Core.Repository
 		private static readonly byte ZlibFirstByte = 78;
 		private static readonly byte ZlibSecondByte = 1;
 		
-		public string Path
-		{
-			get {
-				return Directory.GetCurrentDirectory () + 
-					System.IO.Path.AltDirectorySeparatorChar + ".git" +
-					System.IO.Path.AltDirectorySeparatorChar + "objects";
-			}
-		}
+		public string Path { get { return path; } }
 		
 		public Object Get (SHA1 key)
 		{
 			// TODO
 			return cache[key];
+		}
+		
+		public ObjectStore (string location)
+		{
+			if (Directory.Exists (path)) {
+				path = System.IO.Path.GetFullPath (path);
+			} else
+				throw new ArgumentException ("Invalid provided path");
+		}
+		
+		protected string GetObjectFullPath (SHA1 id)
+		{
+			return path.EndsWith ("/") ? (path + id.GetGitFileName ()) : (path + "/" + id.GetGitFileName ());
 		}
 		
 		/// <summary>
@@ -75,6 +80,8 @@ namespace Mono.Git.Core.Repository
 		/// </returns>
 		public static byte[] Decompress(byte[] data)
 		{
+			data = RemoveZlibSignature (data);
+			
 			const int BUFFER_SIZE = 256;
 			byte[] tempArray = new byte[BUFFER_SIZE];
 			List<byte[]> tempList = new List<byte[]>();
@@ -117,6 +124,8 @@ namespace Mono.Git.Core.Repository
 		/// </returns>
 		public static byte[] Compress (byte[] data)
 		{
+			data = AddZlibSignature (data);
+			
 			MemoryStream ms = new MemoryStream ();
 			DeflateStream ds = new DeflateStream (ms, CompressionMode.Compress);
 			
@@ -124,7 +133,7 @@ namespace Mono.Git.Core.Repository
 			ds.Flush ();
 			ds.Close ();
 			
-			return ms.ToArray ();
+			return AddZlibSignature (ms.ToArray ());
 		}
 		
 		/// <summary>
@@ -167,77 +176,51 @@ namespace Mono.Git.Core.Repository
 			return list.ToArray ();
 		}
 		
-		public ObjectStore ()
+		protected void WriteBuffer (SHA1 id, byte[] content)
 		{
+			try {
+				FileStream fs = File.Open (GetObjectFullPath (id), FileMode.CreateNew);
+				BinaryWriter bw = new BinaryWriter (fs);
+				
+				bw.Write (Compress (content));
+				
+				bw.Close ();
+				fs.Close ();
+			} catch (Exception e) {
+				Console.WriteLine ("The file object you are trying to write already exist {0}", e);
+			}
 		}
 		
-		public static void Init ()
+		protected byte[] ReadBuffer (SHA1 id)
 		{
-			
-		}
-		
-		public void Add (Object obj)
-		{
-			ArrayList array = new ArrayList (objects);
-			
-			switch (obj.Type) {
-			case Type.Blob:
-				array.Add ((Blob) obj);
-				break;
-			case Type.Commit:
-				array.Add ((Commit) obj);
-				break;
-			case Type.Tag:
-				array.Add ((Tag) obj);
-				break;
-			case Type.Tree:
-				array.Add ((Tree) obj);
-				break;
+			try {
+				FileStream fs = File.Open (GetObjectFullPath (id), FileMode.Open);
+				BinaryReader br = new BinaryReader (fs);
+				
+				// I declared this here to close the stream and reader
+				byte[] data = Decompress (br.ReadBytes ((int)fs.Length));
+				
+				br.Close ();
+				fs.Close ();
+				
+				return data;
+			} catch (Exception e) {
+				Console.WriteLine ("The file object you are trying to read does not exist {0}", e);
 			}
 			
-			objects = (Object[]) array.ToArray ();
+			return null;
 		}
 		
-		// FIXME: I don't know about this one
-		public void Remove (Object obj)
+		protected Object ReadObject (SHA1 id)
 		{
-			ArrayList array = new ArrayList (objects);
-			
-			array.Remove (obj);
-			
-			objects = (Object[]) array.ToArray ();
+			// TODO
+			return null;
 		}
 		
-		public static byte[] GetFileContent (string path)
+		protected void WriteObject (Object o)
 		{
-			FileStream fs = File.Open (path, FileMode.Open);
-			
-			return new BinaryReader (fs).ReadBytes ((int) fs.Length);
+			// TODO
+			return null;
 		}
-		
-//		public Object GetObjectById (SHA1 objIdSHA1)
-//		{
-//			return GetObjectById (objIdSHA1.bytes);
-//		}
-//		
-//		public Object GetObjectById (byte[] objIdBytes)
-//		{
-//			foreach (Object obj in objects) {
-//				if (obj.Id.bytes == objIdBytes)
-//					return obj;
-//			}
-//			
-//			return null;
-//		}
-//		
-//		public Object GetOjectById (string objIdSHA1)
-//		{
-//			foreach (Object obj in objects) {
-//				if (Object.BytesToHexString (obj.Id.bytes) == objIdSHA1)
-//					return obj;
-//			}
-//			
-//			return null;
-//		}
 	}
 }

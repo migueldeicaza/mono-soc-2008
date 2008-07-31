@@ -85,7 +85,7 @@ namespace Mono.Git.Core.Repository
 		public Repo (Configuration conf)
 		{
 			config = conf;
-			objects = new ObjectStore ();
+			//objects = new ObjectStore ();
 		}
 		
 		/// <summary>

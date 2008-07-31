@@ -107,12 +107,12 @@ namespace Mono.Git.Tests
 			Console.WriteLine ("Last 4 bytes: {0}{1}{2}{3}", (int)content[len - 4], (int)content[len - 3], 
 			                   (int)content[len - 2], (int)content[len - 1]);
 			
-			byte[] dContent = new byte [len - 2];
+//			byte[] dContent = new byte [len - 2];
+//			
+//			for (int i = 2; i < len; i++)
+//				dContent[i - 2] = content[i];
 			
-			for (int i = 2; i < len; i++)
-				dContent[i - 2] = content[i];
-			
-			byte[] deflated = Mono.Git.Core.Repository.ObjectStore.Decompress (dContent);
+			byte[] deflated = Mono.Git.Core.ObjectStore.Decompress (content);
 			
 			Console.Write ("Header: ");
 			foreach (byte b in deflated) {
