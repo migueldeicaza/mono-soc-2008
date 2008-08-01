@@ -30,6 +30,7 @@ using System.Runtime.Serialization;
 namespace System.Threading
 {
 	//FIXME: This should be a struct. In a perfect world made this a intern class and construct the corresponding struct as a wrapper
+	[SerializableAttribute]
 	public class LazyInit<T>: IEquatable<LazyInit<T>>, ISerializable
 	{
 		LazyInitMode mode;
@@ -122,7 +123,7 @@ namespace System.Threading
 			};
 		}
 		
-		public void GetObjectData (SerializationInfo info, StreamingContext context)
+		void ISerializable.GetObjectData (SerializationInfo info, StreamingContext context)
 		{
 			throw new NotImplementedException ();
 		}
@@ -142,7 +143,12 @@ namespace System.Threading
 		
 		public override int GetHashCode()
 		{
-			return base.GetHashCode();
+			return value.GetHashCode();
+		}
+		
+		public override string ToString()
+		{
+			return value.ToString();
 		}
 		
 		public T Value {

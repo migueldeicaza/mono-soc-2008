@@ -26,9 +26,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Linq;
 
 namespace System.Threading
 {
+	[System.SerializableAttribute]
 	public class AggregateException: Exception
 	{
 		List<Exception> innerExceptions;
@@ -49,14 +51,35 @@ namespace System.Threading
 		{
 		}
 		
+		public AggregateException(params Exception[] innerExceptions): this(string.Empty, innerExceptions)
+		{
+		}
+		
+		public AggregateException(string message, params Exception[] innerExceptions):
+			this(message, (IEnumerable<Exception>)innerExceptions)
+		{
+		}
+		
 		public AggregateException(IEnumerable<Exception> innerExceptions): this(string.Empty, innerExceptions)
 		{
 		}
 		
 		public AggregateException(string message, IEnumerable<Exception> inner):
-			this(GetFormattedMessage(message, inner))
+			base(GetFormattedMessage(message, inner))
 		{
 			this.innerExceptions = new List<Exception>(inner);
+		}
+		
+		public AggregateException Flatten()
+		{
+			List<Exception> inner = new List<Exception>();
+			
+			foreach (AggregateException e in innerExceptions.Select((e) => e as AggregateException).Where ((e) => e != null))
+				inner.AddRange(e.Flatten().InnerExceptions);
+			foreach (Exception e in innerExceptions.Where((e) => !(e is AggregateException)))
+				inner.Add(e);
+			
+			return new AggregateException(inner);
 		}
 		
 		public AggregateException Flatten(params AggregateException[] exceptions)
@@ -86,6 +109,11 @@ namespace System.Threading
 			get {
 				return innerExceptions.AsReadOnly();
 			}
+		}
+		
+		public override string ToString()
+		{
+			return this.Message;
 		}
 		
 		const string baseMessage = "Exception(s) occurred while inside the Parallel loop. {0}.";

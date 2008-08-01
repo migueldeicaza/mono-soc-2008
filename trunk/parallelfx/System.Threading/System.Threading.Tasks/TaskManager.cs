@@ -27,7 +27,7 @@ using System.Collections.Generic;
 
 namespace System.Threading.Tasks
 {
-	public class TaskManager
+	public class TaskManager: IDisposable
 	{
 		static TaskManager tdefault = new TaskManager();
 		static TaskManager tcurrent = tdefault;
@@ -50,6 +50,21 @@ namespace System.Threading.Tasks
 		{
 			this.policy = policy;
 			this.sched = sched;
+		}
+		
+		~TaskManager()
+		{
+			Dispose(false);
+		}
+		
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+		
+		protected virtual void Dispose(bool managedRes)
+		{
+			
 		}
 		
 		internal void AddWork(Task t)

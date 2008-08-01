@@ -165,5 +165,11 @@ namespace System.Threading
 			
 			return true;
 		}
+		
+		public WaitHandle AvailableWaitHandle {
+			get {
+				return null;
+			}
+		}
 	}
 }
