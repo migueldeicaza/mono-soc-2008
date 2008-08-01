@@ -24,6 +24,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Runtime.ConstrainedExecution;
 
 namespace System.Threading
 {
@@ -59,16 +60,27 @@ namespace System.Threading
 			this.sw = new SpinWait();
 		}
 		
+		void CheckAndSetThreadId()
+		{
+			// FIXME: LockRecursionException is not implement atm, swap line when it is
+			if (threadWhoTookLock == Thread.CurrentThread.ManagedThreadId)
+				//throw new LockRecursionException("The current thread has already acquired this lock.");
+				throw new Exception("The current thread has already acquired this lock.");
+			threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
+		}
+		
 		public void ReliableEnter(ref bool lockTaken)
 		{
 			try {
 				Enter();
-				lockTaken = lockState == isOwned && Thread.CurrentThread.ManagedThreadId == threadWhoTookLock;;
+				lockTaken = lockState == isOwned && Thread.CurrentThread.ManagedThreadId == threadWhoTookLock;
 			} catch {
 				lockTaken = false;
 			}
 		}
 		
+		// FIXME
+		//[ReliabilityContractAttribute]
 		public void Enter() 
 		{
 			int result = Interlocked.Exchange(ref lockState, isOwned);
@@ -89,7 +101,7 @@ namespace System.Threading
 				}
 			}
 			
-			threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
+			CheckAndSetThreadId();
 		}
 		
 		public bool TryEnter()
@@ -98,7 +110,7 @@ namespace System.Threading
 
 			// If resource available, set it to in-use and return
 			if (Interlocked.Exchange(ref lockState, isOwned) == isFree) {
-				threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
+				CheckAndSetThreadId();
 				return true;
 			}
 			return false;
@@ -126,6 +138,15 @@ namespace System.Threading
 			return result;
 		}
 		
+		public void TryReliableEnter(ref bool lockTaken)
+		{
+			try {
+				lockTaken = TryEnter();
+			} catch {
+				lockTaken = false;
+			}
+		}
+		
 		public void TryReliableEnter(TimeSpan timeout, ref bool lockTaken)
 		{
 			TryReliableEnter((int)timeout.TotalMilliseconds, ref lockTaken);
@@ -138,11 +159,13 @@ namespace System.Threading
 			Stopwatch sw = Stopwatch.StartNew();
 			
 			while (sw.ElapsedMilliseconds < milliSeconds) {
-				ReliableEnter(ref lockTaken);
+				TryReliableEnter(ref lockTaken);
 			}
 			sw.Stop();
 		}
 
+		//FIXME
+		//[ReliabilityContractAttribute]
 		public void Exit() 
 		{ 
 			lockState = isFree;

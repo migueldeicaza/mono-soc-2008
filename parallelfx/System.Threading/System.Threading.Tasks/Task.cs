@@ -40,7 +40,7 @@ namespace System.Threading.Tasks
 		static int id = 0;
 		
 		int taskId;
-		WaitHandle asyncWaitHandle;
+		//WaitHandle asyncWaitHandle;
 		Exception exception;
 		bool  isCanceled;
 		bool respectParentCancellation;
@@ -396,21 +396,21 @@ namespace System.Threading.Tasks
 			}
 		}
 
-		public object AsyncState {
+		object IAsyncResult.AsyncState {
 			get {
 				return state;
 			}
 		}
 		
-		public bool CompletedSynchronously {
+		bool IAsyncResult.CompletedSynchronously {
 			get {
 				return true;
 			}
 		}
 
-		public WaitHandle AsyncWaitHandle {
+		WaitHandle IAsyncResult.AsyncWaitHandle {
 			get {
-				return asyncWaitHandle;
+				return null;
 			}
 		}
 		

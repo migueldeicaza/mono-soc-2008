@@ -26,6 +26,7 @@ using System;
 
 namespace System.Threading.Tasks
 {
+	[System.FlagsAttribute, System.SerializableAttribute]
 	public enum TaskContinuationKind
 	{
 		OnCompletedSuccessfully,

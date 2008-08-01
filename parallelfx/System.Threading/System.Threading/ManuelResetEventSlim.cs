@@ -128,6 +128,14 @@ namespace System.Threading
 		{
 			return Wait((int)ts.TotalMilliseconds);
 		}
+		
+		public WaitHandle WaitHandle {
+			get {
+				// FIXME
+				return null;
+			}
+		}
+		
 		#region IDisposable implementation 
 		
 		public void Dispose ()

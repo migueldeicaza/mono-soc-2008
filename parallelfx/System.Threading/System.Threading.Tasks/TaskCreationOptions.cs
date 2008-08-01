@@ -24,9 +24,9 @@
 
 using System;
 
-namespace System.Threading
+namespace System.Threading.Tasks
 {
-	[FlagsAttribute]
+	[FlagsAttribute, System.SerializableAttribute]
 	public enum TaskCreationOptions
 	{
 		None,

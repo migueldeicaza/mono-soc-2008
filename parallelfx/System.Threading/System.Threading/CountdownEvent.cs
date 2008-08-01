@@ -37,6 +37,11 @@ namespace System.Threading
 			this.initial = this.count = count;
 		}
 		
+		~CountdownEvent()
+		{
+			Dispose(false);
+		}
+		
 		public void Decrement()
 		{
 			Decrement(1);
@@ -111,6 +116,16 @@ namespace System.Threading
 			return Wait((int)span.TotalMilliseconds);
 		}
 		
+		public void Reset()
+		{
+			Reset(initial);
+		}
+		
+		public void Reset(int value)
+		{
+			Thread.VolatileWrite(ref count, value);
+		}
+		
 		public int CurrentCount {
 			get {
 				return count;
@@ -129,15 +144,23 @@ namespace System.Threading
 			}
 		}
 		
-		
+		public WaitHandle WaitHandle {
+			get {
+				return null;
+			}
+		}
 
 		#region IDisposable implementation 
 		
 		public void Dispose ()
 		{
-			throw new NotImplementedException();
+			Dispose(true);
 		}
 		
+		protected virtual void Dispose(bool managedRes)
+		{
+			
+		}
 		#endregion 
 		
 		

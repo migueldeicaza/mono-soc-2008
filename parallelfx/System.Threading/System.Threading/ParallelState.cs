@@ -56,18 +56,21 @@ namespace System.Threading
 		}
 	}
 	
-	public class ParallelState<T>: ParallelState
+	public class ParallelState<TLocal>: ParallelState
 	{
-		LazyInit<T> val;
+		LazyInit<TLocal> val;
 		
-		internal ParallelState(Task[] tasks, Func<T> localDataCreator): base(tasks)
+		internal ParallelState(Task[] tasks, Func<TLocal> localDataCreator): base(tasks)
 		{
-			val = new LazyInit<T>(localDataCreator, LazyInitMode.ThreadLocal);
+			val = new LazyInit<TLocal>(localDataCreator, LazyInitMode.ThreadLocal);
 		}
 		
-		public T ThreadLocalState {
+		public TLocal ThreadLocalState {
 			get {
 				return val.Value;
+			}
+			set {
+				// FIXME
 			}
 		}
 	}

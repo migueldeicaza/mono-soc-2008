@@ -168,7 +168,7 @@ namespace System.Threading.Collections
 			CopyTo(dest, index);
 		}
 		
-		void CopyTo(T[] dest, int index)
+		public void CopyTo(T[] dest, int index)
 		{
 			IEnumerator<T> e = InternalGetEnumerator();
 			int i = index;
