@@ -1,4 +1,4 @@
-// WriteOnce.cs
+// LazyInitTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,52 +23,48 @@
 //
 
 using System;
+using System.Threading;
 
-namespace System.Threading
+using NUnit;
+using NUnit.Core;
+using NUnit.Framework;
+
+namespace ParallelFxTests
 {
-	public struct WriteOnce<T>: IEquatable<WriteOnce<T>>
+	[TestFixtureAttribute]
+	public class LazyInitTests
 	{
-		T value;
-		int setFlag;
+		LazyInit<int> val;
 		
-		public bool HasValue {
-			get {
-				return setFlag == 1;
-			}
-		}
-		
-		public T Value {
-			get {
-				if (!HasValue)
-					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
-				return value;
-			}
-			set {
-				int result = Interlocked.Exchange(ref setFlag, 1);
-				if (result == 1)
-					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
-				this.value = value;
-			}
-		}
-		
-		public bool Equals(WriteOnce<T> other)
+		[TestAttribute]
+		public void AllowMultipleExecutionTestCase()
 		{
-			return value == null ? other.value == null : value.Equals(other.value);
+			val = new LazyInit<int>(() => 1, LazyInitMode.AllowMultipleExecution);
+			AssertLazyInit(val);
 		}
 		
-		public override bool Equals(object other)
+		[TestAttribute]
+		public void EnsureSingleExecutionTestCase()
 		{
-			return (other is WriteOnce<T>) ? Equals((WriteOnce<T>)other) : false;
+			val = new LazyInit<int>(() => 1, LazyInitMode.EnsureSingleExecution);
+			AssertLazyInit(val);
 		}
 		
-		public override int GetHashCode()
+		[TestAttribute]
+		public void ThreadLocalTestCase()
 		{
-			return (setFlag == 1) ? value.GetHashCode() : base.GetHashCode();
+			val = new LazyInit<int>(() => 1, LazyInitMode.ThreadLocal);
+			AssertLazyInit(val);
 		}
 		
-		public override string ToString()
+		void AssertLazyInit(LazyInit<int> value)
 		{
-			return (setFlag == 1) ? value.ToString() : base.ToString();
+			Assert.IsFalse(value.IsInitialized, "#1");
+			Assert.AreEqual(1, value.Value, "#2");
+			Assert.IsTrue(value.IsInitialized, "#3");
+			Assert.AreEqual(value, value, "#4");
+			Assert.AreEqual(1.ToString(), value.ToString(), "#5");
+			Assert.AreEqual(1.GetHashCode(), value.GetHashCode(), "#6");
 		}
 	}
 }
