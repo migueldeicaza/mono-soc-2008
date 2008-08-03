@@ -52,8 +52,10 @@ namespace Mono.Git.Core
 		
 		public Object Get (SHA1 key)
 		{
-			// TODO
-			return cache[key];
+			if (cache.ContainsKey (key))
+				return cache[key];
+			
+			return null;
 		}
 		
 		public ObjectStore (string location)
@@ -213,14 +215,14 @@ namespace Mono.Git.Core
 		
 		protected Object ReadObject (SHA1 id)
 		{
-			// TODO
+			byte[] content = ReadBuffer (id);
+			
 			return null;
 		}
 		
 		protected void WriteObject (Object o)
 		{
 			// TODO
-			return null;
 		}
 	}
 }
