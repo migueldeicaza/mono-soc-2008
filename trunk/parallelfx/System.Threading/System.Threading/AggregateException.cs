@@ -82,14 +82,6 @@ namespace System.Threading
 			return new AggregateException(inner);
 		}
 		
-		public AggregateException Flatten(params AggregateException[] exceptions)
-		{
-			// TODO: check and throw the correct exceptions
-			List<Exception> temp = new List<Exception>(innerExceptions);
-			Array.ForEach(exceptions, elem => temp.AddRange(elem.InnerExceptions));
-			return new AggregateException(temp);
-		}
-		
 		public void Handle(Func<Exception, bool> handler)
 		{
 			List<Exception> failed = new List<Exception>();
