@@ -36,19 +36,31 @@ namespace Mono.Git.Core
 	/// </summary>
 	public class Blob : Object
 	{
-		public byte[] Content { get { return content; } }
+		private byte[] data;
+		public byte[] Data { get { return data; } }
 		
-		public override Type Type
+		public override Type Type { get { return Type.Blob; } }
+		
+		public Blob (byte[] data) : base (Type.Blob, data) // FIXME: Here we need to encode
 		{
-			get {
-				return Type.Blob;
-			}
+			this.data = data;
 		}
 		
-		public Blob (byte[] blobContent) : base (Type.Blob, blobContent) // Here we need to encode
+		protected override byte[] Decode ()
 		{
-			content = blobContent;
-			id = new SHA1 (content, true);
+			return data;
+		}
+		
+		protected override void Encode (byte[] data)
+		{
+			MemoryStream ms = new MemoryStream (data);
+			
+			byte[] header;
+			int pos = 0;
+			
+			this.data = new byte[data.Length - pos];
+			
+			Array.Copy (data, pos - 1, this.data, 0, data.Length - pos);
 		}
 	}
 }

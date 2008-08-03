@@ -51,25 +51,26 @@ namespace Mono.Git.Core
 	/// </summary>
 	public abstract class Object
 	{
-		protected SHA1 id;
+		private SHA1 id;
 		// it represent the object uncompressed content
-		protected byte[] content;
+		private byte[] content;
 		
 		public abstract Type Type { get; }
 		
 		public SHA1 Id { get { return id; } }
+		public byte[] Content { get { return content; } }
 		
-		public Object (Type type, byte[] objContent)
+		public Object (Type type, byte[] content)
 		{
-			byte[] header = CreateObjectHeader (type, objContent.Length);
-			content = new byte[header.Length + objContent.Length];
+			byte[] header = CreateObjectHeader (type, (content.Length - 1).ToString ());
+			this.content = new byte[header.Length + (content.Length - 1)];
 			
 			// filling the content
-			header.CopyTo (content, 0); // Copying the header first,
-			objContent.CopyTo (content, header.Length); // then the data, on the final data
+			Array.Copy (header, 0, this.content, 0, header.Length); // Copying the header first,
+			Array.Copy (content, 0, this.content, header.Length - 1, content.Length); // then the data, on the final data
 			
 			// initializing the id with the content
-			id = new SHA1 (content, true);
+			id = new SHA1 (this.content, true);
 		}
 		
 		/// <summary>
@@ -84,70 +85,12 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// Header<see cref="System.Byte"/>
 		/// </returns>
-		private static byte[] CreateObjectHeader (Type objType, int dataSize)
+		private static byte[] CreateObjectHeader (Type objType, string dataSize)
 		{
 			return Encoding.UTF8.GetBytes (String.Format ("{0} {1}\0",
 			                                                 Object.TypeToString (objType),
-			                                                 dataSize.ToString ()));
+			                                                 dataSize));
 		}
-		
-//		/// <summary>
-//		/// TODO: 
-//		/// </summary>
-//		/// <param name="filePath">
-//		/// A <see cref="System.String"/>
-//		/// </param>
-//		public static void Write (string filePath)
-//		{
-//			Blob b = new Blob (filePath);
-//			b.AddContent (filePath);
-//			
-//			//FileStream f = new FileStream (b.ToHexString (), FileMode.Create);
-//			//FileStream f = new FileStream ("hello.object", FileMode.Create);
-//			
-//			byte[] bytesHeader;
-//			//bytesHeader = Object.CreateHashHeader (Mono.Git.Core.Type.Blob, b.Content.Length);
-//			
-//			//f.Write (bytesHeader, 0, bytesHeader.Length);
-//			
-//			// Reading the file content
-//			FileStream st = new FileStream (filePath, FileMode.Open);
-//			FileInfo fileInfo = new FileInfo (filePath);
-//			BinaryReader br = new BinaryReader (st);
-//			
-//			byte[] data = new byte[bytesHeader.Length + fileInfo.Length];
-//			bytesHeader.CopyTo (data, 0); 
-//			br.ReadBytes (Convert.ToInt32 (fileInfo.Length.ToString ())).CopyTo (data, bytesHeader.Length);
-//			
-//			//f.Write (data, 0, data.Length);
-//			
-//			MemoryStream ms = new MemoryStream ();
-//			DeflateStream ds = new DeflateStream (ms, CompressionMode.Compress, true);
-//			ds.Write (data, 0, data.Length);
-//			ds.Close ();
-//			
-//			Console.WriteLine ("Original size {0}, Compressed size {1}", data.Length, ms.Length);
-//			
-//			f.Write (ms.GetBuffer (), 0, ms.GetBuffer ().Length);
-//			
-//			f.Close ();
-//		}
-//		
-//		/// <summary>
-//		/// TODO: 
-//		/// </summary>
-//		/// <param name="filePath">
-//		/// A <see cref="System.String"/>
-//		/// </param>
-//		public static void Read (string filePath)
-//		{
-//			FileStream fs = new FileStream (filePath, FileMode.Open);
-//			BinaryReader br = new BinaryReader (fs);
-//			
-//			//byte[] data = br.ReadBytes (Convert.ToInt32 (fs.Length));
-//			
-//			//Console.WriteLine (Object.BytesToString (data));
-//		}
 		
 		// These methods are to parse different objects from a input byte array
 		
@@ -192,69 +135,109 @@ namespace Mono.Git.Core
 		
 		protected static bool ParseString (byte[] input, ref int pos, out string str)
 		{
+			int index = pos;
 			str = null;
 			
 			if (input.Length == pos)
 				return false;
 			
-			int start = pos;
+			while ((input [index] != (byte)'\n') && (input [index] != (byte)0))
+			{
+				if (index < input.Length) {
+					index++;
+				} else {
+					return false;
+				}
+			}
 			
-			while (!ParseNewLine (input, ref pos) || !ParseZero (input, ref pos) || pos > input.Length)
-				pos++;
+			int length = index - pos;
+			if (length == 0)
+			{
+				return false;
+			}
 			
-			str = Encoding.UTF8.GetString (input, start, pos);
+			str = Encoding.UTF8.GetString (input, pos, length);
+			pos = index;
 			
-			return true;
+ 			return true;
 		}
 		
 		protected static bool ParseNoSpaceString (byte[] input, ref int pos, out string str)
 		{
+			int index = pos;
 			str = null;
 			
 			if (input.Length == pos)
 				return false;
 			
-			int start = pos;
+			while ((input [index] != (byte)'\n') && (input [index] != (byte)0) && (input [index] != (byte)' '))
+			{
+				if (index < input.Length) {
+					index++;
+				} else {
+					return false;
+				}
+			}
 			
-			while (!ParseNewLine (input, ref pos) || !ParseSpace (input, ref pos) || !ParseZero (input, ref pos) || pos > input.Length)
-				pos++;
+			int length = index - pos;
+			if (length == 0)
+			{
+				return false;
+			}
 			
-			str = Encoding.UTF8.GetString (input, start, pos);
+			str = Encoding.UTF8.GetString (input, pos, length);
+			pos = index;
+			
+ 			return true;
+		}
+		protected static bool ParseHeader (byte[] input, ref int pos, out Type type, out string length)
+		{
+			// FIXME: I'm getting an error if I don't asign these parameters, this is because
+			// I get out the method before asigned anything to those parameters
+			length = null;
+			//type = Type.Blob;
+			
+			// Here I get out of the method
+			if (!ParseType (input, ref pos, out type))
+				return false;
+			
+			if (!ParseNoSpaceString (input, ref pos, out length))
+				return false;
 			
 			return true;
 		}
 		
-		protected static bool ParseHeader (byte[] input, ref int pos, out byte[] header)
+		protected static bool ParseType (byte[] input, ref int pos, out Type type)
 		{
-			header = null;
+			string decodedType;
+			type = Type.Blob; // we need a default
 			
 			if (pos != 0)
 				return false;
 			
-			for (int i = 0; input[i] != '\0'; i++, pos++) {
-				header[i] = input[i];
+			if (!ParseNoSpaceString (input, ref pos, out decodedType))
+				return false;
+			
+			pos ++;
+			
+			switch (decodedType) {
+			case "blob":
+				type = Type.Blob;
+				return true;
+			case "tree":
+				type = Type.Tree;
+				return true;
+			case "commit":
+				type = Type.Commit;
+				return true;
+				break;
+			case "tag":
+				type = Type.Tag;
+				return true;
+				break;
 			}
 			
 			return true;
-		}
-		
-		
-		protected static bool ParseType (byte[] input, ref int pos, out string type)
-		{
-			type = null;
-			
-			if (pos != 0)
-				return false;
-			
-			if (!ParseNoSpaceString (input, ref pos, out type))
-				return false;
-			
-			foreach (string s in new string[] {"blob", "tree", "tag", "commit"}) {
-				if (type == s)
-					return true;
-			}
-			
-			return false;
 		}
 		
 		protected static bool ParseInteger (byte[] input, ref int pos, out int integer)
@@ -265,12 +248,8 @@ namespace Mono.Git.Core
 				return false;
 			
 			integer += ((int)input[pos++]) | (((int)input[pos++]) << 8) | (((int)input[pos++]) << 16) | (((int)input[pos++]) << 24);
-			//integer = BitConverter.ToInt32 (input, pos);
-			// Convert 4 bytes to int... the mathematical way
-			//integer += input[pos++] * (int) System.Math.Pow (256, 0);
-			//integer += input[pos++] * (int) System.Math.Pow (256, 1);
-			//integer += input[pos++] * (int) System.Math.Pow (256, 2);
-			//integer += input[pos++] * (int) System.Math.Pow (256, 3);
+			
+			// Here you added pos += 4, why? I don't see the point on doing that
 			
 			return true;
 		}
@@ -283,9 +262,9 @@ namespace Mono.Git.Core
 			bw.Close ();
 		}
 		
-		protected static void EncodeHeader (ref MemoryStream ms, Type type, int len)
+		protected static void EncodeHeader (ref MemoryStream ms, Type type, string length)
 		{
-			EncodeHeader (ref ms, CreateObjectHeader (type, len));
+			EncodeHeader (ref ms, CreateObjectHeader (type, length));
 		}
 		
 		protected static void EncodeHeader (ref MemoryStream ms, byte[] header)
@@ -329,5 +308,58 @@ namespace Mono.Git.Core
 		{
 			return t.ToString ().ToLower ();
 		}
+		
+		public static Type StringToType (string type)
+		{
+			switch (type) {
+			case "blob":
+				return Mono.Git.Core.Type.Blob;
+				break;
+			case "tree":
+				return Mono.Git.Core.Type.Tree;
+				break;
+			case "commit":
+				return Mono.Git.Core.Type.Commit;
+				break;
+			case "tag":
+				return Mono.Git.Core.Type.Tag;
+				break;
+			}
+			
+			return Mono.Git.Core.Type.Blob;
+		}
+		
+		public static Object DecodeObject (byte[] content)
+		{
+			Type type;
+			string length;
+			int pos = 0;
+			
+			ParseHeader (content, ref pos, out type, out length);
+			
+			switch (type) {
+			case Type.Blob:
+				byte[] blobContent = new byte[(content.Length) - pos];
+				Array.Copy (content, pos, blobContent, 0, blobContent.Length);
+				return new Blob (blobContent);
+			case Type.Tree:
+				//TODO: return new Tree (contents);
+				break;
+			case Type.Tag:
+				//TOOD: return new Blob (contents);
+				break;
+			case Type.Commit:
+				//TODO: return new Blob (contents);
+				break;
+			}
+			
+			// This is to ensure that all the code paths return a value
+			byte[] blobBytes = new byte[content.Length - pos];
+			content.CopyTo (blobBytes, pos);
+			return new Blob (blobBytes);
+		}
+		
+		protected abstract byte[] Decode ();
+		protected abstract void Encode (byte[] data);
 	}
 }

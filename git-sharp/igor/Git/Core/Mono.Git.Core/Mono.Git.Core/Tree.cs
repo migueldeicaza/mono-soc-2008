@@ -128,6 +128,16 @@ namespace Mono.Git.Core
 			return newEntries;
 		}
 		
+		protected override byte[] Decode ()
+		{
+			throw new NotImplementedException ();
+		}
+		
+		protected override void Encode (byte[] content)
+		{
+			throw new NotImplementedException ();
+		}
+		
 //		public bool Exists (TreeEntry entry)
 //		{
 //			if (entries.Length == 0) {

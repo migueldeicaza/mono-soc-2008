@@ -69,5 +69,15 @@ namespace Mono.Git.Core
 			
 			message = messageContent;
 		}
+		
+		protected override byte[] Decode ()
+		{
+			throw new NotImplementedException ();
+		}
+		
+		protected override void Encode (byte[] content)
+		{
+			throw new NotImplementedException ();
+		}
 	}
 }

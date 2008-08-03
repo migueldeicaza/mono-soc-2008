@@ -27,6 +27,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using Mono.Git.Core;
 
 namespace Mono.Git.Tests
@@ -96,8 +97,9 @@ namespace Mono.Git.Tests
 		
 		public static void ReadGitObj ()
 		{
-			//FileStream fs = new FileStream ("f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf", FileMode.Open);
-			FileStream fs = new FileStream ("4d9a46593467984153457aef51f049af038f59c9", FileMode.Open);
+			FileStream fs = new FileStream ("f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf", FileMode.Open);
+			Console.WriteLine ("SHA1: f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf");
+			//FileStream fs = new FileStream ("4d9a46593467984153457aef51f049af038f59c9", FileMode.Open);
 			BinaryReader br = new BinaryReader (fs);
 			int len = (int)fs.Length;
 			
@@ -114,12 +116,37 @@ namespace Mono.Git.Tests
 			
 			byte[] deflated = Mono.Git.Core.ObjectStore.Decompress (content);
 			
-			Console.Write ("Header: ");
+			int pos = 0;
+			
+			for (; deflated[pos] != '\0'; pos++);
+			
+			byte[] deflatedNoHeader = new byte [deflated.Length - pos];
+			
+			Array.Copy (deflated, pos, deflatedNoHeader, 0, deflatedNoHeader.Length);
+			
+			Blob blob = (Blob) Mono.Git.Core.Object.DecodeObject (deflated);
+			
+			Console.WriteLine ("Read from Blob(Object):");
+			Console.WriteLine ("Length: {0}", blob.Content.Length);
+			Console.WriteLine ("SHA1: {0}", blob.Id.Bytes.ToString ("x2"));
+			foreach (byte b in blob.Content) {
+				if (b == '\0') {
+					Console.Write ("[NULL]");
+					continue;
+				}
+				Console.Write ((char) b);
+			}
+			
+			Console.WriteLine ("------------------");
+			
+			Console.WriteLine ("Read from filesystem:");
+			Console.WriteLine ("Length: {0}", deflated.Length);
 			foreach (byte b in deflated) {
-				if ((char)b == '\0')
-					Console.Write ("\n");
-				else
-					Console.Write ((char)b);
+				if ((char) b == '\0') {
+					Console.Write ("[NULL]");
+					continue;
+				} 
+				Console.Write ((char)b);
 			}
 		}
 	}
