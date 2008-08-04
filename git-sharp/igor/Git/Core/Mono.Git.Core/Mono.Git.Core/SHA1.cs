@@ -88,14 +88,12 @@ namespace Mono.Git.Core
 		
 		public string ToHexString ()
 		{
-			// FIXME: I don't know about calculating the Length... isn't it always 20?
-			return ToHexString (0, bytes.Length);
+			return ToHexString (0, 20);
 		}
 		
 		public string GetGitFileName ()
 		{
-			// FIXME: Again... is it always 20? I believe it should
-			return ToHexString (0, 2) + "/" + ToHexString (2, bytes.Length);
+			return ToHexString (0, 2) + "/" + ToHexString (2, 20);
 		}
 		
 		public bool Equals (SHA1 o)
