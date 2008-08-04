@@ -40,29 +40,29 @@ namespace Mono.Git.Tests
 		
 		public void RepoInit ()
 		{
-			Repo.Init ("/usr/share/git-core/templates", ".git", null);
+			//Repo.Init ("/usr/share/git-core/templates", ".git", null);
 		}
 		
-		public static bool ConfigurationTests ()
-		{
-			bool pass = false;
-			Repo test = new Repo ();
-			
-			test.Config = new Configuration ();
-			test.Config.ConfigPath = "config";
-			//test.Config.Values = new ConfigValue[1];
-			test.Config.AddConfigValues ();
-			
-			if (test.Config.Values == null)
-				Console.WriteLine ("is null");
-			//Console.WriteLine (test.Config.Values.Length.ToString ());
-			foreach (ConfigValue cf in test.Config.Values) {
-				Console.WriteLine (cf.Section);
-				Console.WriteLine (cf.Name);
-				Console.WriteLine (cf.Value);
-			}
-			
-			return pass;
-		}
+//		public static bool ConfigurationTests ()
+//		{
+//			bool pass = false;
+//			Repo test = new Repo ();
+//			
+//			test.Config = new Configuration ();
+//			test.Config.ConfigPath = "config";
+//			//test.Config.Values = new ConfigValue[1];
+//			test.Config.AddConfigValues ();
+//			
+//			if (test.Config.Values == null)
+//				Console.WriteLine ("is null");
+//			//Console.WriteLine (test.Config.Values.Length.ToString ());
+//			foreach (ConfigValue cf in test.Config.Values) {
+//				Console.WriteLine (cf.Section);
+//				Console.WriteLine (cf.Name);
+//				Console.WriteLine (cf.Value);
+//			}
+//			
+//			return pass;
+//		}
 	}
 }

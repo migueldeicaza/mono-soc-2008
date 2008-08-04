@@ -32,17 +32,17 @@ namespace Mono.Git.Core
 	/// <summary>
 	/// Enumeration with all the file modes that git handles
 	/// </summary>
-	public enum GitFileModeTypes
-	{
-		Tree,
-		Symlink,
-		RegularFile,
-		ExecutableFile,
-	}
+//	public enum GitFileModeTypes
+//	{
+//		Tree,
+//		Symlink,
+//		RegularFile,
+//		ExecutableFile,
+//	}
 	
 	public class GitFileMode
 	{
-		private byte[] octal_bytes;
+		private byte[] bytes;
 		private int mode_bits; // mode, in _human_ (e.g. 755 == excecutable file)
 		
 		// Git Constants(mostly the meaning of this class)
@@ -63,34 +63,28 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// A true if are equal false if aren't<see cref="System.Boolean"/>
 		/// </returns>
-		public bool Equals (GitFileModeTypes type)
+//		public bool Equals (GitFileModeTypes type)
+//		{
+//			switch (type) {
+//			case GitFileModeTypes.Tree:
+//				return (mode_bits & 040000) == 040000;
+//			case GitFileModeTypes.Symlink:
+//				return (mode_bits & 020000) == 020000;
+//			case GitFileModeTypes.RegularFile:
+//				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) == 0;
+//			case GitFileModeTypes.ExecutableFile:
+//				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) != 0;
+//			}
+//			
+//			// FIXME: Using this to avoid: not all code paths return a value(CS0161)
+//			return false; 
+//		}
+		
+		public byte[] Bytes { get { return bytes; } }
+		
+		public GitFileMode (byte[] mode)
 		{
-			switch (type) {
-			case GitFileModeTypes.Tree:
-				return (mode_bits & 040000) == 040000;
-			case GitFileModeTypes.Symlink:
-				return (mode_bits & 020000) == 020000;
-			case GitFileModeTypes.RegularFile:
-				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) == 0;
-			case GitFileModeTypes.ExecutableFile:
-				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) != 0;
-			}
 			
-			// FIXME: Using this to avoid: not all code paths return a value(CS0161)
-			return false; 
-		}
-		
-		public byte[] OctalBytes {
-			get {
-				return octal_bytes;
-			}
-			set {
-				octal_bytes = value;
-			}
-		}
-		
-		public GitFileMode ()
-		{
 		}
 		
 		/// <summary>
@@ -104,7 +98,7 @@ namespace Mono.Git.Core
 			mode_bits = mode;
 			
 			if (mode == 0) {
-				octal_bytes = new byte[] { (byte) '0' };
+				bytes = new byte[] { (byte) '0' };
 				return;
 			}
 			
@@ -116,10 +110,10 @@ namespace Mono.Git.Core
 				mode >>= 3;
 			}
 			
-			octal_bytes = new byte[tmp.Length - size];
+			bytes = new byte[tmp.Length - size];
 			
-			for (int i = 0; i < octal_bytes.Length; i++) {
-				octal_bytes[i] = tmp[size + i];
+			for (int i = 0; i < bytes.Length; i++) {
+				bytes[i] = tmp[size + i];
 			}
 		}
 	}

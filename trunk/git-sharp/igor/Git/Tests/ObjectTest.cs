@@ -98,8 +98,9 @@ namespace Mono.Git.Tests
 		public static void ReadGitObj ()
 		{
 			FileStream fs = new FileStream ("f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf", FileMode.Open);
-			Console.WriteLine ("SHA1: f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf");
+			Console.WriteLine ("SHA1 = f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf");
 			//FileStream fs = new FileStream ("4d9a46593467984153457aef51f049af038f59c9", FileMode.Open);
+			//FileStream fs = new FileStream ("c45099a4cd4ba61a32e1c61d987b73dc3b6146b", FileMode.Open);
 			BinaryReader br = new BinaryReader (fs);
 			int len = (int)fs.Length;
 			
@@ -128,7 +129,7 @@ namespace Mono.Git.Tests
 			
 			Console.WriteLine ("Read from Blob(Object):");
 			Console.WriteLine ("Length: {0}", blob.Content.Length);
-			Console.WriteLine ("SHA1: {0}", blob.Id.Bytes.ToString ("x2"));
+			Console.WriteLine ("SHA1: {0}", blob.Id.ToHexString ());
 			foreach (byte b in blob.Content) {
 				if (b == '\0') {
 					Console.Write ("[NULL]");
@@ -148,6 +149,97 @@ namespace Mono.Git.Tests
 				} 
 				Console.Write ((char)b);
 			}
+			
+			if (blob.Id.ToHexString ().Equals ("f1ba39c400cf9fb8b48f652bc05aaa9f087c66cf"))
+				Console.WriteLine ("Whoohoo!");
+		}
+		
+		public static void ReadGitTree ()
+		{
+			FileStream fs = new FileStream ("c45099a4cd4ba61a32e1c61d987b73dc3b6146b9", FileMode.Open);
+			Console.WriteLine ("SHA1 = c45099a4cd4ba61a32e1c61d987b73dc3b6146b9");
+			
+			BinaryReader br = new BinaryReader (fs);
+			int len = (int)fs.Length;
+			
+			byte[] content = br.ReadBytes (len);
+			
+			Console.WriteLine ("First 2 bytes: {0} {1}", (int)content[0], (int)content[1]);
+			Console.WriteLine ("Last 4 bytes: {0}{1}{2}{3}", (int)content[len - 4], (int)content[len - 3], 
+			                   (int)content[len - 2], (int)content[len - 1]);
+			
+			byte[] deflated = Mono.Git.Core.ObjectStore.Decompress (content);
+			
+			int pos = 0;
+			
+			Console.Write ("header: ");
+			
+			for (; deflated[pos] != '\0'; pos++) {
+				Console.Write ((char) deflated[pos]);
+			}
+			
+			if (deflated[pos] == '\0') {
+				Console.WriteLine ("[null]");
+				pos++;
+			}
+			
+			Console.WriteLine ("Content: ");
+			
+			byte[] deflatedNoHeader = new byte [deflated.Length - pos];
+			
+			Array.Copy (deflated, pos, deflatedNoHeader, 0, deflatedNoHeader.Length);
+			
+			pos = 0;
+			int count = 0;
+			
+//			for (; pos < deflatedNoHeader.Length; pos++) {
+//				if (deflatedNoHeader [pos] == '\0') {
+//					count = 0;
+//					Console.Write ("[#{0} null]", pos);
+//					pos += 21;
+//					if (pos > deflatedNoHeader.Length)
+//						break;
+//					byte[] bytes = new byte[20];
+//					Array.Copy (deflatedNoHeader, pos, bytes, 0, 20);
+//					SHA1 id = new SHA1 (bytes, true);
+//					
+//					Console.Write (id.ToHexString ());
+//					continue;
+//				}
+//				if (deflatedNoHeader [pos] == '1' && deflatedNoHeader [pos + 1] == '0' && deflatedNoHeader [pos + 2] == '0') {
+//					Console.Write ("\n#{0} count: {1}", pos, count);
+//				}
+//				Console.Write ((char) deflatedNoHeader [pos]);
+//			}
+			
+			for (; pos < deflatedNoHeader.Length; pos++) {
+				if (deflatedNoHeader [pos] == '\0') {
+					break;
+				}
+				Console.Write ((char) deflatedNoHeader [pos]);
+			}
+			
+			pos += 1;
+			
+			byte[] bytes = new byte[20];
+			Array.Copy (deflatedNoHeader, pos, bytes, 0, 20);
+			
+			SHA1 id = new SHA1 (bytes, false);
+			
+			Console.WriteLine (" " + id.ToHexString ());
+			
+//			foreach (byte b in deflatedNoHeader) {
+//				if (b == '\0')
+//					Console.Write ("[null]");
+//				Console.Write ((char) b);
+//			}
+		}
+		
+		public static void TestFileSystemModes ()
+		{
+			System.IO.FileInfo fi = new FileInfo ("updatecoredll.sh");
+			
+			Console.WriteLine (fi.Attributes);
 		}
 	}
 }

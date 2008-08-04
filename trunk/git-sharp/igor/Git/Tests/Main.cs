@@ -44,8 +44,8 @@ namespace Mono.Git.Tests
 				new BlobTest ("a7efe6dbed6a3a0d73030134521c8b1048e6a7");
 				break;
 			case "repo":
-				new RepositoryTest ();
-				RepositoryTest.ConfigurationTests ();
+//				new RepositoryTest ();
+//				RepositoryTest.ConfigurationTests ();
 				break;
 			case "index":
 				new IndexTest ();
@@ -56,6 +56,12 @@ namespace Mono.Git.Tests
 				break;
 			case "read":
 				ObjectTest.ReadGitObj ();
+				break;
+			case "tree":
+				ObjectTest.ReadGitTree ();
+				break;
+			case "mode":
+				ObjectTest.TestFileSystemModes ();
 				break;
 			}
 		}

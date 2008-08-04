@@ -249,7 +249,34 @@ namespace Mono.Git.Core
 			
 			integer += ((int)input[pos++]) | (((int)input[pos++]) << 8) | (((int)input[pos++]) << 16) | (((int)input[pos++]) << 24);
 			
-			// Here you added pos += 4, why? I don't see the point on doing that
+			// Here you added pos += 4, why? I don't see the point on doing that since you incremented it in the pos++
+			
+			return true;
+		}
+		
+		protected static bool ParseTreeEntry (byte[] input, ref int pos, out byte[] mode, out string name, out byte[] id)
+		{
+			// You need to add this because the paths need to return a result
+			mode = new byte [6];
+			id = new byte [20];
+			name = null;
+			
+			if (pos != 0)
+				return false;
+			
+			if (input.Length <= 27)
+				throw new ArgumentException ("The data is not a tree entry, the size is to small");
+			
+			Array.Copy (input, 0, mode, 0, 6);
+			
+			pos += 7;
+			
+			if (!ParseString (input, ref pos, out name))
+				return false;
+			
+			pos++;
+			
+			Array.Copy (input, pos, id, 0, 20);
 			
 			return true;
 		}
@@ -267,11 +294,21 @@ namespace Mono.Git.Core
 			EncodeHeader (ref ms, CreateObjectHeader (type, length));
 		}
 		
+		protected static void EncodeTreeEntry (ref MemoryStream ms, byte[] mode, string name, byte[] id)
+		{
+			BinaryWriter bw = new BinaryWriter (ms);
+			
+			bw.Write (mode);
+			EncodeSpace (ref ms);
+			bw.Write (name);
+			
+			bw.Write (id);
+		}
+		
 		protected static void EncodeHeader (ref MemoryStream ms, byte[] header)
 		{
 			BinaryWriter bw = new BinaryWriter (ms);
 			bw.Write (header);
-			
 			bw.Close ();
 		}
 		
@@ -304,9 +341,20 @@ namespace Mono.Git.Core
 		/// <param name="t">
 		/// A <see cref="Type"/>
 		/// </param>
-		public static string TypeToString (Type t)
+		public static string TypeToString (Type type)
 		{
-			return t.ToString ().ToLower ();
+			switch (type) {
+			case Type.Blob:
+				return "blob";
+			case Type.Tree:
+				return "tree";
+			case Type.Tag:
+				return "tag";
+			case Type.Commit:
+				return "commit";
+			}
+			
+			return "blob";
 		}
 		
 		public static Type StringToType (string type)

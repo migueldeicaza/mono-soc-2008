@@ -27,6 +27,7 @@
 using System;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 using Mono.Git.Core;
 
 namespace Mono.Git.Core
@@ -36,97 +37,50 @@ namespace Mono.Git.Core
 	/// </summary>
 	public class Tree : Object
 	{
-		private string name;
-		private Tree parent;
-		private TreeEntry[] entries;
+		private Dictionary<SHA1, TreeEntry> entries;
 		
-		public Tree (Tree parent) : base (Type.Tree, Encoding.UTF8.GetBytes (parent.parent.ToString ())) // TODO: add a real encoding
+		public override Type Type { get { return Type.Tree; } }
+		
+		public Tree (byte[] content) : base (Type.Tree, content) // TODO: add a real encoding
 		{
-			this.parent = parent;
 		}
 		
-		public override Type Type
+		private void AddEntry (byte[] data)
 		{
-			get {
-				return Type.Tree;
-			}
-		}
-		
-		public Tree Parent {
-			get {
-				return parent;
-			}
-			set {
-				parent = value;
-			}
-		}
-		
-		public TreeEntry[] Entries
-		{
-			set {
-				entries = value;
-			}
-			get {
-				return entries;
-			}
-		}
-		
-		/// <summary>
-		/// Init the entries, one for the current directory and 1 for the blob
-		/// blobs can be more than 1 but at least 1 
-		/// </summary>
-		public void InitEntries ()
-		{
-			entries = new TreeEntry[2];
-		}
-		
-		public void AddEntry (TreeEntry entry)
-		{
-			if (entries == null) {
-				InitEntries ();
-			}
+			if (data.Length <= 27)
+				throw new ArgumentException ("The data is not a tree entry, the size is to small");
 			
-			int size = entries.Length + 1;
-			ArrayList newEntries = new ArrayList (size);
+			int pos = 0;
+			byte[] mode;
+			byte[] id;
+			string name;
 			
-			foreach (TreeEntry en in entries) {
-				newEntries.Add (en);
-			}
+			ParseTreeEntry (data, ref pos, out mode, out name, out id);
 			
-			newEntries.Add (entry);
-			
-			Entries = (TreeEntry[]) newEntries.ToArray ();
+			//AddEntry (id, name, mode);
+			AddEntry (new SHA1 (id, false), new TreeEntry (name, mode));
 		}
 		
-		public void RemoveEntry (TreeEntry entry)
+		private void AddEntry (SHA1 id, TreeEntry entry)
 		{
-			if (entries.Length == 0) {
+			if (entries.ContainsKey (id))
 				return;
-			}
 			
-			ArrayList newEntries = new ArrayList (entries.Length);
-			
-			foreach (TreeEntry en in entries) {
-				newEntries.Add (en);
-			}
-			
-			newEntries.Remove (entry);
-			
-			Entries = (TreeEntry[]) newEntries.ToArray ();
+			entries.Add (id, entry);
 		}
 		
-		public TreeEntry[] EntriesGitSorted ()
-		{
-			if (entries.Length == 0) {
-				return entries;
-			}
-			
-			TreeEntry[] newEntries = new TreeEntry[entries.Length];
-			for (int i = entries.Length - 1; i >= 0; i--)
-				newEntries[i] = entries[i];
-			
-			return newEntries;
-		}
+//		public TreeEntry[] EntriesGitSorted ()
+//		{
+//			if (entries.Length == 0) {
+//				return entries;
+//			}
+//			
+//			TreeEntry[] newEntries = new TreeEntry[entries.Length];
+//			for (int i = entries.Length - 1; i >= 0; i--)
+//				newEntries[i] = entries[i];
+//			
+//			return newEntries;
+//		}
 		
 		protected override byte[] Decode ()
 		{
@@ -138,22 +92,9 @@ namespace Mono.Git.Core
 			throw new NotImplementedException ();
 		}
 		
-//		public bool Exists (TreeEntry entry)
-//		{
-//			if (entries.Length == 0) {
-//				return false;
-//			} else if (entries.Length == 1) {
-//				return entries[0].Id.bytes == entry.Id.bytes ? true : false;
-//			}
-//			
-//			bool exist = false;
-//			
-//			foreach (TreeEntry en in entries) {
-//				if (en.Id.bytes == entry.Id.bytes)
-//					exist = true;
-//			}
-//			
-//			return exist;
-//		}
+		public bool Exist (SHA1 id)
+		{
+			return entries.ContainsKey (id);
+		}
 	}
 }
