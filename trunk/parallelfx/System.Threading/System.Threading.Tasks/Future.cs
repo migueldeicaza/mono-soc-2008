@@ -100,27 +100,27 @@ namespace System.Threading.Tasks
 			func = null;
 		}
 		
-		public static Future<T> Create<T>()
+		public static Future<T> Create()
 		{
-			return Create<T>(null, TaskManager.Current, TaskCreationOptions.None);
+			return Create(null, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function)
+		public static Future<T> Create(Func<T> function)
 		{
-			return Create<T>(function, TaskManager.Current, TaskCreationOptions.None);
+			return Create(function, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
+		public static Future<T> Create(Func<T> function, TaskCreationOptions options)
 		{
-			return Create<T>(function, TaskManager.Current, options);
+			return Create(function, TaskManager.Current, options);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
+		public static Future<T> Create(Func<T> function, TaskManager tm)
 		{
-			return Create<T>(function, tm, TaskCreationOptions.None);
+			return Create(function, tm, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
+		public static Future<T> Create(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
 			Future<T> future = new Future<T>(tm, function, options, true);
 			
@@ -139,8 +139,13 @@ namespace System.Threading.Tasks
 		
 		public Task ContinueWith(Action<Future<T>> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
+			return ContinueWith(a, kind, option, false);
+		}
+		
+		public Task ContinueWith(Action<Future<T>> a, TaskContinuationKind kind, TaskCreationOptions option, bool exSync)
+		{
 			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
-			ContinueWithCore(continuation, kind, false);
+			ContinueWithCore(continuation, kind, exSync);
 			
 			return continuation;
 		}
@@ -157,8 +162,13 @@ namespace System.Threading.Tasks
 		
 		public Future<U> ContinueWith<U>(Func<Future<T>, U> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
+			return ContinueWith<U>(a, kind, option, false);
+		}
+		
+		public Future<U> ContinueWith<U>(Func<Future<T>, U> a, TaskContinuationKind kind, TaskCreationOptions option, bool exSync)
+		{
 			Future<U> continuation = new Future<U>(TaskManager.Current, delegate { return a(this); }, option, false);
-			ContinueWithCore(continuation, kind, false);
+			ContinueWithCore(continuation, kind, exSync);
 			
 			return continuation;
 		}

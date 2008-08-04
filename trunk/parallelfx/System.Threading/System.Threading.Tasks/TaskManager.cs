@@ -91,9 +91,6 @@ namespace System.Threading.Tasks
 			get {
 				return policy;
 			}
-			set {
-				policy = value;
-			}
 		}
 
 		public static TaskManager Default {

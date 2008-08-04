@@ -1,4 +1,4 @@
-// SpinWait.cs
+// AtomicBoolean.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -26,52 +26,66 @@ using System;
 
 namespace System.Threading
 {
-	
-	public struct SpinWait
+	public struct AtomicBoolean
 	{
-		// The number of step until SpinOnce yield on multicore machine
-		const           int  step = 10;
-		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
+		int flag;
+		const int UnSet = 0;
+		const int Set = 1;
 		
-		int ntime;
-		
-		public void SpinOnce() 
+		public bool CompareAndExchange(bool expected, bool newVal)
 		{
-			// On a single-CPU system, spinning does no good
-			if (isSingleCpu) {
-				Yield();
-			} else {
-				if (Interlocked.Increment(ref ntime) % step == 0) {
-					Yield();
-				} else {
-					// Multi-CPU system might be hyper-threaded, let other thread run
-					Thread.SpinWait(10);
-				}
-			}
+			int newTemp = newVal ? Set : UnSet;
+			int expectedTemp = expected ? Set : UnSet;
+			
+			return Interlocked.CompareExchange(ref flag, newTemp, expectedTemp) == expectedTemp;
 		}
 		
-		void Yield()
+		public static AtomicBoolean FromValue(bool value)
 		{
-			// Replace by Thread.Sleep(0) which does almost the same thing
-			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
-			Thread.Sleep(0);
+			AtomicBoolean temp = new AtomicBoolean();
+			temp.Value = value;
+			
+			return temp;
 		}
 		
-		public void Reset()
+		public bool Exchange(bool newVal)
 		{
-			ntime = 0;
+			int newTemp = newVal ? Set : UnSet;
+			return Interlocked.Exchange(ref flag, newTemp) == Set;
 		}
 		
-		public bool NextSpinWillYield {
+		public bool Value {
 			get {
-				return isSingleCpu ? true : ntime % step == 0;
+				return flag == Set;
+			} 
+			set {
+				Thread.VolatileWrite(ref flag, value ? Set : UnSet);
 			}
 		}
 		
-		public int Count {
-			get {
-				return ntime;
-			}
+		public bool Equals(AtomicBoolean rhs)
+		{
+			return this.flag == rhs.flag;
+		}
+		
+		public override bool Equals(object rhs)
+		{
+			return rhs is AtomicBoolean ? Equals((AtomicBoolean)rhs) : false;
+		}
+		
+		public override int GetHashCode()
+		{
+			return flag.GetHashCode();
+		}
+		
+		public static explicit operator bool(AtomicBoolean rhs)
+		{
+			return rhs.Value;
+		}
+		
+		public static implicit operator AtomicBoolean(bool rhs)
+		{
+			return AtomicBoolean.FromValue(rhs);
 		}
 	}
 }

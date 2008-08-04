@@ -49,9 +49,10 @@ namespace System.Threading.Tasks
 		Task creator = current;
 		TaskCreationOptions taskCreationOptions;
 		
-		protected readonly TaskManager tm;
+		// Ugly coding style thanks to API designer
+		protected readonly TaskManager m_taskManager;
+		protected readonly object m_stateObject;
 		Action<object> action;
-		object state;
 		
 		EventHandler Completed;
 		
@@ -60,9 +61,9 @@ namespace System.Threading.Tasks
 		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
 			this.taskCreationOptions = taskCreationOptions;
-			this.tm = TaskManager.Current = tm;
+			this.m_taskManager = TaskManager.Current = tm;
 			this.action = action == null ? delegate (object o) { } : action;
-			this.state = state;
+			this.m_stateObject = state;
 			this.taskId = Interlocked.Increment(ref id);
 
 			// Process taskCreationOptions
@@ -100,7 +101,7 @@ namespace System.Threading.Tasks
 			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null) {
-				tm.AddWork(this);
+				m_taskManager.AddWork(this);
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
 				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
@@ -164,6 +165,11 @@ namespace System.Threading.Tasks
 		
 		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
+			return ContinueWith(a, kind, option, false);
+		}
+		
+		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option, bool executeSync)
+		{
 			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
 			ContinueWithCore(continuation, kind, false);
 			return continuation;
@@ -179,22 +185,30 @@ namespace System.Threading.Tasks
 			this.Completed += delegate {
 				switch (kind) {
 					case TaskContinuationKind.OnAny:
-						continuation.Schedule();
+						CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnAborted:
 						if (isCanceled)
-							continuation.Schedule();
+							CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnFailed:
 						if (exception != null)
-							continuation.Schedule();
+							CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnCompletedSuccessfully:
 						if (exception == null && !isCanceled)
-							continuation.Schedule();
+							CheckAndSchedule(executeSync, continuation);
 						break;
 				}
 			};
+		}
+		
+		void CheckAndSchedule(bool executeSync, Task continuation)
+		{
+			if (executeSync)
+				continuation.threadStart();
+			else
+				continuation.Schedule();
 		}
 		
 		public static Task Current {
@@ -205,7 +219,7 @@ namespace System.Threading.Tasks
 
 		protected virtual void InnerInvoke()
 		{
-			action(state);
+			action(m_stateObject);
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in a anonymous method
 			action = null;
@@ -240,7 +254,7 @@ namespace System.Threading.Tasks
 		{
 			if (this.IsCompleted)
 				return;
-			tm.WaitForTask(this);
+			m_taskManager.WaitForTask(this);
 		}
 		
 		public bool Wait(TimeSpan ts)
@@ -254,7 +268,7 @@ namespace System.Threading.Tasks
 				return true;
 			
 			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-			bool result = tm.WaitForTaskWithPredicate(this, delegate { return sw.ElapsedMilliseconds >= millisecondsTimeout; });
+			bool result = m_taskManager.WaitForTaskWithPredicate(this, delegate { return sw.ElapsedMilliseconds >= millisecondsTimeout; });
 			sw.Stop();
 			return !result;
 		}
@@ -398,7 +412,7 @@ namespace System.Threading.Tasks
 
 		object IAsyncResult.AsyncState {
 			get {
-				return state;
+				return m_stateObject;
 			}
 		}
 		

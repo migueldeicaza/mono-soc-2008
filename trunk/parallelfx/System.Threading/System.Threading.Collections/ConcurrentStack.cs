@@ -31,7 +31,8 @@ namespace System.Threading.Collections
 {
 	
 	
-	public class ConcurrentStack<T>: IConcurrentCollection<T>, IEnumerable<T>, ICollection, IEnumerable, ISerializable, IDeserializationCallback
+	public class ConcurrentStack<T>: IConcurrentCollection<T>, IEnumerable<T>
+		, ICollection, IEnumerable, ISerializable, IDeserializationCallback
 	{
 		class Node
 		{
@@ -43,7 +44,17 @@ namespace System.Threading.Collections
 		
 		int count;
 		
-		public bool Add(T elem)
+		public ConcurrentStack()
+		{
+		}
+		
+		public ConcurrentStack(IEnumerable<T> enumerable)
+		{
+			foreach (T item in enumerable) 
+				Push(item);
+		}
+		
+		bool IConcurrentCollection<T>.Add(T elem)
 		{
 			Push(elem);
 			return true;
@@ -116,6 +127,11 @@ namespace System.Threading.Collections
 			return InternalGetEnumerator();
 		}
 		
+		public IEnumerator<T> GetEnumerator ()
+		{
+			return InternalGetEnumerator();
+		}
+		
 		IEnumerator<T> InternalGetEnumerator()
 		{
 			Node my_head = head;
@@ -128,7 +144,7 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public void CopyTo (Array array, int index)
+		void ICollection.CopyTo (Array array, int index)
 		{
 			T[] dest = array as T[];
 			if (dest == null)
@@ -136,7 +152,7 @@ namespace System.Threading.Collections
 			CopyTo(dest, index);
 		}
 		
-		void CopyTo(T[] dest, int index)
+		public void CopyTo(T[] dest, int index)
 		{
 			IEnumerator<T> e = InternalGetEnumerator();
 			int i = index;
@@ -150,7 +166,7 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 		
-		public bool IsSynchronized {
+		bool ICollection.IsSynchronized {
 			get { return true; }
 		}
 
@@ -159,13 +175,13 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 
-		public bool Remove (out T item)
+		bool IConcurrentCollection<T>.Remove (out T item)
 		{
 			return TryPop(out item);
 		}
 		
 		object syncRoot = new object();
-		public object SyncRoot {
+		object ICollection.SyncRoot {
 			get { return syncRoot; }
 		}
 		
@@ -176,8 +192,6 @@ namespace System.Threading.Collections
 			return dest;
 		}
 		
-		/// <value>
-		/// </value>
 		public int Count {
 			get {
 				return count;
