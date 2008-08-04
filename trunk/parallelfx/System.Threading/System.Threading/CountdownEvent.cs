@@ -51,7 +51,7 @@ namespace System.Threading
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException("num");
-			if (count == 0 || num > count)
+			if (IsSet || num > count)
 				throw new InvalidOperationException();
 			Interlocked.Add(ref count, -num);
 		}
@@ -65,7 +65,7 @@ namespace System.Threading
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException("num");
-			if (count == 0 || num > int.MaxValue - count)
+			if (IsSet || num > int.MaxValue - count)
 				throw new InvalidOperationException();
 			Interlocked.Add(ref count, num);
 		}
@@ -77,7 +77,7 @@ namespace System.Threading
 		
 		public bool TryIncrement(int num)
 		{
-			if (count == 0)
+			if (IsSet)
 				return false;
 			if (num < 0)
 				throw new ArgumentOutOfRangeException("num");
