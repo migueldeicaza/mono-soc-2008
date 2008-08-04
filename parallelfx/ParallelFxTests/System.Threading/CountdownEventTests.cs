@@ -23,16 +23,68 @@
 //
 
 using System;
+using System.Threading;
+
+using NUnit.Framework;
 
 namespace ParallelFxTests
 {
-	
-	
+	[TestFixtureAttribute]
 	public class CountdownEventTests
 	{
+		CountdownEvent evt;
 		
-		public CountdownEventTests()
+		[SetUpAttribute]
+		public void Setup()
 		{
+			evt = new CountdownEvent(5);
+		}
+		
+		[Test]
+		public void InitialTestCase()
+		{
+			Assert.AreEqual(5, evt.InitialCount, "#1");
+			evt.Increment();
+			evt.Decrement(3);
+			Assert.AreEqual(5, evt.InitialCount, "#2");
+		}
+		
+		[Test]
+		public void CurrentCountTestCase()
+		{
+			Assert.AreEqual(5, evt.CurrentCount, "#1");
+			
+			evt.Increment();
+			Assert.AreEqual(6, evt.CurrentCount, "#2");
+			
+			evt.TryIncrement(2);
+			Assert.AreEqual(8, evt.CurrentCount, "#3");
+			
+			evt.Decrement(4);
+			Assert.AreEqual(4, evt.CurrentCount, "#4");
+			
+			evt.Reset();
+			Assert.AreEqual(5, evt.CurrentCount, "#5");
+		}
+		
+		[Test]
+		public void IsSetTestCase()
+		{
+			Assert.IsFalse(evt.IsSet, "#1");
+			
+			evt.Decrement(5);
+			Assert.IsTrue(evt.IsSet, "#2");
+			
+			evt.Reset();
+			Assert.IsFalse(evt.IsSet, "#3");
+		}
+		
+		[Test]
+		public void TryIncrementTestCase()
+		{
+			Assert.IsTrue(evt.TryIncrement(2), "#1");
+			evt.Decrement(7);
+			Assert.IsFalse(evt.TryIncrement(), "#2");
 		}
 	}
 }

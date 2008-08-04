@@ -143,12 +143,12 @@ namespace System.Threading
 		
 		public override int GetHashCode()
 		{
-			return value.GetHashCode();
+			return Value.GetHashCode();
 		}
 		
 		public override string ToString()
 		{
-			return value.ToString();
+			return Value.ToString();
 		}
 		
 		public T Value {

@@ -97,7 +97,7 @@ namespace ParallelFxTests
 			defaultCollection.Add(1);
 			defaultCollection.Add(2);
 			defaultCollection.CompleteAdding();
-			Assert.IsTrue(defaultCollection.IsAddingComplete, "#1");
+			Assert.IsTrue(defaultCollection.IsAddingCompleted, "#1");
 			
 			defaultCollection.Add(3);
 		}
@@ -116,7 +116,7 @@ namespace ParallelFxTests
 			boundedCollection.Add(9);
 			boundedCollection.Add(10);
 			boundedCollection.CompleteAdding();
-			Assert.IsTrue(boundedCollection.IsAddingComplete, "#1");
+			Assert.IsTrue(boundedCollection.IsAddingCompleted, "#1");
 			
 			boundedCollection.Add(3);
 		}
@@ -133,7 +133,7 @@ namespace ParallelFxTests
 			defaultCollection.Remove();
 			defaultCollection.Remove();
 			
-			Assert.IsTrue(defaultCollection.IsAddingComplete, "#1");
+			Assert.IsTrue(defaultCollection.IsAddingCompleted, "#1");
 			Assert.AreEqual(0, defaultCollection.Count, "#2");
 			Assert.IsTrue(defaultCollection.IsCompleted, "#4");
 		}
