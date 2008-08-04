@@ -26,29 +26,52 @@ using System;
 
 namespace System.Threading
 {
+	[SerializableAttribute]
 	public struct WriteOnce<T>: IEquatable<WriteOnce<T>>
 	{
 		T value;
-		int setFlag;
+		AtomicBoolean setFlag;
+		
+		public WriteOnce(T value)
+		{
+			this.value = value;
+			this.setFlag = true;
+		}
 		
 		public bool HasValue {
 			get {
-				return setFlag == 1;
+				return setFlag.Value;
 			}
 		}
 		
 		public T Value {
 			get {
 				if (!HasValue)
-					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
+					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set.");
 				return value;
 			}
 			set {
-				int result = Interlocked.Exchange(ref setFlag, 1);
-				if (result == 1)
-					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set, or an attempt was made to set the value when the value was already set.");
+				bool result = setFlag.Exchange(true);
+				if (result)
+					throw new InvalidOperationException("An attempt was made to set the value when the value was already set.");
 				this.value = value;
 			}
+		}
+		
+		public bool TryGetValue(out T val)
+		{
+			bool result = HasValue;
+			val = result ? value : default(T);
+			return result;
+		}
+		
+		public bool TrySetValue(T val)
+		{
+			bool result = setFlag.Exchange(true);
+			if (result)
+				return false;
+			value = val;
+			return true;
 		}
 		
 		public bool Equals(WriteOnce<T> other)
@@ -63,12 +86,12 @@ namespace System.Threading
 		
 		public override int GetHashCode()
 		{
-			return (setFlag == 1) ? value.GetHashCode() : base.GetHashCode();
+			return (setFlag.Value) ? value.GetHashCode() : base.GetHashCode();
 		}
 		
 		public override string ToString()
 		{
-			return (setFlag == 1) ? value.ToString() : base.ToString();
+			return (setFlag.Value) ? value.ToString() : base.ToString();
 		}
 	}
 }

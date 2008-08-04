@@ -55,13 +55,13 @@ namespace System.Threading.Actors
 				Task.Create(delegate {
 					action(data);
 					T other;
-					while (mbox.Remove(out other)) {
+					while (mbox.TryDequeue(out other)) {
 						action(other);
 					}
 					Thread.VolatileWrite(ref isRunning, idle);
 				});
 			} else {
-				mbox.Add(data);
+				mbox.Enqueue(data);
 			}
 		}
 	}

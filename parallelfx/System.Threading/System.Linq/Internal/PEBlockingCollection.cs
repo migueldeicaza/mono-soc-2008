@@ -55,7 +55,7 @@ namespace System.Linq
 		void LaunchUnorderedLast(IParallelEnumerator<TSource> enumerator)
 		{
 			Parallel.SpawnBestNumber(delegate {
-				while (!bColl.IsAddingComplete) {
+				while (!bColl.IsAddingCompleted) {
 					if (!action(enumerator, BlockingCollectionAdder))
 						break;
 				}
@@ -94,7 +94,7 @@ namespace System.Linq
 			};
 				
 			Parallel.SpawnBestNumber(delegate {
-				while (!bColl.IsAddingComplete)
+				while (!bColl.IsAddingCompleted)
 					if (!action(enumerator, adderFunc)) 
 						break;
 			}, dop, () => bColl.CompleteAdding());

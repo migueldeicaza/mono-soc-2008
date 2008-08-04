@@ -3,6 +3,8 @@
 //
 // To change standard headers go to Edit->Preferences->Coding->Standard Headers
 //
+
+using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -18,6 +20,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("ParallelFxTests")]
+[assembly: CLSCompliant(true)]
 
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".
 // If the build and revision are set to '*' they will be updated automatically.

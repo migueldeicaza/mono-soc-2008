@@ -67,6 +67,11 @@ namespace System.Threading.Collections
 			else
 				isFull = delegate { return underlyingColl.Count >= upperBound; };
 		}
+		
+		~BlockingCollection()
+		{
+			Dispose(false);
+		}
 		#endregion
 		
 		#region Add & Remove (+ Try)
@@ -150,7 +155,7 @@ namespace System.Threading.Collections
 		#endregion
 		
 		#region static methods
-		static void CheckArray<T>(BlockingCollection<T>[] collections)
+		static void CheckArray(BlockingCollection<T>[] collections)
 		{
 			if (collections == null)
 				throw new ArgumentNullException("collections");
@@ -158,7 +163,21 @@ namespace System.Threading.Collections
 				throw new ArgumentException("The collections argument is a 0-length array or contains a null element.", "collections");
 		}
 		
-		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item)
+		public static int AddAny(BlockingCollection<T>[] collections, T item)
+		{
+			CheckArray(collections);
+			int index = 0;
+			foreach (var coll in collections) {
+				try {
+					coll.Add(item);
+					return index;
+				} catch {}
+				index++;
+			}
+			return -1;
+		}
+		
+		public static int TryAddAny(BlockingCollection<T>[] collections, T item)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -170,7 +189,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item, TimeSpan ts)
+		public static int TryAddAny(BlockingCollection<T>[] collections, T item, TimeSpan ts)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -182,7 +201,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryAddAny<T>(BlockingCollection<T>[] collections, T item, int millisecondsTimeout)
+		public static int TryAddAny(BlockingCollection<T>[] collections, T item, int millisecondsTimeout)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -194,7 +213,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int RemoveAny<T>(BlockingCollection<T>[] collections, out T item)
+		public static int RemoveAny(BlockingCollection<T>[] collections, out T item)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -208,7 +227,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item)
+		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -220,7 +239,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item, TimeSpan ts)
+		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, TimeSpan ts)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -232,7 +251,7 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryRemoveAny<T>(BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
+		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
 		{
 			CheckArray(collections);
 			int index = 0;
@@ -250,7 +269,12 @@ namespace System.Threading.Collections
 			isComplete = true;
 		}
 		
-		public void CopyTo(Array array, int index)
+		void ICollection.CopyTo(Array array, int index)
+		{
+			underlyingColl.CopyTo(array, index);
+		}
+		
+		public void CopyTo(T[] array, int index)
 		{
 			underlyingColl.CopyTo(array, index);
 		}
@@ -273,7 +297,17 @@ namespace System.Threading.Collections
 			return ((IEnumerable<T>)underlyingColl).GetEnumerator();
 		}
 		
+		public IEnumerator<T> GetEnumerator ()
+		{
+			return ((IEnumerable<T>)underlyingColl).GetEnumerator();
+		}
+		
 		public void Dispose()
+		{
+			Dispose(true);
+		}
+		
+		protected virtual void Dispose(bool managedRes)
 		{
 			
 		}
@@ -302,7 +336,7 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public bool IsAddingComplete {
+		public bool IsAddingCompleted {
 			get {
 				return isComplete;
 			}
@@ -314,13 +348,13 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public object SyncRoot {
+		object ICollection.SyncRoot {
 			get {
 				return underlyingColl.SyncRoot;
 			}
 		}
 		
-		public bool IsSynchronized {
+		bool ICollection.IsSynchronized {
 			get {
 				return underlyingColl.IsSynchronized;
 			}

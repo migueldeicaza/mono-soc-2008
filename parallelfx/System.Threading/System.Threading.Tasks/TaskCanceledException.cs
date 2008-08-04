@@ -26,9 +26,22 @@ using System;
 
 namespace System.Threading.Tasks
 {
+	[Serializable]
 	public class TaskCanceledException: Exception
 	{
 		Task task;
+		
+		public TaskCanceledException(): base()
+		{
+		}
+		
+		public TaskCanceledException(string message): base(message)
+		{
+		}
+		
+		public TaskCanceledException(string message, Exception inner): base(message, inner)
+		{
+		}
 		
 		public TaskCanceledException(Task task): base ("The Task was canceled")
 		{

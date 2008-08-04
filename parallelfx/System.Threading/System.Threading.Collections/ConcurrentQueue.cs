@@ -31,7 +31,8 @@ namespace System.Threading.Collections
 {
 	
 	
-	public class ConcurrentQueue<T>: IConcurrentCollection<T>, IEnumerable<T>, ICollection, IEnumerable, ISerializable, IDeserializationCallback
+	public class ConcurrentQueue<T>: IConcurrentCollection<T>, IEnumerable<T>, ICollection
+		, IEnumerable, ISerializable, IDeserializationCallback
 	{
 		class Node
 		{
@@ -48,6 +49,12 @@ namespace System.Threading.Collections
 		public ConcurrentQueue()
 		{
 			tail = head;
+		}
+		
+		public ConcurrentQueue(IEnumerable<T> enumerable): this()
+		{
+			foreach (T item in enumerable)
+				Enqueue(item);
 		}
 		
 		/// <summary>
@@ -83,7 +90,7 @@ namespace System.Threading.Collections
 			Interlocked.Increment(ref count);
 		}
 		
-		public bool Add (T item)
+		bool IConcurrentCollection<T>.Add(T item)
 		{
 			Enqueue(item);
 			return true;
@@ -152,6 +159,11 @@ namespace System.Threading.Collections
 			return InternalGetEnumerator();
 		}
 		
+		public IEnumerator<T> GetEnumerator ()
+		{
+			return InternalGetEnumerator();
+		}
+		
 		IEnumerator<T> InternalGetEnumerator()
 		{
 			Node my_head = head;
@@ -160,7 +172,7 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public void CopyTo (Array array, int index)
+		void ICollection.CopyTo (Array array, int index)
 		{
 			T[] dest = array as T[];
 			if (dest == null)
@@ -189,7 +201,7 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 		
-		public bool IsSynchronized {
+		bool ICollection.IsSynchronized {
 			get { return true; }
 		}
 
@@ -198,13 +210,13 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 
-		public bool Remove (out T item)
+		bool IConcurrentCollection<T>.Remove (out T item)
 		{
 			return TryDequeue(out item);
 		}
 		
 		object syncRoot = new object();
-		public object SyncRoot {
+		object ICollection.SyncRoot {
 			get { return syncRoot; }
 		}
 		
