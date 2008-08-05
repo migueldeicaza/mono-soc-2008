@@ -89,5 +89,70 @@ namespace ParallelFxTests
 			Task.WaitAll(tasks);
 			Assert.AreEqual(max, achieved, "#1");
 		}
+		
+		[Test]
+		public void CancelTestCase()
+		{
+			bool result = false;
+			
+			Task t = new Task(TaskManager.Current, delegate {
+				result = true;
+			}, null, TaskCreationOptions.None);
+			t.Cancel();
+			t.Schedule();
+			
+			Assert.IsInstanceOfType(typeof(TaskCanceledException), t.Exception, "#1");
+			TaskCanceledException ex = (TaskCanceledException)t.Exception;
+			Assert.AreEqual(t, ex.Task, "#2");
+			Assert.IsFalse(result, "#3");
+		}
+		
+		[Test]
+		public void ContinueWithOnAnyTestCase()
+		{
+			bool result = false;
+			
+			Task t = Task.Create(delegate { });
+			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAny);
+			t.Wait();
+			cont.Wait();
+			
+			Assert.IsNull(cont.Exception, "#1");
+			Assert.IsNotNull(cont, "#2");
+			Assert.IsTrue(result, "#3");
+		}
+		
+		[Test]
+		public void ContinueWithOnAbortedTestCase()
+		{
+			bool result = false;
+			
+			Task t = new Task(TaskManager.Current, delegate { }, null, TaskCreationOptions.None);
+			t.Cancel();
+			t.Schedule();
+			
+			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAborted);
+			t.Wait();
+			cont.Wait();
+			
+			Assert.IsNull(cont.Exception, "#1");
+			Assert.IsNotNull(cont, "#2");
+			Assert.IsTrue(result, "#3");
+		}
+		
+		[Test]
+		public void ContinueWithOnFailedTestCase()
+		{
+			bool result = false;
+			
+			Task t = Task.Create(delegate {throw new Exception("foo"); });
+			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnFailed);
+			t.Wait();
+			cont.Wait();
+			
+			Assert.IsNotNull(t.Exception, "#1");
+			Assert.IsNotNull(cont, "#2");
+			Assert.IsTrue(result, "#3");
+		}
 	}
 }

@@ -42,7 +42,7 @@ namespace System.Threading.Tasks
 		int taskId;
 		//WaitHandle asyncWaitHandle;
 		Exception exception;
-		bool  isCanceled;
+		AtomicBoolean isCanceled;
 		bool respectParentCancellation;
 		bool isCompleted;
 		Task parent  = current;
@@ -72,15 +72,16 @@ namespace System.Threading.Tasks
 			
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 			
-			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
-				Task.Create(action, state, tm, taskCreationOptions);
+			// FIXME: sort-of infinite recursion
+			/*if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
+				Task.Create(action, state, tm, taskCreationOptions);*/
 			
 		}
 		
-		protected void Schedule()
+		internal protected void Schedule()
 		{
 			threadStart = delegate {
-				if (!isCanceled
+				if (!isCanceled.Value
 				    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 					current = this;
 					try {
@@ -188,7 +189,7 @@ namespace System.Threading.Tasks
 						CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnAborted:
-						if (isCanceled)
+						if (isCanceled.Value)
 							CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnFailed:
@@ -196,7 +197,7 @@ namespace System.Threading.Tasks
 							CheckAndSchedule(executeSync, continuation);
 						break;
 					case TaskContinuationKind.OnCompletedSuccessfully:
-						if (exception == null && !isCanceled)
+						if (exception == null && !isCanceled.Value)
 							CheckAndSchedule(executeSync, continuation);
 						break;
 				}
@@ -229,7 +230,7 @@ namespace System.Threading.Tasks
 		public void Cancel()
 		{
 			// Mark the Task as canceled so that the worker function will return immediately
-			isCanceled = true;
+			isCanceled.Value = true;
 		}
 		
 		public void CancelAndWait()
@@ -382,7 +383,7 @@ namespace System.Threading.Tasks
 		
 		public bool IsCanceled {
 			get {
-				return isCanceled;
+				return isCanceled.Value;
 			}
 		}
 
