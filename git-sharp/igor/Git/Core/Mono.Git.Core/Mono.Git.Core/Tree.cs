@@ -37,7 +37,7 @@ namespace Mono.Git.Core
 	/// </summary>
 	public class Tree : Object
 	{
-		private Dictionary<SHA1, TreeEntry> entries;
+		private TreeEntry[] entries;
 		
 		public override Type Type { get { return Type.Tree; } }
 		
@@ -58,16 +58,45 @@ namespace Mono.Git.Core
 			ParseTreeEntry (data, ref pos, out mode, out name, out id);
 			
 			//AddEntry (id, name, mode);
-			AddEntry (new SHA1 (id, false), new TreeEntry (name, mode));
+			//AddEntry (new SHA1 (id, false), new TreeEntry (name, mode));
 		}
 		
-		private void AddEntry (SHA1 id, TreeEntry entry)
+		private void AddEntry (byte[] mode, string name, SHA1 id)
 		{
-			if (entries.ContainsKey (id))
-				return;
+			List<TreeEntry> entriesList = new List<TreeEntry> (entries);
 			
-			entries.Add (id, entry);
+			entriesList.Add (new TreeEntry (mode, name, id));
+			
+			entries = entriesList.ToArray ();
 		}
+		
+		private TreeEntry GetTreeEntry (string name)
+		{
+			foreach (TreeEntry te in entries) {
+				if (te.Name.Equals (name)) {
+					return te;
+				}
+			}
+			
+			throw new ArgumentException ("entry: {0} was not found", name);
+		}
+		
+		private bool RemoveEntry (string name)
+		{
+			List<TreeEntry> entriesList = new List<TreeEntry> (entries);
+			
+			TreeEntry entry = GetTreeEntry (name);
+			
+			return entriesList.Remove (entry);
+		}
+//		
+//		private void AddEntry (SHA1 id, TreeEntry entry)
+//		{
+//			if (entries.ContainsKey (id))
+//				return;
+//			
+//			entries.Add (id, entry);
+//		}
 		
 //		public TreeEntry[] EntriesGitSorted ()
 //		{
@@ -90,11 +119,6 @@ namespace Mono.Git.Core
 		protected override void Encode (byte[] content)
 		{
 			throw new NotImplementedException ();
-		}
-		
-		public bool Exist (SHA1 id)
-		{
-			return entries.ContainsKey (id);
 		}
 	}
 }

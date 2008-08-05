@@ -1,21 +1,23 @@
 ﻿<UserCombinePreferences version="1.0" filename="/home/igor/gsoc/Git/Git.mds">
   <Files>
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/ObjectStore.cs" line="51" column="29" />
-    <File name="Tests/ObjectTest.cs" line="154" column="32" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/SHA1.cs" line="78" column="17" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/Tree.cs" line="51" column="22" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/Object.cs" line="303" column="20" />
+    <File name="Tests/ObjectTest.cs" line="1" column="1" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/TreeEntry.cs" line="38" column="8" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/SHA1.cs" line="1" column="1" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/GitFileMode.cs" line="41" column="5" />
   </Files>
   <Views>
     <ViewMemento id="ProjectPad">
-      <Node expanded="True">
+      <Node expanded="True" selected="True">
         <Node name="Core" expanded="True">
           <Node name="Mono.Git.Core" expanded="True">
             <Node name="Mono.Git.Core" expanded="True" />
+            <Node name="Mono.Git.Core.Repository" expanded="True" />
           </Node>
         </Node>
         <Node name="Tests" expanded="True">
-          <Node name="Tests" expanded="True">
-            <Node name="ObjectTest.cs" selected="True" />
-          </Node>
+          <Node name="Tests" expanded="True" />
         </Node>
       </Node>
     </ViewMemento>
@@ -27,7 +29,7 @@
     </ViewMemento>
   </Views>
   <Properties>
-    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Tests/ObjectTest.cs" />
+    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Core/Mono.Git.Core/Mono.Git.Core/GitFileMode.cs" />
     <Property key="ActiveConfiguration" value="Debug" />
   </Properties>
 </UserCombinePreferences>

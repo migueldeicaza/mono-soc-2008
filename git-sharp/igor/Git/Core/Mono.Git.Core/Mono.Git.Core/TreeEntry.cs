@@ -35,26 +35,37 @@ namespace Mono.Git.Core
 	/// Every Tree has entries, which are more trees and blobs, this is a
 	/// representation of a tree entry that can be another tree or a blob
 	/// </summary>
-	public class TreeEntry
+	public struct TreeEntry
 	{
 		private string name;
-		private byte[] mode;
+		private GitFileMode mode;
+		private SHA1 id;
 		
 		public string Name { get { return name; } }
-		public byte[] Mode { get { return mode; } }
+		public byte[] Mode { get { return mode.ModeBits; } }
+		public SHA1 Id { get { return id; } }
 		
-		public TreeEntry (string name, byte[] mode)
+		public TreeEntry (byte[] mode, string name, SHA1 id)
 		{
-			// TODO: some todos here, mode needs to be validated
-			// name too
+			if (id.Bytes.Length != 20)
+				throw new ArgumentException (String.Format
+				                             ("The size of the SHA1 is incorrect, tree entry is invalid has to be 20 and is: ", 
+				                              id.Bytes.Length));
 			
+			if (String.IsNullOrEmpty (name))
+				throw new ArgumentException ("Name is null, tree entry is invalid");
+			
+			if (mode.Length != 6)
+				throw new ArgumentException ("mode size is incorrect, tree entry is invalid, size has to be 6");
+			
+			this.mode = new GitFileMode (mode);
 			this.name = name;
-			this.mode = mode;
+			this.id = id;
 		}
 		
 		public override string ToString ()
 		{
-			return String.Format ("{0} {1}", Encoding.UTF8.GetString (mode), name);
+			return String.Format ("{0} {1} {2}", mode.ToString (), name, id.ToHexString ());
 		}
 	}
 }
