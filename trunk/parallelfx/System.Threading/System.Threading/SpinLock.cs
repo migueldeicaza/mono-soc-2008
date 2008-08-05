@@ -168,11 +168,14 @@ namespace System.Threading
 		//[ReliabilityContractAttribute]
 		public void Exit() 
 		{ 
+			threadWhoTookLock = int.MinValue;
 			lockState = isFree;
 		}
 
 		public void Exit(bool flushReleaseWrites) 
 		{ 
+			threadWhoTookLock = int.MinValue;
+			
 			// Mark the resource as available
 			if (!flushReleaseWrites) {
 				lockState = isFree;
