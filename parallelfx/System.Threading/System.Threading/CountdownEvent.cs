@@ -98,6 +98,11 @@ namespace System.Threading
 		
 		public bool Wait(int timeoutMilli)
 		{
+			if (timeoutMilli == -1) {
+				Wait();
+				return true;
+			}
+			
 			SpinWait wait = new SpinWait();
 			Stopwatch sw = Stopwatch.StartNew();
 			
