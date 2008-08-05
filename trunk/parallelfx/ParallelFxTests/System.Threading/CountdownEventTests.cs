@@ -86,5 +86,42 @@ namespace ParallelFxTests
 			evt.Decrement(7);
 			Assert.IsFalse(evt.TryIncrement(), "#2");
 		}
+		
+		[Test]
+		public void WaitTestCase()
+		{
+			int count = 0;
+			bool s = false;
+			
+			ParallelTestHelper.ParallelStressTest(evt, delegate (CountdownEvent e) {
+				if (Interlocked.Increment(ref count) % 2 == 0) {
+					Thread.Sleep(100);
+					while(!e.IsSet)
+						e.Decrement();
+				} else {
+					e.Wait();
+					s = true;
+				}
+			});
+			
+			Assert.IsTrue(s, "#1");
+			Assert.IsTrue(evt.IsSet, "#2");
+		}
+		
+		[Test]
+		public void IncrementDecrementStressTestCase()
+		{
+			int count = 0;
+			ParallelTestHelper.ParallelStressTest(evt, delegate (CountdownEvent e) {
+				int num = Interlocked.Increment(ref count);
+				if (num % 2 == 0)
+					e.Increment();
+				else
+					e.Decrement();
+			}, 7);
+			
+			Assert.AreEqual(4, evt.CurrentCount, "#1");
+			Assert.IsFalse(evt.IsSet, "#2");
+		}
 	}
 }
