@@ -23,8 +23,8 @@
 //
 
 using System;
-using System.Threading;
-using System.Collections.Generic;
+using System.Linq;
+//using System.Collections.Generic;
 using System.Threading.Collections;
 
 namespace System.Threading.Tasks
@@ -33,17 +33,15 @@ namespace System.Threading.Tasks
 	{
 		ConcurrentStack<Task> workQueue;
 		//ConcurrentStack<Task>[] workBuffers;
-		ThreadWorker[] workers;
+		ThreadWorker[]        workers;
+		ThreadWorker          participant;
+		bool                  isPulsable = true;
 		
 		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
 			//workQueue = new OptimizedStack<Task>(maxWorker);
 			workQueue = new ConcurrentStack<Task>();
 			workers = new ThreadWorker[maxWorker];
-			
-			/*participant = new LazyInit<ThreadWorker>(delegate {
-				return new ThreadWorker(this, workers, workQueue, false, 0, ThreadPriority.Normal);
-			});*/
 			
 			// -1 because the last ThreadWorker of the list is the one who call Participate
 			for (int i = 0; i < maxWorker - 1; i++) {
@@ -61,26 +59,27 @@ namespace System.Threading.Tasks
 			PulseAll();
 		}
 		
-		public void AddWorkRoundRobin(Task t)
+		// Revert to old behaviour, useful for certain application like Actors
+		public void Participate()
 		{
 			
 		}
 		
 		public void ParticipateUntil(Task task)
 		{
-			if (task.IsCompleted)
+			if (AreTasksFinished(task))
 				return;
 			
 			ThreadWorker participant = GetLocalThreadWorker();
 			
 			participant.WorkerMethod(delegate {
-				return task.IsCompleted;
+				return AreTasksFinished(task);
 			});
 		}
 		
 		public bool ParticipateUntil(Task task, Func<bool> predicate)
 		{
-			if (task.IsCompleted)
+			if (AreTasksFinished(task))
 				return false;
 			
 			bool isFromPredicate = false;
@@ -91,7 +90,7 @@ namespace System.Threading.Tasks
 					isFromPredicate = true;
 					return true;
 				}
-				return task.IsCompleted;	
+				return AreTasksFinished(task);	
 			});
 				
 			return isFromPredicate;
@@ -106,7 +105,6 @@ namespace System.Threading.Tasks
 			participant.WorkerMethod(predicate);
 		}
 		
-		bool isPulsable = true;
 		public void PulseAll()
 		{
 			if (isPulsable) {
@@ -125,9 +123,6 @@ namespace System.Threading.Tasks
 		public void UnInhibitPulse() {
 			isPulsable = true;
 		}
-
-		//LazyInit<ThreadWorker> participant;
-		ThreadWorker participant;
 		
 		// This one has no participation as it has no Dequeue suitable for stealing
 		// that's why it's not in the workers array
@@ -135,6 +130,14 @@ namespace System.Threading.Tasks
 		{
 			// It's ok to do the lazy init like this as there is only one thread which call this method (if the user don't mess up !)
 			return participant;
+		}
+		
+		bool AreTasksFinished(Task parent)
+		{
+			if (!parent.IsCompleted)
+				return false;
+			
+			return !parent.ChildTasks.Where((t) => !t.IsCompleted).Any();
 		}
 	}
 }

@@ -100,7 +100,7 @@ namespace System.Linq
 					sl.Enter();
 					if (result = enumerator.MoveNext()) {
 						current = item = enumerator.Current;
-						index = Interlocked.Increment(ref currIndex);
+						index   = ++currIndex;
 					}
 				} finally {
 					sl.Exit();
