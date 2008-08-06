@@ -34,11 +34,11 @@ namespace System.Threading.Tasks
 		
 		Thread workerThread;
 		
-		readonly          IScheduler            sched;
 		readonly          ThreadWorker[]        others;
 		internal readonly DynamicDeque<Task>    dDeque;
 		readonly          ConcurrentStack<Task> sharedWorkQueue;
 		//readonly        OptimizedStack<Task>  sharedWorkQueue;
+		readonly          Action<Task>          childWorkAdder;
 		
 		// Flag to tell if workerThread is running
 		int started = 0; 
@@ -49,7 +49,7 @@ namespace System.Threading.Tasks
 		const    int  maxRetry = 5;
 		
 		#region Sleep related fields
-		const int sleepTimeBeforeRetry = 0;
+		readonly SpinWait wait = new SpinWait();
 		const int sleepThreshold = 100000;
 		#endregion
 		
@@ -65,12 +65,16 @@ namespace System.Threading.Tasks
 		public ThreadWorker(IScheduler sched, ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
 		                    bool createThread, int maxStackSize, ThreadPriority priority)
 		{
-			this.sched           = sched;
 			this.others          = others;
 			this.dDeque          = new DynamicDeque<Task>();
 			this.sharedWorkQueue = sharedWorkQueue;
 			this.workerLength    = others.Length;
 			this.isLocal         = !createThread;
+			
+			this.childWorkAdder = delegate (Task t) { 
+				dDeque.PushBottom(t);
+				sched.PulseAll();
+			};
 			
 			// Find the stealing start index randomly (then the traversal
 			// will be done in Round-Robin fashion)
@@ -123,20 +127,16 @@ namespace System.Threading.Tasks
 		// This is the actual method called in the Thread
 		void WorkerMethodWrapper()
 		{
-			Task.childWorkAdder = (t) => { 
-				dDeque.PushBottom(t);
-				sched.PulseAll();
-				// Instead of adding as the next Task, preempt the current Task
-				// i.e. run it now (might be better suited to PLinq)
-				//t.threadStart();
-			};
 			int sleepTime = 0;
+			
 			// Main loop
 			while (started == 1) {
 				bool result = WorkerMethod();
-				Thread.Sleep(sleepTimeBeforeRetry);
-				// If the Thread has been more sleeping than working shut it down
-				if (result) sleepTime = 0;
+				
+				// Wait a little and if the Thread has been more sleeping than working shut it down
+				wait.SpinOnce();
+				if (result)
+					sleepTime = 0;
 				if (sleepTime++ > sleepThreshold) 
 					break;
 			}
@@ -151,16 +151,19 @@ namespace System.Threading.Tasks
 			bool hasStolenFromOther;
 			do {
 				hasStolenFromOther = false;
+				
 				Task value;
+				
 				// We fill up our work deque concurrently with other ThreadWorker
 				while (!sharedWorkQueue.IsEmpty) {
 					while (sharedWorkQueue.TryPop(out value)) {
 						dDeque.PushBottom(value);
 					}
+					
 					// Now we process our work
 					while (dDeque.PopBottom(out value) == PopResult.Succeed) {
 						if (value != null) {
-							value.threadStart();
+							value.Execute(childWorkAdder);
 							result = true;
 						}
 					}
@@ -168,6 +171,7 @@ namespace System.Threading.Tasks
 				
 				// When we have finished, steal from other worker
 				ThreadWorker other;
+				
 				// Repeat the operation a little so that we can let other things process.
 				for (int j = 0; j < maxRetry; j++) {
 					// Start stealing with the ThreadWorker at our right to minimize contention
@@ -175,18 +179,18 @@ namespace System.Threading.Tasks
 						int i = it % workerLength;
 						if ((other = others[i]) == null || other == this)
 							continue;
+						
 						// Maybe make this steal more than one item at a time, see TODO.
 						if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 							hasStolenFromOther = true;
 							if (value != null) {
-								value.threadStart();
+								value.Execute(childWorkAdder);
 								result = true;
 							}
 						}
 					}
 				}
 			} while (!sharedWorkQueue.IsEmpty || hasStolenFromOther);
-			//Console.WriteLine("End participation of " + this.workerThread.ManagedThreadId);
 			
 			return result;
 		}
@@ -203,9 +207,10 @@ namespace System.Threading.Tasks
 				// Dequeue only one item as we have restriction
 				if (sharedWorkQueue.TryPop(out value)) {
 					if (value != null) {
-						value.threadStart();
+						value.Execute(childWorkAdder);
 					}
 				}
+				
 				// First check to see if we comply to predicate
 				if (predicate()) {
 					return;
@@ -217,11 +222,13 @@ namespace System.Threading.Tasks
 					int i = it % workerLength;
 					if ((other = others[i]) == null || other == this)
 						continue;
+					
 					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 						if (value != null) {
-							value.threadStart();
+							value.Execute(childWorkAdder);
 						}
 					}
+					
 					if (predicate()) {
 						return;
 					}

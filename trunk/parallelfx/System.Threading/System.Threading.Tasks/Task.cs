@@ -24,6 +24,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
@@ -32,31 +33,29 @@ namespace System.Threading.Tasks
 		// With this attribute each thread has its own value so that it's correct for our Schedule code
 		// and for Parent and Creator properties. Though it may not be the value that Current should yield.
 		[System.ThreadStatic]
-		static Task current;
-		
+		static Task         current;
 		[System.ThreadStatic]
-		internal static Action<Task> childWorkAdder;
+		static Action<Task> childWorkAdder;
+		static int          id = 0;
 		
-		static int id = 0;
-		
-		int taskId;
-		//WaitHandle asyncWaitHandle;
-		Exception exception;
-		AtomicBoolean isCanceled;
-		bool respectParentCancellation;
-		bool isCompleted;
+		IConcurrentCollection<Task> childTasks = new ConcurrentQueue<Task>();
 		Task parent  = current;
 		Task creator = current;
+		
+		int                 taskId;
+		Exception           exception;
+		AtomicBoolean       isCanceled;
+		bool                respectParentCancellation;
+		bool                isCompleted;
 		TaskCreationOptions taskCreationOptions;
 		
-		// Ugly coding style thanks to API designer
+		// Ugly coding style because of initial API
 		protected readonly TaskManager m_taskManager;
-		protected readonly object m_stateObject;
+		protected readonly object      m_stateObject;
+		
 		Action<object> action;
-		
-		EventHandler Completed;
-		
-		internal ThreadStart threadStart;
+		EventHandler   completed;
+		ThreadStart    threadStart;
 			
 		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
@@ -69,47 +68,14 @@ namespace System.Threading.Tasks
 			// Process taskCreationOptions
 			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached))
 				parent = null;
-			
+			else if (parent != null)
+				parent.AddChild(this);
+				
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 			
 			// FIXME: sort-of infinite recursion
 			/*if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
 				Task.Create(action, state, tm, taskCreationOptions);*/
-			
-		}
-		
-		internal protected void Schedule()
-		{
-			threadStart = delegate {
-				if (!isCanceled.Value
-				    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
-					current = this;
-					try {
-						InnerInvoke();
-					} catch (Exception e) {
-						exception = e;
-					}
-				} else {
-					this.exception = new TaskCanceledException(this);
-				}
-				
-				isCompleted = true;
-				// Call the event in the correct style
-				EventHandler tempCompleted = Completed;
-				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
-				Finish();
-			};
-			
-			// If worker is null it means it is a local one, revert to the old behavior
-			if (current == null || childWorkAdder == null) {
-				m_taskManager.AddWork(this);
-			} else {
-				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
-				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
-				 * the correct Thread during the creation
-				 */
-				childWorkAdder(this);
-			}
 		}
 
 		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)
@@ -121,6 +87,7 @@ namespace System.Threading.Tasks
 			Dispose(false);
 		}
 		
+		#region Create and ContinueWith
 		public static Task Create(Action<object> action)
 		{
 			return Create(action, null, TaskManager.Default, TaskCreationOptions.None);
@@ -179,11 +146,11 @@ namespace System.Threading.Tasks
 		protected void ContinueWithCore(Task continuation, TaskContinuationKind kind, bool executeSync)
 		{
 			if (IsCompleted) {
-				continuation.Schedule();
+				CheckAndSchedule(executeSync, continuation);
 				return;
 			}
 				
-			this.Completed += delegate {
+			completed += delegate {
 				switch (kind) {
 					case TaskContinuationKind.OnAny:
 						CheckAndSchedule(executeSync, continuation);
@@ -211,20 +178,75 @@ namespace System.Threading.Tasks
 			else
 				continuation.Schedule();
 		}
+		#endregion
 		
-		public static Task Current {
-			get {
-				return current;
+		#region Internal and protected thingies
+		internal protected void Schedule()
+		{
+			threadStart = delegate {
+				if (!isCanceled.Value
+				    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
+					current = this;
+					try {
+						InnerInvoke();
+					} catch (Exception e) {
+						exception = e;
+					}
+				} else {
+					this.exception = new TaskCanceledException(this);
+				}
+				
+				isCompleted = true;
+				
+				// Call the event in the correct style
+				EventHandler tempCompleted = completed;
+				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
+				
+				Finish();
+			};
+			
+			// If worker is null it means it is a local one, revert to the old behavior
+			if (current == null || childWorkAdder == null) {
+				m_taskManager.AddWork(this);
+			} else {
+				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
+				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
+				 * the correct Thread during the creation
+				 */
+				childWorkAdder(this);
 			}
+		}
+		
+		internal void Execute(Action<Task> childAdder)
+		{
+			childWorkAdder = childAdder;
+			threadStart();
+		}
+		
+		internal void AddChild(Task t)
+		{
+			childTasks.Add(t);
 		}
 
 		protected virtual void InnerInvoke()
 		{
 			action(m_stateObject);
 			// Set action to null so that the GC can collect the delegate and thus
-			// any big object references that the user might have captured in a anonymous method
+			// any big object references that the user might have captured in an anonymous method
 			action = null;
 		}
+		
+		protected void Finish()
+		{
+			Dispose();
+		}
+		
+		internal IConcurrentCollection<Task> ChildTasks {
+			get {
+				return childTasks;
+			}
+		}
+		#endregion
 		
 		#region Cancel and Wait related methods
 		public void Cancel()
@@ -253,8 +275,6 @@ namespace System.Threading.Tasks
 		
 		public void Wait()
 		{
-			if (this.IsCompleted)
-				return;
 			m_taskManager.WaitForTask(this);
 		}
 		
@@ -265,9 +285,6 @@ namespace System.Threading.Tasks
 		
 		public bool Wait(int millisecondsTimeout)
 		{
-			if (this.IsCompleted)
-				return true;
-			
 			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
 			bool result = m_taskManager.WaitForTaskWithPredicate(this, delegate { return sw.ElapsedMilliseconds >= millisecondsTimeout; });
 			sw.Stop();
@@ -276,12 +293,22 @@ namespace System.Threading.Tasks
 		
 		public static void WaitAll(params Task[] tasks)
 		{
+			if (tasks == null)
+				throw new ArgumentNullException("tasks");
+			if (tasks.Length == 0)
+				throw new ArgumentException("tasks is empty", "tasks");
+			
 			foreach (var t in tasks)
 				t.Wait();
 		}
 		
 		public static bool WaitAll(Task[] tasks, TimeSpan ts)
 		{
+			if (tasks == null)
+				throw new ArgumentNullException("tasks");
+			if (tasks.Length == 0)
+				throw new ArgumentException("tasks is empty", "tasks");
+			
 			bool result = true;
 			foreach (var t in tasks)
 				result &= t.Wait(ts);
@@ -290,6 +317,11 @@ namespace System.Threading.Tasks
 		
 		public static bool WaitAll(Task[] tasks, int millisecondsTimeout)
 		{
+			if (tasks == null)
+				throw new ArgumentNullException("tasks");
+			if (tasks.Length == 0)
+				throw new ArgumentException("tasks is empty", "tasks");
+			
 			bool result = true;
 			foreach (var t in tasks)
 				result &= t.Wait(millisecondsTimeout);
@@ -299,6 +331,11 @@ namespace System.Threading.Tasks
 		// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
 		public static int WaitAny(params Task[] tasks)
 		{
+			if (tasks == null)
+				throw new ArgumentNullException("tasks");
+			if (tasks.Length == 0)
+				throw new ArgumentException("tasks is empty", "tasks");
+			
 			int numFinished = 0;
 			int indexFirstFinished = -1;
 			int index = 0;
@@ -307,7 +344,7 @@ namespace System.Threading.Tasks
 				if (t.IsCompleted) {
 					return index;
 				}
-				t.Completed += delegate (object sender, EventArgs e) {
+				t.completed += delegate (object sender, EventArgs e) {
 					int result = Interlocked.Increment(ref numFinished);
 					// Check if we are the first to have finished
 					if (result == 1) {
@@ -318,7 +355,8 @@ namespace System.Threading.Tasks
 				index++;
 			}
 			
-			TaskManager.Current.WaitForTasksUntil(delegate {
+			// All tasks are supposed to use the same TaskManager
+			tasks[0].m_taskManager.WaitForTasksUntil(delegate {
 				return numFinished >= 1;
 			});
 			
@@ -332,11 +370,19 @@ namespace System.Threading.Tasks
 		
 		public static int WaitAny(Task[] tasks, int millisecondsTimeout)
 		{
+			if (millisecondsTimeout < -1)
+				throw new ArgumentOutOfRangeException("millisecondsTimeout");
+			if (tasks == null)
+				throw new ArgumentNullException("tasks");
+			
+			if (millisecondsTimeout == -1)
+				return WaitAny(tasks);
+			
 			int numFinished = 0;
 			int indexFirstFinished = -1;
 			
 			foreach (Task t in tasks) {
-				t.Completed += delegate (object sender, EventArgs e) { 
+				t.completed += delegate (object sender, EventArgs e) { 
 					int result = Interlocked.Increment(ref numFinished);
 					if (result == 1) {
 						Task target = (Task)sender;
@@ -346,7 +392,7 @@ namespace System.Threading.Tasks
 			}
 			
 			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-			TaskManager.Current.WaitForTasksUntil(delegate {
+			tasks[0].m_taskManager.WaitForTasksUntil(delegate {
 				if (sw.ElapsedMilliseconds > millisecondsTimeout)
 					return true;
 				return numFinished >= 1;
@@ -355,13 +401,9 @@ namespace System.Threading.Tasks
 			
 			return indexFirstFinished;
 		}
-		
-		protected void Finish()
-		{
-			Dispose();
-		}
 		#endregion
 		
+		#region Dispose
 		public void Dispose()
 		{
 			Dispose(true);
@@ -371,8 +413,18 @@ namespace System.Threading.Tasks
 		{
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in a anonymous method
-			if (disposeManagedRes)
+			if (disposeManagedRes) {
 				action = null;
+				completed = null;
+			}
+		}
+		#endregion
+		
+		#region Properties
+		public static Task Current {
+			get {
+				return current;
+			}
 		}
 		
 		public Exception Exception {
@@ -439,6 +491,6 @@ namespace System.Threading.Tasks
 		{
 			return Id.ToString();
 		}
-
+		#endregion
 	}
 }

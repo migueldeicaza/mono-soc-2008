@@ -123,6 +123,21 @@ namespace ParallelFxTests
 		}
 		
 		[Test]
+		public void ContinueWithOnCompletedSuccessfullyTestCase()
+		{
+			bool result = false;
+			
+			Task t = Task.Create(delegate { });
+			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnCompletedSuccessfully);
+			t.Wait();
+			cont.Wait();
+			
+			Assert.IsNull(cont.Exception, "#1");
+			Assert.IsNotNull(cont, "#2");
+			Assert.IsTrue(result, "#3");
+		}
+		
+		[Test]
 		public void ContinueWithOnAbortedTestCase()
 		{
 			bool result = false;
@@ -153,6 +168,32 @@ namespace ParallelFxTests
 			Assert.IsNotNull(t.Exception, "#1");
 			Assert.IsNotNull(cont, "#2");
 			Assert.IsTrue(result, "#3");
+		}
+		
+		[Test]
+		public void WaitChildTestCase()
+		{
+			bool r1 = false, r2 = false, r3 = false;
+			
+			Task t = Task.Create(delegate {
+				Task.Create(delegate {
+					Thread.Sleep(50);
+					r1 = true;
+				});
+				Task.Create(delegate {
+					Thread.Sleep(100);
+					r2 = true;
+				});
+				Task.Create(delegate {
+					Thread.Sleep(150);
+					r3 = true;
+				});
+			});
+			
+			t.Wait();
+			Assert.IsTrue(r3, "#1");
+			Assert.IsTrue(r2, "#2");
+			Assert.IsTrue(r1, "#1");
 		}
 	}
 }

@@ -56,6 +56,22 @@ namespace System.Threading
 			}
 		}
 		
+		static void InitTasks(Task[] tasks, Action<object> action, int count, TaskManager tm, TaskCreationOptions opt)
+		{
+			for (int i = 0; i < count; i++) {
+				tasks[i] = Task.Create(action, tm, opt);
+			}
+		}
+		
+		static void InitCleanerCallback<TLocal>(Task[] tasks, ParallelState<TLocal> state, Action<TLocal> cleanFunc)
+		{
+			Action<Task> cleanCallback = delegate (Task t) {
+				cleanFunc(state.ThreadLocalState);
+			};
+			foreach (Task t in tasks)
+				t.ContinueWith(cleanCallback, TaskContinuationKind.OnAny, TaskCreationOptions.None, true);
+		}
+		
 		public static void For(int from, int to, Action<int> action)
 		{
 			For(from, to, 1, action);
@@ -63,28 +79,7 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int> action)
 		{
-			if (action == null)
-				throw new ArgumentNullException("action");
-			if (step < 0)
-				throw new ArgumentOutOfRangeException("step", "step must be positive");
-			
-			int num = GetBestWorkerNumber();
-
-			Task[] tasks = new Task[num];
-			
-			int currentIndex = from;
-			
-			Action<object> workerMethod = delegate {
-				int index;
-				while ((index = Interlocked.Add(ref currentIndex, step) - step) < to) {
-					action (index);
-				}
-			};
-			
-			InitTasks(tasks, workerMethod, num);
-			
-			Task.WaitAll(tasks);
-			HandleExceptions(tasks);
+			For(from, to, step, (i, state) => action(i));
 		}
 		
 		public static void For(int from, int to, Action<int, ParallelState> action)
@@ -94,6 +89,11 @@ namespace System.Threading
 		
 		public static void For(int from, int to, int step, Action<int, ParallelState> action)
 		{
+			if (action == null)
+				throw new ArgumentNullException("action");
+			if (step < 0)
+				throw new ArgumentOutOfRangeException("step", "step must be positive");
+			
 			int num = GetBestWorkerNumber();
 
 			Task[] tasks = new Task[num];
@@ -109,7 +109,7 @@ namespace System.Threading
 			};
 			
 			InitTasks(tasks, workerMethod, num);
-			
+
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
 		}
@@ -123,7 +123,18 @@ namespace System.Threading
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
 		                               Action<int, ParallelState<TLocal>> body)
 		{
-			// TODO: could refactor this
+			For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector, body, null);
+		}
+		
+		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
+		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
+		{
+			For<TLocal>(fromInclusive, toExclusive, 1, threadLocalSelector, body, threadLocalCleanup);
+		}
+		
+		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
+		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
+		{
 			if (body == null)
 				throw new ArgumentNullException("body");
 			if (step < 0)
@@ -146,21 +157,11 @@ namespace System.Threading
 			};
 			
 			InitTasks(tasks, workerMethod, num);
+			if (threadLocalCleanup != null)
+				InitCleanerCallback(tasks, state, threadLocalCleanup);
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
-		}
-		
-		public static void For<TLocal>(int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
-		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			throw new NotImplementedException();
-		}
-		
-		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			throw new NotImplementedException();
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
@@ -286,23 +287,20 @@ namespace System.Threading
 		}
 		
 		public static void Invoke(params Action[] actions)
-		{
-			if (actions.Length == 0)
-				throw new ArgumentException("actions is empty");
-			
+		{			
 			Invoke(actions, (Action a) => Task.Create((o) => a()));
 		}
 		
 		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
-			if (actions.Length == 0)
-				throw new ArgumentException("actions is empty");
-			
 			Invoke(actions, (Action a) => Task.Create((o) => a(), tm, tco));
 		}
 		
 		public static void Invoke(Action[] actions, Func<Action, Task> taskCreator)
 		{
+			if (actions.Length == 0)
+				throw new ArgumentException("actions is empty");
+			
 			// Execute it directly
 			if (actions.Length == 1)
 				actions[0]();
@@ -313,7 +311,6 @@ namespace System.Threading
 			Task.WaitAll(ts);
 			HandleExceptions(ts);
 		}
-		
 		
 		// Used by PLinq
 		internal static Task[] SpawnBestNumber(Action action, Action callback)
@@ -356,24 +353,5 @@ namespace System.Threading
 			
 			return tasks;
 		}
-		
-		// Faire une fonctio nfactory qui renvoit une fonction paramétré correctement avec le seed et ensuite
-		// passé normalement à SpawnBestNumber
-		/*internal static void SpawnBestNumber<T>(Action<T>, T seed, Func<T, T> incr, int dop)
-		{
-			// Get the optimum amount of worker to create
-			int num = dop == -1 ? GetBestWorkerNumber() : dop;
-			
-			// Initialize worker
-			Task[] tasks = new Task[num];
-			T acc = seed;
-			for (int i = 0; i < num; i++) {
-				T priv = acc;
-				tasks[i] = Task.Create(_ => action(priv));
-				acc = incr(acc);
-			}
-			
-			Task.WaitAll(tasks);
-		}*/
 	}
 }

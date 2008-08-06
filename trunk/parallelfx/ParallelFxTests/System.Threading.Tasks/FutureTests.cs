@@ -1,4 +1,4 @@
-// IScheduler.cs
+// FutureTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,19 +24,22 @@
 
 using System;
 using System.Threading;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace System.Threading.Tasks
+using NUnit.Framework;
+
+namespace ParallelFxTests
 {
-	internal interface IScheduler
+	[TestFixture]
+	public class FutureTests
 	{
-		void AddWork(Task t);
-		void Participate();
-		void ParticipateUntil(Task task);
-		bool ParticipateUntil(Task task, Func<bool> predicate);
-		void ParticipateUntil(Func<bool> predicate);
-		void PulseAll();
-		/*void InhibitPulse();
-		void UnInhibitPulse();*/
+		[Test]
+		public void SimpleFutureTestCase()
+		{
+			Future<int> f = Future.Create(() => 5);
+			
+			Assert.IsNotNull(f, "#1");
+			Assert.AreEqual(5, f.Value, "#2");
+		}
 	}
 }
