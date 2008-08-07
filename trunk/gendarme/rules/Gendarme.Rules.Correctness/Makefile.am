@@ -6,10 +6,12 @@ CLEANFILES = Gendarme.Rules.Correctness.dll Test.Rules.Correctness.dll *.mdb Tes
 DISTCLEANFILES = Makefile.in TestResult.xml
 
 correctness_sources = \
-	ProvideCorrectArgumentsToFormattingMethodsRule.cs
+	ProvideCorrectArgumentsToFormattingMethodsRule.cs \
+	AttributeStringLiteralsShouldParseCorrectlyRule.cs
 
 correctness_test_sources = \
-	ProvideCorrectArgumentsToFormattingMethodsTest.cs	
+	ProvideCorrectArgumentsToFormattingMethodsTest.cs \
+	AttributeStringLiteralsShouldParseCorrectlyTest.cs	
 
 correctness_build_sources = $(addprefix $(srcdir)/, $(correctness_sources))
 correctness_test_build_sources = $(addprefix $(srcdir)/Test/, $(correctness_test_sources))
