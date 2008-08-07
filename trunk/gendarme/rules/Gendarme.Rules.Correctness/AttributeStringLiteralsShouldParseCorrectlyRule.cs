@@ -32,6 +32,13 @@ using Mono.Cecil;
 namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
-	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule {
+	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule {
+		public RuleResult CheckMethod (MethodDefinition method)
+		{
+			if (method.CustomAttributes.Count == 0)
+				return RuleResult.DoesNotApply;
+
+			return Runner.CurrentRuleResult;
+		}
 	}
 }
