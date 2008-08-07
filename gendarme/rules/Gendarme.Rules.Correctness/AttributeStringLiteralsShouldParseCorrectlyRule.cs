@@ -57,6 +57,15 @@ namespace Gendarme.Rules.Correctness {
 							Runner.Report (method, Severity.High, Confidence.Low);	
 						}
 					}
+
+					if (parameters[index].Name.Contains ("guid")) {
+						try {
+							new Guid ((string) values[index]);
+						}
+						catch {
+							Runner.Report (method, Severity.High, Confidence.Low);
+						}
+					}
 				}
 			}
 		}
