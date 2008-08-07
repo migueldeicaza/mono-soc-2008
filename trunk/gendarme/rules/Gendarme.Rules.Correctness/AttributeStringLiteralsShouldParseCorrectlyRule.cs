@@ -26,6 +26,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
+using System.Collections;
 using Gendarme.Framework;
 using Mono.Cecil;
 
@@ -33,10 +35,30 @@ namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
 	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule {
+
+		private void CheckParametersAndValues (MethodDefinition method, ParameterDefinitionCollection parameters, IList values)
+		{
+			for (int index = 0; index < values.Count; index++) {
+				if (String.Compare (parameters[index].ParameterType.FullName, "System.String") == 0) {
+					if (parameters[index].Name.Contains ("version")) {
+						try {
+							new Version ((string) values[index]);
+						}
+						catch {
+							Runner.Report (method, Severity.High, Confidence.Low);	
+						}
+					}
+				}
+			}
+		}
+
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (method.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
+			
+			foreach (CustomAttribute attribute in method.CustomAttributes) 
+				CheckParametersAndValues (method, attribute.Constructor.Parameters, attribute.ConstructorParameters);
 
 			return Runner.CurrentRuleResult;
 		}

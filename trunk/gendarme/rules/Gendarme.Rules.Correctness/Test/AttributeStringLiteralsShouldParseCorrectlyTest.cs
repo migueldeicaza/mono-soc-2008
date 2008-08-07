@@ -26,18 +26,48 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Correctness;
 using Test.Rules.Fixtures;
 using Test.Rules.Definitions;
 using NUnit.Framework;
 
 namespace Test.Rules.Correctness {
+	[AttributeUsage (AttributeTargets.All)]
+	class ValidSince : Attribute {
+		public ValidSince (string version)
+		{
+		}
+	}
+
 	[TestFixture]
 	public class AttributeStringLiteralsShouldParseCorrectlyMethodTest : MethodRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
 		[Test]
 		public void SkipOnAttributelessMethodsTest ()
 		{
 			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
+		
+		[ValidSince ("1.0.0.0")]
+		public void WellAttributedMethod ()
+		{
+		}
+
+		[Test]
+		public void SuccessOnWellAttributedMethodTest ()
+		{
+			AssertRuleSuccess<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("WellAttributedMethod");
+		}
+
+		[ValidSince ("foo")]
+		public void BadAttributedMethod ()
+		{
+		}
+
+		[Test]
+		public void FailOnBadAttributedMethodTest ()
+		{
+			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadAttributedMethod", 1);
 		}
 	}
 }
