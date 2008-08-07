@@ -40,31 +40,23 @@ namespace Gendarme.Rules.Correctness {
 		{
 			for (int index = 0; index < values.Count; index++) {
 				if (String.Compare (parameters[index].ParameterType.FullName, "System.String") == 0) {
-					if (parameters[index].Name.Contains ("version")) {
-						try {
-							new Version ((string) values[index]);
+					try {
+						string value = (string) values[index];
+						if (parameters[index].Name.Contains ("version")) { 
+							new Version (value);
+							continue;
 						}
-						catch {
-							Runner.Report (method, Severity.High, Confidence.Low);	
+						if (parameters[index].Name.Contains ("url")) {
+							new Uri (value);
+							continue;
 						}
-					}
-
-					if (parameters[index].Name.Contains ("url")) {
-						try {
-							new Uri ((string) values[index]);
-						}
-						catch {
-							Runner.Report (method, Severity.High, Confidence.Low);	
+						if (parameters[index].Name.Contains ("guid")) {
+							new Guid (value);
+							continue;
 						}
 					}
-
-					if (parameters[index].Name.Contains ("guid")) {
-						try {
-							new Guid ((string) values[index]);
-						}
-						catch {
-							Runner.Report (method, Severity.High, Confidence.Low);
-						}
+					catch {
+						Runner.Report (method, Severity.High, Confidence.Low);
 					}
 				}
 			}
