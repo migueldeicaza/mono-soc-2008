@@ -48,6 +48,15 @@ namespace Gendarme.Rules.Correctness {
 							Runner.Report (method, Severity.High, Confidence.Low);	
 						}
 					}
+
+					if (parameters[index].Name.Contains ("url")) {
+						try {
+							new Uri ((string) values[index]);
+						}
+						catch {
+							Runner.Report (method, Severity.High, Confidence.Low);	
+						}
+					}
 				}
 			}
 		}

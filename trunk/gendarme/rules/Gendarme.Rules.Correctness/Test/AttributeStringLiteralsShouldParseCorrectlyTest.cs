@@ -40,6 +40,13 @@ namespace Test.Rules.Correctness {
 		}
 	}
 
+	[AttributeUsage (AttributeTargets.All)]
+	class Reference : Attribute {
+		public Reference (string url)
+		{
+		}
+	}
+
 	[TestFixture]
 	public class AttributeStringLiteralsShouldParseCorrectlyMethodTest : MethodRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
 		[Test]
@@ -49,6 +56,7 @@ namespace Test.Rules.Correctness {
 		}
 		
 		[ValidSince ("1.0.0.0")]
+		[Reference ("http://www.mono-project.com/Gendarme")]
 		public void WellAttributedMethod ()
 		{
 		}
@@ -60,6 +68,7 @@ namespace Test.Rules.Correctness {
 		}
 
 		[ValidSince ("foo")]
+		[Reference ("bar")]
 		public void BadAttributedMethod ()
 		{
 		}
@@ -67,7 +76,7 @@ namespace Test.Rules.Correctness {
 		[Test]
 		public void FailOnBadAttributedMethodTest ()
 		{
-			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadAttributedMethod", 1);
+			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadAttributedMethod", 2);
 		}
 	}
 }
