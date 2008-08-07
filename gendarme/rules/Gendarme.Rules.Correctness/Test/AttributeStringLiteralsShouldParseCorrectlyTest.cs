@@ -27,6 +27,17 @@
 //
 
 using Gendarme.Rules.Correctness;
+using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
+using NUnit.Framework;
 
 namespace Test.Rules.Correctness {
+	[TestFixture]
+	public class AttributeStringLiteralsShouldParseCorrectlyMethodTest : MethodRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
+		[Test]
+		public void SkipOnAttributelessMethodsTest ()
+		{
+			AssertRuleDoesNotApply (SimpleMethods.EmptyMethod);
+		}
+	}
 }
