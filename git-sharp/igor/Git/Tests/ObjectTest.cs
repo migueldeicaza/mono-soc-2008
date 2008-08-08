@@ -241,5 +241,20 @@ namespace Mono.Git.Tests
 			
 			Console.WriteLine (fi.Attributes);
 		}
+		
+		public static void ReadDirectories (string path)
+		{
+			string[] files;
+			
+			files = Directory.GetFileSystemEntries (path);
+			
+			foreach (string entry in files) {
+				if (File.Exists (entry)) {
+					Console.WriteLine ("{0} is a file", entry);
+				} else if (Directory.Exists (entry)) {
+					Console.WriteLine ("{0} is a directory", entry);
+				}
+			}
+		}
 	}
 }

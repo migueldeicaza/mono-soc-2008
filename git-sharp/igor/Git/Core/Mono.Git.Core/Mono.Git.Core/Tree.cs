@@ -40,6 +40,7 @@ namespace Mono.Git.Core
 		private TreeEntry[] entries;
 		
 		public override Type Type { get { return Type.Tree; } }
+		public TreeEntry[] Entries { get { return entries; } }
 		
 		public Tree (byte[] content) : base (Type.Tree, content) // TODO: add a real encoding
 		{
@@ -57,8 +58,7 @@ namespace Mono.Git.Core
 			
 			ParseTreeEntry (data, ref pos, out mode, out name, out id);
 			
-			//AddEntry (id, name, mode);
-			//AddEntry (new SHA1 (id, false), new TreeEntry (name, mode));
+			AddEntry (mode, name, new SHA1 (id, false));
 		}
 		
 		private void AddEntry (byte[] mode, string name, SHA1 id)
@@ -87,7 +87,17 @@ namespace Mono.Git.Core
 			
 			TreeEntry entry = GetTreeEntry (name);
 			
-			return entriesList.Remove (entry);
+			if (entriesList.Remove (entry)){
+				entries = entriesList.ToArray ();
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		public void SortEnties ()
+		{
+			throw new NotImplementedException ("Sort tree entries is not implemented yet");
 		}
 //		
 //		private void AddEntry (SHA1 id, TreeEntry entry)
