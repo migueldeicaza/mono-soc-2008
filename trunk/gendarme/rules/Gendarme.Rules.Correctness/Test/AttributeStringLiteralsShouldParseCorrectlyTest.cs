@@ -34,21 +34,21 @@ using NUnit.Framework;
 
 namespace Test.Rules.Correctness {
 	[AttributeUsage (AttributeTargets.All)]
-	class ValidSince : Attribute {
+	public class ValidSince : Attribute {
 		public ValidSince (string version)
 		{
 		}
 	}
 
 	[AttributeUsage (AttributeTargets.All)]
-	class Reference : Attribute {
+	public class Reference : Attribute {
 		public Reference (string url)
 		{
 		}
 	}
 
 	[AttributeUsage (AttributeTargets.All)]
-	class Uses : Attribute {
+	public class Uses : Attribute {
 		public Uses (string guid)
 		{
 		}
