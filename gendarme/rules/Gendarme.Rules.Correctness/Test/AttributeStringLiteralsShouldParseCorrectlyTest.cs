@@ -97,5 +97,30 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleDoesNotApply (SimpleTypes.Class);
 		}
+		
+		[ValidSince ("1.0.0.0")]
+		[Reference ("http://www.mono-project.com/Gendarme")]
+		[Uses ("00000101-0000-0000-c000-000000000046")]
+		class WellAttributedClass {
+		}
+
+		[Test]
+		public void SuccessOnWellAttributedClassTest ()
+		{
+			AssertRuleSuccess<WellAttributedClass> ();
+		}
+
+
+		[ValidSince ("foo")]
+		[Reference ("bar")]
+		[Uses ("0")]	
+		class BadAttributedClass {
+		}
+
+		[Test]
+		public void FailOnBadAttributedClassTest ()
+		{
+			AssertRuleFailure<BadAttributedClass> (3);
+		}
 	}
 }
