@@ -76,12 +76,17 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			if (type.CustomAttributes.Count == 0)
+			if (type.CustomAttributes.Count == 0 && type.Fields.Count == 0)
 				return RuleResult.DoesNotApply;
 
 			foreach (CustomAttribute attribute in type.CustomAttributes) 
 				CheckParametersAndValues (type, attribute.Constructor.Parameters, attribute.ConstructorParameters);
 			
+			foreach (FieldDefinition field in type.Fields) {
+				foreach (CustomAttribute attribute in field.CustomAttributes) 
+					CheckParametersAndValues (field, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+			}
+
 			return Runner.CurrentRuleResult;
 		}
 	}
