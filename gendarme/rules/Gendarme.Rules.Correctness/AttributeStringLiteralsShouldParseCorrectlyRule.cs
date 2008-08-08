@@ -34,9 +34,9 @@ using Mono.Cecil;
 namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
-	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule {
+	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
-		private void CheckParametersAndValues (IMetadataTokenProvider method, ParameterDefinitionCollection parameters, IList values)
+		private void CheckParametersAndValues (IMetadataTokenProvider provider, ParameterDefinitionCollection parameters, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
 				ParameterDefinition parameter = parameters[index];
@@ -57,7 +57,7 @@ namespace Gendarme.Rules.Correctness {
 						}
 					}
 					catch {
-						Runner.Report (method, Severity.High, Confidence.Low);
+						Runner.Report (provider, Severity.High, Confidence.Low);
 					}
 				}
 			}
@@ -86,6 +86,17 @@ namespace Gendarme.Rules.Correctness {
 				foreach (CustomAttribute attribute in field.CustomAttributes) 
 					CheckParametersAndValues (field, attribute.Constructor.Parameters, attribute.ConstructorParameters);
 			}
+
+			return Runner.CurrentRuleResult;
+		}
+
+		public RuleResult CheckAssembly (AssemblyDefinition assembly)
+		{
+			if (assembly.CustomAttributes.Count == 0)
+				return RuleResult.DoesNotApply;
+			
+			foreach (CustomAttribute attribute in assembly.CustomAttributes)  
+				CheckParametersAndValues (assembly, attribute.Constructor.Parameters, attribute.ConstructorParameters);
 
 			return Runner.CurrentRuleResult;
 		}
