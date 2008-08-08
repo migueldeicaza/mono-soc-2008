@@ -190,6 +190,7 @@ namespace Mono.Git.Core
 			
  			return true;
 		}
+		
 		protected static bool ParseHeader (byte[] input, ref int pos, out Type type, out string length)
 		{
 			// FIXME: I'm getting an error if I don't asign these parameters, this is because
@@ -385,26 +386,26 @@ namespace Mono.Git.Core
 			
 			ParseHeader (content, ref pos, out type, out length);
 			
+			byte[] objectContent = new byte[(content.Length) - pos];
+			Array.Copy (content, pos, objectContent, 0, objectContent.Length);
+			
 			switch (type) {
 			case Type.Blob:
-				byte[] blobContent = new byte[(content.Length) - pos];
-				Array.Copy (content, pos, blobContent, 0, blobContent.Length);
-				return new Blob (blobContent);
+				return new Blob (objectContent);
 			case Type.Tree:
-				//TODO: return new Tree (contents);
+				return new Tree (objectContent);
 				break;
 			case Type.Tag:
-				//TOOD: return new Blob (contents);
+				//TOOD: return new Tag (contents);
 				break;
 			case Type.Commit:
-				//TODO: return new Blob (contents);
+				//TODO: return new Commit (contents);
 				break;
 			}
 			
-			// This is to ensure that all the code paths return a value
-			byte[] blobBytes = new byte[content.Length - pos];
-			content.CopyTo (blobBytes, pos);
-			return new Blob (blobBytes);
+			// To ensure that all code paths returns an object
+			// anyway this code will never be reached
+			return new Blob (objectContent);
 		}
 		
 		protected abstract byte[] Decode ();

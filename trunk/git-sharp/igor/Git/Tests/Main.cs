@@ -63,6 +63,9 @@ namespace Mono.Git.Tests
 			case "mode":
 				ObjectTest.TestFileSystemModes ();
 				break;
+			case "dir":
+				ObjectTest.ReadDirectories ("/home/igor/gsoc/Git/Tests/bin/Debug");
+				break;
 			}
 		}
 	}

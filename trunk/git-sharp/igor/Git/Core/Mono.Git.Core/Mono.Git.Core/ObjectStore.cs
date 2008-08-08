@@ -220,9 +220,39 @@ namespace Mono.Git.Core
 			return null;
 		}
 		
-		protected void WriteObject (Object o)
+		protected void PersistObject (SHA1 id)
 		{
-			// TODO
+			Object o = cache[id];
+			
+			FileStream fs = new FileStream(path + o.Id.GetGitFileName (), FileMode.CreateNew, FileAccess.Write);
+			BinaryWriter bw = new BinaryWriter (fs);
+			
+			bw.Write (Compress (o.Content));
+			
+			bw.Close ();
+			fs.Close ();
+		}
+		
+		protected byte[] RetrieveContent (SHA1 id)
+		{
+			FileStream fs = new FileStream (path + id.GetGitFileName (), FileMode.Open, FileAccess.Read);
+			BinaryReader br = new BinaryReader (fs);
+			
+			byte[] bytes = new byte[(int) fs.Length];
+			fs.Read (bytes, 0, (int) fs.Length);
+			bytes = Decompress (bytes);
+			
+			br.Close ();
+			fs.Close ();
+			
+			return bytes;
+		}
+		
+		protected Object RetrieveObject (SHA1 id)
+		{
+			byte[] bytes = RetrieveContent (id);
+			
+			return Object.DecodeObject (bytes);
 		}
 	}
 }
