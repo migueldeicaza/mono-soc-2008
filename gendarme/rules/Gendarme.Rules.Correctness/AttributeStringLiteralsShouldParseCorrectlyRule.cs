@@ -34,23 +34,24 @@ using Mono.Cecil;
 namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
-	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule {
+	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule {
 
 		private void CheckParametersAndValues (MethodDefinition method, ParameterDefinitionCollection parameters, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
-				if (String.Compare (parameters[index].ParameterType.FullName, "System.String") == 0) {
+				ParameterDefinition parameter = parameters[index];
+				if (String.Compare (parameter.ParameterType.FullName, "System.String") == 0) {
 					try {
 						string value = (string) values[index];
-						if (parameters[index].Name.Contains ("version")) { 
+						if (parameter.Name.Contains ("version")) { 
 							new Version (value);
 							continue;
 						}
-						if (parameters[index].Name.Contains ("url")) {
+						if (parameter.Name.Contains ("url")) {
 							new Uri (value);
 							continue;
 						}
-						if (parameters[index].Name.Contains ("guid")) {
+						if (parameter.Name.Contains ("guid")) {
 							new Guid (value);
 							continue;
 						}
@@ -70,6 +71,11 @@ namespace Gendarme.Rules.Correctness {
 			foreach (CustomAttribute attribute in method.CustomAttributes) 
 				CheckParametersAndValues (method, attribute.Constructor.Parameters, attribute.ConstructorParameters);
 
+			return Runner.CurrentRuleResult;
+		}
+
+		public RuleResult CheckType (TypeDefinition type)
+		{
 			return Runner.CurrentRuleResult;
 		}
 	}

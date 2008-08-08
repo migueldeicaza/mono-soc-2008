@@ -88,4 +88,14 @@ namespace Test.Rules.Correctness {
 			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadAttributedMethod", 3);
 		}
 	}
+
+	[TestFixture]
+	public class AttributeStringLiteralsShouldParseCorrectlyTypeTest : TypeRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
+		
+		[Test]
+		public void SkipOnAttributelessTypesTest ()
+		{
+			AssertRuleDoesNotApply (SimpleTypes.Class);
+		}
+	}
 }
