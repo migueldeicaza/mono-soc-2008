@@ -76,6 +76,9 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
+			if (type.CustomAttributes.Count == 0)
+				return RuleResult.DoesNotApply;
+
 			return Runner.CurrentRuleResult;
 		}
 	}
