@@ -122,5 +122,31 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleFailure<BadAttributedClass> (3);
 		}
+
+		class WellAttributedClassWithFields {
+			[ValidSince ("1.0.0.0")]
+			[Reference ("http://www.mono-project.com/Gendarme")]
+			[Uses ("00000101-0000-0000-c000-000000000046")]
+			object obj;
+
+		}
+
+		[Test]
+		public void SuccessOnWellAttributedClassWithFieldsTest () {
+			AssertRuleSuccess<WellAttributedClassWithFields> ();
+		}
+
+		class BadAttributedClassWithFields {
+			[ValidSince ("foo")]
+			[Reference ("bar")]
+			[Uses ("0")]	
+			int foo;
+		}
+
+		[Test]
+		public void FailOnBadAttributedClassWithFieldsTest ()
+		{
+			AssertRuleFailure<BadAttributedClassWithFields> (3);
+		}
 	}
 }
