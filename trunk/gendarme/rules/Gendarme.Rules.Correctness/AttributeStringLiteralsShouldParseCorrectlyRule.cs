@@ -36,7 +36,7 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("")]
 	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule {
 
-		private void CheckParametersAndValues (MethodDefinition method, ParameterDefinitionCollection parameters, IList values)
+		private void CheckParametersAndValues (IMetadataTokenProvider method, ParameterDefinitionCollection parameters, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
 				ParameterDefinition parameter = parameters[index];
@@ -79,6 +79,9 @@ namespace Gendarme.Rules.Correctness {
 			if (type.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 
+			foreach (CustomAttribute attribute in type.CustomAttributes) 
+				CheckParametersAndValues (type, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+			
 			return Runner.CurrentRuleResult;
 		}
 	}
