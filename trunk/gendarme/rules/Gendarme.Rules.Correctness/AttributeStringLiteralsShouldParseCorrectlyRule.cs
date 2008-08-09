@@ -53,7 +53,9 @@ namespace Gendarme.Rules.Correctness {
 							new Version (value);
 							continue;
 						}
-						if (Contains (parameter.Name, "url")) {
+						if (Contains (parameter.Name, "url") ||
+							Contains (parameter.Name, "uri") ||
+							Contains (parameter.Name, "urn")) {
 							new Uri (value);
 							continue;
 						}
