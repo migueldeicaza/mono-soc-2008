@@ -35,7 +35,7 @@ using Mono.Cecil;
 namespace Gendarme.Rules.Correctness {
 	[Problem ("")]
 	[Solution ("")]
-	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
+	public class AttributeStringLiteralsShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
 		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodDefinition constructor, IList values)
 		{
@@ -64,7 +64,7 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 		
-		public void CheckAttributesIn (IMetadataTokenProvider provider)
+		private void CheckAttributesIn (IMetadataTokenProvider provider)
 		{
 			ICustomAttributeProvider attributeProvider = provider as ICustomAttributeProvider;
 			if (attributeProvider == null)
