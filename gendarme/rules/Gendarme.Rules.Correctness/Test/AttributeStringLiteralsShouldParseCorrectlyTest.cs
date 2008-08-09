@@ -35,7 +35,7 @@ using NUnit.Framework;
 namespace Test.Rules.Correctness {
 	[AttributeUsage (AttributeTargets.All)]
 	public class ValidSince : Attribute {
-		public ValidSince (string version)
+		public ValidSince (string assemblyVersion)
 		{
 		}
 	}
