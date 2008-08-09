@@ -33,8 +33,8 @@ using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Correctness {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("As you are representing urls, versions or guids as strings, those parameters could be bad formatted and could cause some troubles at run time.")]
+	[Solution ("You should format correctly the reported parameters.")]
 	public class AttributeStringLiteralsShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
 		private static bool Contains (string original, string value)
@@ -47,8 +47,8 @@ namespace Gendarme.Rules.Correctness {
 			for (int index = 0; index < values.Count; index++) {
 				ParameterDefinition parameter = constructor.Parameters[index];
 				if (String.Compare (parameter.ParameterType.FullName, "System.String") == 0) {
+					string value = (string) values[index];
 					try {
-						string value = (string) values[index];
 						if (Contains (parameter.Name, "version")) { 
 							new Version (value);
 							continue;
@@ -65,7 +65,7 @@ namespace Gendarme.Rules.Correctness {
 						}
 					}
 					catch {
-						Runner.Report (provider, Severity.High, Confidence.Low);
+						Runner.Report (provider, Severity.High, Confidence.High, String.Format ("The parameter {0} in the attribute {1} is not a valid string for representing the type you are referring.", value, constructor.DeclaringType.FullName));
 					}
 				}
 			}
