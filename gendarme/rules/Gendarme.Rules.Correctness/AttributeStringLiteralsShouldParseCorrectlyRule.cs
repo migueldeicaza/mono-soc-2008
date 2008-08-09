@@ -63,15 +63,23 @@ namespace Gendarme.Rules.Correctness {
 				}
 			}
 		}
+		
+		public void CheckAttributesIn (ICustomAttributeProvider provider)
+		{
+			if (!(provider is IMetadataTokenProvider))
+				return;
+
+			foreach (CustomAttribute attribute in provider.CustomAttributes) 
+				CheckParametersAndValues ((IMetadataTokenProvider) provider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
 			if (method.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
-			foreach (CustomAttribute attribute in method.CustomAttributes) 
-				CheckParametersAndValues (method, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
-
+			CheckAttributesIn (method);		
+	
 			return Runner.CurrentRuleResult;
 		}
 
@@ -79,14 +87,11 @@ namespace Gendarme.Rules.Correctness {
 		{
 			if (type.CustomAttributes.Count == 0 && type.Fields.Count == 0)
 				return RuleResult.DoesNotApply;
-
-			foreach (CustomAttribute attribute in type.CustomAttributes) 
-				CheckParametersAndValues (type, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 			
-			foreach (FieldDefinition field in type.Fields) {
-				foreach (CustomAttribute attribute in field.CustomAttributes) 
-					CheckParametersAndValues (field, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
-			}
+			CheckAttributesIn (type);
+			
+			foreach (FieldDefinition field in type.Fields)
+				CheckAttributesIn (field); 
 
 			return Runner.CurrentRuleResult;
 		}
@@ -96,8 +101,7 @@ namespace Gendarme.Rules.Correctness {
 			if (assembly.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
-			foreach (CustomAttribute attribute in assembly.CustomAttributes) 
-				CheckParametersAndValues (assembly, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+			CheckAttributesIn (assembly);			
 
 			return Runner.CurrentRuleResult;
 		}
