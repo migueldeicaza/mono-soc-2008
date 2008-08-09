@@ -29,6 +29,7 @@
 using System;
 using System.Collections;
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Correctness {
@@ -36,10 +37,10 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("")]
 	public class AttributeStringLiteralShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
-		private void CheckParametersAndValues (IMetadataTokenProvider provider, ParameterDefinitionCollection parameters, IList values)
+		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodDefinition constructor, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
-				ParameterDefinition parameter = parameters[index];
+				ParameterDefinition parameter = constructor.Parameters[index];
 				if (String.Compare (parameter.ParameterType.FullName, "System.String") == 0) {
 					try {
 						string value = (string) values[index];
@@ -69,7 +70,7 @@ namespace Gendarme.Rules.Correctness {
 				return RuleResult.DoesNotApply;
 			
 			foreach (CustomAttribute attribute in method.CustomAttributes) 
-				CheckParametersAndValues (method, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+				CheckParametersAndValues (method, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 
 			return Runner.CurrentRuleResult;
 		}
@@ -80,11 +81,11 @@ namespace Gendarme.Rules.Correctness {
 				return RuleResult.DoesNotApply;
 
 			foreach (CustomAttribute attribute in type.CustomAttributes) 
-				CheckParametersAndValues (type, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+				CheckParametersAndValues (type, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 			
 			foreach (FieldDefinition field in type.Fields) {
 				foreach (CustomAttribute attribute in field.CustomAttributes) 
-					CheckParametersAndValues (field, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+					CheckParametersAndValues (field, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 			}
 
 			return Runner.CurrentRuleResult;
@@ -95,8 +96,8 @@ namespace Gendarme.Rules.Correctness {
 			if (assembly.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
-			foreach (CustomAttribute attribute in assembly.CustomAttributes)  
-				CheckParametersAndValues (assembly, attribute.Constructor.Parameters, attribute.ConstructorParameters);
+			foreach (CustomAttribute attribute in assembly.CustomAttributes) 
+				CheckParametersAndValues (assembly, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 
 			return Runner.CurrentRuleResult;
 		}
