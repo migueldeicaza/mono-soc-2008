@@ -64,13 +64,14 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 		
-		public void CheckAttributesIn (ICustomAttributeProvider provider)
+		public void CheckAttributesIn (IMetadataTokenProvider provider)
 		{
-			if (!(provider is IMetadataTokenProvider))
+			ICustomAttributeProvider attributeProvider = provider as ICustomAttributeProvider;
+			if (attributeProvider == null)
 				return;
 
-			foreach (CustomAttribute attribute in provider.CustomAttributes) 
-				CheckParametersAndValues ((IMetadataTokenProvider) provider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+			foreach (CustomAttribute attribute in attributeProvider.CustomAttributes) 
+				CheckParametersAndValues (provider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
