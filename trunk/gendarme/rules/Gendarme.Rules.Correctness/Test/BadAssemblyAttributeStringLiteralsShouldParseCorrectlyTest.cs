@@ -50,7 +50,7 @@ namespace Test.Rules.Correctness {
 		{
 			string unit = Assembly.GetExecutingAssembly ().Location;
 			assembly = AssemblyFactory.GetAssembly (unit);
-			runner = new TestRunner (new AttributeStringLiteralShouldParseCorrectlyRule ());
+			runner = new TestRunner (new AttributeStringLiteralsShouldParseCorrectlyRule ());
 		}
 
 		[Test]

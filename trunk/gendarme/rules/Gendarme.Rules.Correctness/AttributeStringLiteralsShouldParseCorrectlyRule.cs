@@ -37,6 +37,11 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("")]
 	public class AttributeStringLiteralsShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
+		private static bool Contains (string original, string value)
+		{
+			return original.IndexOf (value, 0, StringComparison.OrdinalIgnoreCase) != -1;
+		}
+
 		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodDefinition constructor, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
@@ -44,15 +49,15 @@ namespace Gendarme.Rules.Correctness {
 				if (String.Compare (parameter.ParameterType.FullName, "System.String") == 0) {
 					try {
 						string value = (string) values[index];
-						if (parameter.Name.Contains ("version")) { 
+						if (Contains (parameter.Name, "version")) { 
 							new Version (value);
 							continue;
 						}
-						if (parameter.Name.Contains ("url")) {
+						if (Contains (parameter.Name, "url")) {
 							new Uri (value);
 							continue;
 						}
-						if (parameter.Name.Contains ("guid")) {
+						if (Contains (parameter.Name, "guid")) {
 							new Guid (value);
 							continue;
 						}

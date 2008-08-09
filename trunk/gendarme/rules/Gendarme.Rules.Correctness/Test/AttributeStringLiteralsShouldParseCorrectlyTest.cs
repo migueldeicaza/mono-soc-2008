@@ -55,7 +55,7 @@ namespace Test.Rules.Correctness {
 	}
 
 	[TestFixture]
-	public class AttributeStringLiteralsShouldParseCorrectlyMethodTest : MethodRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
+	public class AttributeStringLiteralsShouldParseCorrectlyMethodTest : MethodRuleTestFixture<AttributeStringLiteralsShouldParseCorrectlyRule> {
 		[Test]
 		public void SkipOnAttributelessMethodsTest ()
 		{
@@ -90,7 +90,7 @@ namespace Test.Rules.Correctness {
 	}
 
 	[TestFixture]
-	public class AttributeStringLiteralsShouldParseCorrectlyTypeTest : TypeRuleTestFixture<AttributeStringLiteralShouldParseCorrectlyRule> {
+	public class AttributeStringLiteralsShouldParseCorrectlyTypeTest : TypeRuleTestFixture<AttributeStringLiteralsShouldParseCorrectlyRule> {
 		
 		[Test]
 		public void SkipOnAttributelessTypesTest ()
