@@ -1,4 +1,4 @@
-// IActor.cs
+// ActorMessage.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,17 +23,30 @@
 //
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace System.Threading.Actors
 {
-	// The type T represents the type of the message passed to the actor
-	public interface IActor<T>
+	public struct ActorMessage<T>
 	{
-		void Send          (object sender, T message);
-		void Receive       (Action<ActorMessage<T>> handler);
-		bool TryReceive    (Action<ActorMessage<T>> handler);
-		T    SendToAndWait<U>(IActor<U> destination, U message);		
+		object sender;
+		T      message;
+		
+		public object Sender {
+			get {
+				return sender;
+			}
+		}
+		
+		public T Message {
+			get {
+				return message;
+			}
+		}
+		
+		public ActorMessage(object sender, T message)
+		{
+			this.sender = sender;
+			this.message = message;
+		}
 	}
 }

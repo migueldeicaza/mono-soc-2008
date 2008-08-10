@@ -145,7 +145,7 @@ namespace System.Threading.Tasks
 		}
 		
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
-		bool WorkerMethod()
+		internal bool WorkerMethod()
 		{
 			bool result = false;
 			bool hasStolenFromOther;

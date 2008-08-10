@@ -1,4 +1,4 @@
-// IActor.cs
+// Combinators.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,17 +23,32 @@
 //
 
 using System;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace System.Threading.Actors
 {
-	// The type T represents the type of the message passed to the actor
-	public interface IActor<T>
+	public static class Combinators
 	{
-		void Send          (object sender, T message);
-		void Receive       (Action<ActorMessage<T>> handler);
-		bool TryReceive    (Action<ActorMessage<T>> handler);
-		T    SendToAndWait<U>(IActor<U> destination, U message);		
+		public static Task AndThen(Action initial, params Action[] chain)
+		{
+			Task root = Task.Create(delegate { initial(); });
+			chain.Aggregate(root, (t, a) => t.ContinueWith(delegate { a(); }));
+			
+			return root;
+		}
+		
+		public static Task Loop(Action body)
+		{
+			return AndThen(body, delegate { Loop(body); });
+		}
+		
+		public static Task LoopWhile(Action body, Func<bool> predicate)
+		{
+			if (predicate())
+				return AndThen(body, delegate { LoopWhile(body, predicate); });
+			
+			return Task.Create(delegate { });
+		}
 	}
 }

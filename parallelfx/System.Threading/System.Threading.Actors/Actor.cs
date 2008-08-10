@@ -33,7 +33,7 @@ namespace System.Threading.Actors
 			return CreateActor(action, false);
 		}
 		
-		public static IActor<T> CreateQueuedActor<T>(Action<T> action)
+		public static IActor<T> CreateBufferedActor<T>(Action<T> action)
 		{
 			return CreateActor(action, true);
 		}
