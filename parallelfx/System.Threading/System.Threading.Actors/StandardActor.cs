@@ -36,10 +36,7 @@ namespace System.Threading.Actors
 		ConcurrentQueue<T> mbox = new ConcurrentQueue<T>();
 		Action<T> action;
 		
-		// Flag telling if there is processing occuring
-		int       isRunning;
-		const int running = 1;
-		const int idle    = 0;
+		AtomicBoolean suspended = false;
 		
 		public StandardActor(Action<T> action)
 		{
@@ -48,17 +45,16 @@ namespace System.Threading.Actors
 		
 		public void Act(T data)
 		{
-			int result = Interlocked.Exchange(ref isRunning, running);
 			// If idle then we process the data and create a continuation to test if there has been
 			// further work added while we were processing
-			if (result == idle) {
+			if (suspended.Exchange(false)) {
 				Task.Create(delegate {
 					action(data);
 					T other;
 					while (mbox.TryDequeue(out other)) {
 						action(other);
 					}
-					Thread.VolatileWrite(ref isRunning, idle);
+					suspended.Value = true;
 				});
 			} else {
 				mbox.Enqueue(data);
