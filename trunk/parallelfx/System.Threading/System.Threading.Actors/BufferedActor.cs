@@ -1,4 +1,4 @@
-// ScalaActor.cs
+// BufferedActor.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -29,70 +29,58 @@ using System.Threading.Tasks;
 using System.Threading.Collections;
 
 namespace System.Threading.Actors
-{
-	public class ScalaActor<T>
-	{
-		struct Message {
-			public ScalaActor Sender;
-			public T Mess;
-			
-			public Message(ScalaActor sender, T message)
-			{
-				this.Sender = sender;
-				this.Mess = message;
-			}
-		}
+{	
+	public class BufferedActor<T>: IActor<T>
+	{	
+		ConcurrentQueue<ActorMessage<T>> mbox = new ConcurrentQueue<ActorMessage<T>>();
 		
-		ConcurrentQueue<Message> mbox      = new ConcurrentQueue<Message>();
-		AtomicBoolean            suspended = false;
-		
-		Action<ScalaActor, T> continuation;
-		
-		public ScalaActor(Action<ScalaActor> body)
+		public BufferedActor(Action<BufferedActor<T>> body)
 		{
 			Task.Create(delegate { body(this); });
 		}
 		
-		public void AndThen(Action<ScalaActor> initial, params Action<ScalaActor>[] chain)
+		public void Send(object sender, T message)
 		{
-			Task root = Task.Create(delegate { initial(this); });
-			chain.Aggregate(root, (t, a) => t.ContinueWith(delegate { a(this); }));
+			mbox.Enqueue(new ActorMessage<T>(sender, message));
 		}
 		
-		public void Loop(Action<ScalaActor> body)
+		public void Receive(Action<ActorMessage<T>> handler)
 		{
-			AndThen(body, delegate { Loop(body); });
+			bool flag = true;
+			
+			Combinators.LoopWhile(delegate {
+				flag = !TryReceive(handler);
+			}, () => flag).Wait();
 		}
 		
-		public void LoopWhile(Action<ScalaActor> body, Func<bool> predicate)
+		public T SendToAndWait<U>(IActor<U> dest, U message)
 		{
-			if (predicate())
-				AndThen(body, delegate { Loop(body); });
-		}
-		
-		public void SendTo(ScalaActor actor, T message)
-		{
-			actor.Send(this, message);
-		}
-		
-		void Send(ScalaActor sender, T message)
-		{
-			if (suspended.Value)
-				continuation(sender, message);
-			else
-				mbox.Enqueue(new Message(sender, message));
-		}
-		
-		public void React(Action<ScalaActor, T> handler)
-		{
-			suspended.Value = false;
-			Message message;
-			if (mbox.TryDequeue(out message)) {
-				Task.Create(delegate { handler(message.Sender, message.Mess); });
-			} else {
-				continuation    = handler;
-				suspended.Value = true;
+			T data;
+			dest.Send(this, message);
+			bool flag = true;
+			while (flag) {
+				Receive((m) => {
+					if (m.Sender == dest) {
+						data = m.Message;
+						flag = false;
+					} else {
+						mbox.Enqueue(m);
+					}	
+				});
 			}
+			
+			return data;
+		}
+		
+		public bool TryReceive(Action<ActorMessage<T>> handler)
+		{
+			ActorMessage<T> message;
+			if (mbox.TryDequeue(out message)) {
+				Task.Create(delegate { handler(message); });
+				return true;
+			}
+
+			return false;
 		}
 	}
 }
