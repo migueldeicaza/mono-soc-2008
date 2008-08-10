@@ -59,10 +59,14 @@ namespace System.Threading.Tasks
 			PulseAll();
 		}
 		
-		// Revert to old behaviour, useful for certain application like Actors
+		// Behave like a normal worker without regards for certain task completion.
+		// Useful for certain application like Actors
 		public void Participate()
 		{
-			
+			ThreadWorker worker = GetLocalThreadWorker();
+			workers[workers.Length - 1] = worker;
+			worker.WorkerMethod();
+			workers[workers.Length - 1] = null;
 		}
 		
 		public void ParticipateUntil(Task task)
