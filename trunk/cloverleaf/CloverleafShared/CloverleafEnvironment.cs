@@ -27,6 +27,8 @@ namespace CloverleafShared
         private static String iniFileName;
         private static IniConfigSource iniFile;
 
+		public static Boolean IsAddin { get; private set; }
+
         /// <summary>
         /// Prepares the CloverleafEnvironment values for application use.
         /// </summary>
@@ -66,6 +68,13 @@ namespace CloverleafShared
             monoBinPath = Path.Combine(MonoRootPath, "bin");
 
         }
+
+		public static void InitializeAddin()
+		{
+			CloverleafEnvironment.IsAddin = true;
+			Initialize();
+		}
+
         /// <summary>
         /// The user-specific application data directory for Cloverleaf.
         /// </summary>
