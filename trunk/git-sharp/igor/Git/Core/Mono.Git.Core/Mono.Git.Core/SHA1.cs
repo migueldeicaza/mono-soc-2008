@@ -80,7 +80,7 @@ namespace Mono.Git.Core
 			// Final length of the string will have 2 chars for every byte
 			StringBuilder hexString = new StringBuilder (size * 2);
 			
-			for (int i = start; i < (start + size); i++)
+			for (int i = start; i < size; i++)
 				hexString.Append (bytes[i].ToString ("x2"));
 			
 			return hexString.ToString ();
@@ -93,7 +93,7 @@ namespace Mono.Git.Core
 		
 		public string GetGitFileName ()
 		{
-			return ToHexString (0, 2) + "/" + ToHexString (2, 20);
+			return ToHexString (0, 1) + "/" + ToHexString (1, bytes.Length);
 		}
 		
 		public bool Equals (SHA1 o)
@@ -102,6 +102,34 @@ namespace Mono.Git.Core
 				return true;
 			
 			return bytes.Equals (o.Bytes);
+		}
+		
+		private static byte FromHexChar (char c) 
+		{
+			if ((c >= 'a') && (c <= 'f'))
+				return (byte) (c - 'a' + 10);
+			if ((c >= 'A') && (c <= 'F'))
+				return (byte) (c - 'A' + 10);
+			if ((c >= '0') && (c <= '9'))
+				return (byte) (c - '0');
+			throw new ArgumentException ("Invalid hex char");
+		}
+		
+		public static byte[] FromHexString (string hex) 
+		{
+			if (hex == null)
+				return null;
+			if ((hex.Length & 0x1) == 0x1)
+				throw new ArgumentException ("Length must be a multiple of 2");
+			
+			byte[] result = new byte [hex.Length >> 1];
+			int n = 0;
+			int i = 0;
+			while (n < result.Length) {
+				result [n] = (byte) (FromHexChar (hex [i++]) << 4);
+				result [n++] += FromHexChar (hex [i++]);
+			}
+			return result;
 		}
 	}
 }

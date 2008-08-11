@@ -66,6 +66,9 @@ namespace Mono.Git.Tests
 			case "dir":
 				ObjectTest.ReadDirectories ("/home/igor/gsoc/Git/Tests/bin/Debug");
 				break;
+			case "checkout":
+				ObjectTest.CheckoutTest ();
+				break;
 			}
 		}
 	}

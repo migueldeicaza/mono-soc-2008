@@ -64,29 +64,47 @@ namespace Mono.Git.Core
 	{
 		private IndividualFileType file_type;
 		private IndividualFileType sym_link;
+		private IndividualFileType zero;
 		private IndividualFileMode user;
 		private IndividualFileMode group;
 		private IndividualFileMode other;
 		
 		public GitFileMode (byte[] mode)
 		{
-			file_type = (IndividualFileType) mode[0];
-			sym_link = (IndividualFileType) mode[1];
-			// FIXME: I don't know why we save mode[2] we don't really need it
-			user = (IndividualFileMode) mode[3];
-			group = (IndividualFileMode) mode[4];
-			other = (IndividualFileMode) mode[5];
+			if ((char) mode[0] != '4') {
+				file_type = (IndividualFileType) ((char) mode[0]);
+				sym_link = (IndividualFileType) ((char) mode[1]);
+				zero = (IndividualFileType) ((char) mode[2]);
+				user = (IndividualFileMode) ((char) mode[3]);
+				group = (IndividualFileMode) ((char) mode[4]);
+				other = (IndividualFileMode) ((char) mode[5]);
+			} else {
+				file_type = (IndividualFileType) ((char) mode[0]);
+				sym_link = (IndividualFileType) ((char) mode[1]);
+				zero = IndividualFileType.Zero;
+				user = (IndividualFileMode) ((char) mode[2]);
+				group = (IndividualFileMode) ((char) mode[3]);
+				other = (IndividualFileMode) ((char) mode[4]);
+			}
 		}
 		
 		public byte[] ModeBits {
 			get {
-				return new byte[] {(byte) file_type, (byte) sym_link, 0, (byte) user, (byte) group, (byte) other};
+				if (file_type == IndividualFileType.Directory) {
+					return new byte[] {(byte) file_type, (byte) sym_link, (byte) user, (byte) group, (byte) other};
+				}
+				return new byte[] {(byte) file_type, (byte) sym_link, (byte) zero, (byte) user, (byte) group, (byte) other};
 			}
 		}
 		
 		public override string ToString ()
 		{
-			return String.Format ("{0}{1}0{3}{4}{5}", (byte) file_type, (byte) sym_link, (byte) user, (byte) group, (byte) other);
+			if (file_type == IndividualFileType.Directory) {
+				Console.WriteLine ("we go here?");
+				return String.Format ("0{0}{1}{2}{3}{4}", (char) file_type, (char) sym_link, (char) user, (char) group, (char) other);
+			}
+			
+			return String.Format ("{0}{1}{2}{3}{4}{5}", (char) file_type, (char) sym_link, (char) zero, (char) user, (char) group, (char) other);
 		}
 	}
 //	
