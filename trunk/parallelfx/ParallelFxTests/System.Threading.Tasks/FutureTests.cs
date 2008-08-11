@@ -33,13 +33,57 @@ namespace ParallelFxTests
 	[TestFixture]
 	public class FutureTests
 	{
+		Future<int> InitTestFuture()
+		{
+			return Future.Create(() => 5);
+		}
+		
 		[Test]
 		public void SimpleFutureTestCase()
 		{
-			Future<int> f = Future.Create(() => 5);
+			Future<int> f = InitTestFuture();
 			
 			Assert.IsNotNull(f, "#1");
 			Assert.AreEqual(5, f.Value, "#2");
+		}
+		
+		[Test]
+		public void EmptyFutureTestCase()
+		{
+			Future<int> f = Future.Create<int>();
+			f.Value = 3;
+			
+			Assert.AreEqual(3, f.Value, "#1");
+		}
+			
+		[Test, ExpectedExceptionAttribute()]
+		public void ManualSetWhenFunctionProvidedTestCase()
+		{
+			Future<int> f = InitTestFuture();
+			f.Value = 2;
+		}
+		
+		[Test, ExpectedExceptionAttribute()]
+		public void ManualSetTwoTimesTestCase()
+		{
+			Future<int> f = Future.Create<int>();
+			f.Value = 2;
+			f.Value = 3;
+		}
+		
+		[Test]
+		public void FutureContinueWithTestCase()
+		{
+			bool result = false;
+			
+			Future<int> f = InitTestFuture();
+			Future<int> cont = f.ContinueWith((future) => { result = true; return future.Value * 2; });
+			f.Wait();
+			cont.Wait();
+			
+			Assert.IsNotNull(cont, "#1");
+			Assert.IsTrue(result, "#2");
+			Assert.AreEqual(10, cont.Value);
 		}
 	}
 }
