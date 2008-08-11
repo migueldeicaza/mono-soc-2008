@@ -39,17 +39,29 @@ namespace CloverleafShared
     /// </summary>
     public abstract class BaseAppTester
     {
-        protected readonly String solutionDirectory;
-        protected readonly String solutionFileName;
+        protected String solutionDirectory;
+        protected String solutionFileName;
 
         
 
         public BaseAppTester(String slnFile, String slnDirectory)
         {
-            solutionFileName = slnFile;
-            solutionDirectory = slnDirectory;
-            CloverleafEnvironment.Initialize();
+			this.Initialize(slnFile, slnDirectory, false);
         }
+		public BaseAppTester(String slnFile, String slnDirectory, Boolean isAddin)
+		{
+			this.Initialize(slnFile, slnDirectory, isAddin);
+		}
+
+		private void Initialize(String slnFile, String slnDirectory, Boolean isAddin)
+		{
+			solutionFileName = slnFile;
+			solutionDirectory = slnDirectory;
+			if (isAddin == false)
+				CloverleafEnvironment.Initialize();
+			else
+				CloverleafEnvironment.InitializeAddin();
+		}
 
         public abstract void Go();
 

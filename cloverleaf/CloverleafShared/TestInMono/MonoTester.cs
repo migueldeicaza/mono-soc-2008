@@ -38,8 +38,8 @@ namespace CloverleafShared.TestInMono
     /// </summary>
     public class MonoTester : BaseAppTester
     {
-        public MonoTester(String slnFile, String slnDirectory)
-            : base(slnFile, slnDirectory)
+        public MonoTester(String slnFile, String slnDirectory, Boolean isAddin)
+            : base(slnFile, slnDirectory, isAddin)
         {
 
         }
@@ -48,7 +48,12 @@ namespace CloverleafShared.TestInMono
         {
             List<ProjectInfo> projects = FindProjects(solutionDirectory, true);
 
-            System.Windows.Forms.Application.Run(new MonoSelector(solutionDirectory, projects));
+			MonoSelector ms = new MonoSelector(solutionDirectory, projects);
+
+			if (CloverleafEnvironment.IsAddin == true)
+				ms.ShowDialog();
+			else
+				System.Windows.Forms.Application.Run(ms);
         }
     }
 }

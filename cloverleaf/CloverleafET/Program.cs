@@ -104,7 +104,7 @@ namespace CloverleafET
                 case "--monotest":
                     {
                         (new CloverleafShared.TestInMono.MonoTester(cmdArgs[2],
-                                Environment.CurrentDirectory)).Go();
+                                Environment.CurrentDirectory, false)).Go();
                         break;
                     }
                 case "--xsptest":
