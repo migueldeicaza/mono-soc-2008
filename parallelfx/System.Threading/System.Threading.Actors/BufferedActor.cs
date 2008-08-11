@@ -39,11 +39,22 @@ namespace System.Threading.Actors
 			Task.Create(delegate { body(this); });
 		}
 		
+		// Use this ctor in derived class and override Act method to do the actual processing
+		protected BufferedActor()
+		{
+			Task.Create(delegate { Act(); });
+		}
+		
+		protected virtual void Act()
+		{
+		}
+		
 		public void Send(object sender, T message)
 		{
 			mbox.Enqueue(new ActorMessage<T>(sender, message));
 		}
 		
+		// This method blocks by calling TryReceive repeatidly, always sure to return a good result
 		public void Receive(Action<ActorMessage<T>> handler)
 		{
 			bool flag = true;
@@ -51,6 +62,19 @@ namespace System.Threading.Actors
 			Combinators.LoopWhile(delegate {
 				flag = !TryReceive(handler);
 			}, () => flag).Wait();
+		}
+		
+		// This method try to dequeue an element from the message box and if successful
+		// launch a Task executing the handler with the dequeued element
+		public bool TryReceive(Action<ActorMessage<T>> handler)
+		{
+			ActorMessage<T> message;
+			if (mbox.TryDequeue(out message)) {
+				Task.Create(delegate { handler(message); });
+				return true;
+			}
+
+			return false;
 		}
 		
 		public T SendToAndWait<U>(IActor<U> dest, U message)
@@ -70,17 +94,6 @@ namespace System.Threading.Actors
 			}
 			
 			return data;
-		}
-		
-		public bool TryReceive(Action<ActorMessage<T>> handler)
-		{
-			ActorMessage<T> message;
-			if (mbox.TryDequeue(out message)) {
-				Task.Create(delegate { handler(message); });
-				return true;
-			}
-
-			return false;
 		}
 	}
 }

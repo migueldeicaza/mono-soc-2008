@@ -71,7 +71,7 @@ namespace System.Threading.Tasks
 			set {
 				int result = Interlocked.Exchange(ref alreadySet, 1);
 				if (result == 1)
-					throw new Exception("Value has already been set for this Future");
+					throw new Exception("Value has already been set for this Future or you can't manually set it");
 				this.value = value;
 			}
 		}
@@ -84,11 +84,16 @@ namespace System.Threading.Tasks
 		internal Future(TaskManager tm, Func<T> f, TaskCreationOptions options, bool scheduleNow):
 			base(tm, null, null, options)
 		{
-			func = delegate {
-				if (f != null) {
-					Value = f();
-				}
-			};
+			if (f != null) {
+				// Block manual set
+				alreadySet = 1;
+				func = delegate {
+					value = f();
+				};
+			} else {
+				func = delegate {};
+			}
+			
 			if (scheduleNow)
 				Schedule();
 		}
