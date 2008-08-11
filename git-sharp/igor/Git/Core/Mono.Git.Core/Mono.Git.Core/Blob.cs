@@ -41,7 +41,7 @@ namespace Mono.Git.Core
 		
 		public override Type Type { get { return Type.Blob; } }
 		
-		public Blob (byte[] data) : base (Type.Blob, data) // FIXME: Here we need to encode
+		public Blob (byte[] data) : base (Type.Blob, data)
 		{
 			this.data = data;
 		}

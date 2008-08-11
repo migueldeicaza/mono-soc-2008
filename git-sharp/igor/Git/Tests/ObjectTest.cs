@@ -256,5 +256,35 @@ namespace Mono.Git.Tests
 				}
 			}
 		}
+		
+		public static void CheckoutTest ()
+		{
+			ObjectStore store = new ObjectStore ("/home/igor/gsoc/Git/Tests/bin/Debug/test/.git/objects");
+			
+			SHA1 id = new SHA1 (SHA1.FromHexString ("ffa5153020bab4598f676c5b2f7df97bc582989d"), false);
+			
+			Console.WriteLine ("Hash: ffa5153020bab4598f676c5b2f7df97bc582989d");
+			Console.WriteLine ("Id: " + id.ToHexString ());
+			
+			Console.WriteLine ("hash created");
+			
+			foreach (byte b in store.Get (id).Content);
+//			
+//			return;
+//			
+//			Tree tree = new Tree (store.Get (id).Content);
+//			
+//			foreach (byte b in tree.Content)
+//				Console.Write ((char) b);
+//			
+//			foreach (TreeEntry e in tree.Entries)
+//				Console.WriteLine (e.Name);
+//			
+//			Console.WriteLine ("tree created");
+//			
+//			store.Checkout (store.Path, tree);
+//			
+//			Console.WriteLine ("Checkout done WIIIII!!!");
+		}
 	}
 }

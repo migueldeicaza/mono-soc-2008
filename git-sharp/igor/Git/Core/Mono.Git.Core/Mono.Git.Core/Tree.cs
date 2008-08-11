@@ -44,6 +44,37 @@ namespace Mono.Git.Core
 		
 		public Tree (byte[] content) : base (Type.Tree, content) // TODO: add a real encoding
 		{
+			if (content == null)
+				throw new ArgumentException ("The content provided is null");
+			
+			foreach (byte b in content)
+				Console.Write ((char) b);
+			
+			Console.WriteLine ("");
+			
+			// iterate over the whole array
+			for (int i = 0; i < content.Length; i++) {
+				Console.WriteLine ("uno: {0}, dos: {1}, tres: {2}, cuatro: {3}, cinco: {4}, seis: {5}", (char)content[i], (char)content[i + 1], (char)content[i + 2], (char)content[i + 3], (char)content[i + 4], (char)content[i + 5]);
+				
+				byte[] mode = new byte[6];
+				byte[] id = new byte[20];
+				string name;
+				
+				ParseTreeEntry (content, ref i, out mode, out name, out id);
+				
+				Console.WriteLine ("we parse i = " + i);
+				
+				Console.WriteLine ("mode: " + new GitFileMode (mode));
+				Console.WriteLine ("name: " + name);
+				Console.WriteLine ("id: " + new SHA1 (id, false).ToHexString ());
+				
+				string lineRead = Console.ReadLine ();
+				
+				if (lineRead.Contains ("q"))
+					break;
+				
+				//AddEntry (mode, name, new SHA1 (id, false));
+			}
 		}
 		
 		private void AddEntry (byte[] data)
@@ -99,27 +130,28 @@ namespace Mono.Git.Core
 		{
 			throw new NotImplementedException ("Sort tree entries is not implemented yet");
 		}
-//		
-//		private void AddEntry (SHA1 id, TreeEntry entry)
-//		{
-//			if (entries.ContainsKey (id))
-//				return;
-//			
-//			entries.Add (id, entry);
-//		}
 		
-//		public TreeEntry[] EntriesGitSorted ()
-//		{
-//			if (entries.Length == 0) {
-//				return entries;
-//			}
-//			
-//			TreeEntry[] newEntries = new TreeEntry[entries.Length];
-//			for (int i = entries.Length - 1; i >= 0; i--)
-//				newEntries[i] = entries[i];
-//			
-//			return newEntries;
-//		}
+		/// <summary>
+		/// This means that is a tree that doesn't cotains children trees
+		/// </summary>
+		/// <param name="tree">
+		/// A <see cref="Tree"/>
+		/// </param>
+		/// <param name="store">
+		/// A <see cref="ObjectStore"/>
+		/// </param>
+		/// <returns>
+		/// A <see cref="System.Boolean"/>
+		/// </returns>
+		protected static bool IsLastChild (Tree tree, ObjectStore store)
+		{
+			foreach (TreeEntry entry in tree.Entries) {
+				if (store.Get (entry.Id).Type == Type.Tree)
+					return false;
+			}
+			
+			return true;
+		}
 		
 		protected override byte[] Decode ()
 		{

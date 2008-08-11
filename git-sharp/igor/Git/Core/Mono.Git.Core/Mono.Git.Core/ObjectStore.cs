@@ -39,10 +39,10 @@ namespace Mono.Git.Core
 	public class ObjectStore
 	{
 		private Dictionary<SHA1, Object> cache;
-		private List<Object> writeQueue;
+		private List<Object> write_queue;
 		private string path;
 		
-		// Zlib first two bytes, these are the ones we are going to use writing
+		// Zlib first two bytes, these are the ones we are going to use when writing,
 		// those bytes(78 and 1) mean that we are in a 32bit environment and using the
 		// fastest deflate algorithm
 		private static readonly byte ZlibFirstByte = 78;
@@ -52,16 +52,33 @@ namespace Mono.Git.Core
 		
 		public Object Get (SHA1 key)
 		{
+			if (cache == null)
+				cache = new Dictionary<SHA1,Object>();
+			
 			if (cache.ContainsKey (key))
 				return cache[key];
 			
-			return null;
+			if (ObjectExist (key)) {
+				cache.Add (key, RetrieveObject (key));
+			} else {
+				throw new ArgumentException (String.Format ("The specified key {0} does not exist", key.ToHexString ()));
+			}
+			
+			return cache[key];
 		}
 		
-		public ObjectStore (string location)
+		protected bool ObjectExist (SHA1 id)
+		{
+			if (File.Exists (GetObjectFullPath (id)))
+				return true;
+			
+			return false;
+		}
+		
+		public ObjectStore (string path)
 		{
 			if (Directory.Exists (path)) {
-				path = System.IO.Path.GetFullPath (path);
+				this.path = System.IO.Path.GetFullPath (path);
 			} else
 				throw new ArgumentException ("Invalid provided path");
 		}
@@ -206,16 +223,9 @@ namespace Mono.Git.Core
 				fs.Close ();
 				
 				return data;
-			} catch (Exception e) {
+			} catch (FieldAccessException e) {
 				Console.WriteLine ("The file object you are trying to read does not exist {0}", e);
 			}
-			
-			return null;
-		}
-		
-		protected Object ReadObject (SHA1 id)
-		{
-			byte[] content = ReadBuffer (id);
 			
 			return null;
 		}
@@ -224,7 +234,7 @@ namespace Mono.Git.Core
 		{
 			Object o = cache[id];
 			
-			FileStream fs = new FileStream(path + o.Id.GetGitFileName (), FileMode.CreateNew, FileAccess.Write);
+			FileStream fs = new FileStream(GetObjectFullPath (o.Id), FileMode.CreateNew, FileAccess.Write);
 			BinaryWriter bw = new BinaryWriter (fs);
 			
 			bw.Write (Compress (o.Content));
@@ -235,7 +245,7 @@ namespace Mono.Git.Core
 		
 		protected byte[] RetrieveContent (SHA1 id)
 		{
-			FileStream fs = new FileStream (path + id.GetGitFileName (), FileMode.Open, FileAccess.Read);
+			FileStream fs = new FileStream (GetObjectFullPath (id), FileMode.Open, FileAccess.Read);
 			BinaryReader br = new BinaryReader (fs);
 			
 			byte[] bytes = new byte[(int) fs.Length];
@@ -253,6 +263,73 @@ namespace Mono.Git.Core
 			byte[] bytes = RetrieveContent (id);
 			
 			return Object.DecodeObject (bytes);
+		}
+		
+		protected void AddToQueue (Object o)
+		{
+			write_queue.Add (o);
+		}
+		
+		/// <summary>
+		/// This method write the queue content to the filesystem
+		/// </summary>
+		protected void Write ()
+		{
+			if (write_queue.Count == 0) // means is empty thus we don't need to do anything
+				return;
+			
+			// first we write every single object in the write_queue
+			foreach (Object o in write_queue.ToArray ()) {
+				WriteBuffer (o.Id, o.Content);
+			}
+			
+			// now we clear the queue
+			write_queue.Clear ();
+		}
+		
+		/// <summary>
+		/// Get a commit and from there start the checkout
+		/// </summary>
+		/// <param name="gitDir">
+		/// A <see cref="System.String"/>
+		/// </param>
+		/// <param name="commit">
+		/// A <see cref="Commit"/>
+		/// </param>
+		public void Checkout (string baseDir, Commit commit)
+		{
+			throw new NotImplementedException ("This is not yet implemented");
+		}
+		
+		/// <summary>
+		/// Get a tree and create the structure from there
+		/// </summary>
+		/// <param name="gitDir">
+		/// A <see cref="System.String"/>
+		/// </param>
+		/// <param name="tree">
+		/// A <see cref="Tree"/>
+		/// </param>
+		public void Checkout (string baseDir, Tree tree)
+		{
+			foreach (TreeEntry entry in tree.Entries) {
+				string fullPath = baseDir + "/" + entry.Name;
+				
+				if (TreeEntry.IsParent (entry, this)) {
+					if (!Directory.Exists (fullPath))
+						Directory.CreateDirectory (fullPath);
+					
+					Checkout (fullPath, (Tree) Get (entry.Id));
+				}
+				
+				// Here we need to get the 
+				FileStream fs = new FileStream (fullPath, FileMode.CreateNew, FileAccess.Write);
+				Blob blobToWrite = (Blob) Get (entry.Id);
+				
+				fs.Write (blobToWrite.Data, 0, blobToWrite.Data.Length);
+				
+				fs.Close ();
+			}
 		}
 	}
 }

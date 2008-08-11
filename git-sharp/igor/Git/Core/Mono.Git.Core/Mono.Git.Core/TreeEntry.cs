@@ -67,5 +67,13 @@ namespace Mono.Git.Core
 		{
 			return String.Format ("{0} {1} {2}", mode.ToString (), name, id.ToHexString ());
 		}
+		
+		public static bool IsParent (TreeEntry entry, ObjectStore store)
+		{
+			if (store.Get (entry.Id).Type == Type.Tree)
+				return true;
+			
+			return false;
+		}
 	}
 }

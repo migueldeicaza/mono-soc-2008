@@ -205,6 +205,9 @@ namespace Mono.Git.Core
 			if (!ParseNoSpaceString (input, ref pos, out length))
 				return false;
 			
+			// The next byte is null, so we skip it
+			pos++;
+			
 			return true;
 		}
 		
@@ -257,20 +260,23 @@ namespace Mono.Git.Core
 		
 		protected static bool ParseTreeEntry (byte[] input, ref int pos, out byte[] mode, out string name, out byte[] id)
 		{
-			// You need to add this because the paths need to return a result
-			mode = new byte [6];
+			if ((char) input[pos] == '4') {
+				Console.WriteLine ("mode = new byte [5];");
+				mode = new byte [5];
+			} else {
+				Console.WriteLine ("mode = new byte [6];");
+				mode = new byte [6];
+			}
+			
 			id = new byte [20];
 			name = null;
-			
-			if (pos != 0)
-				return false;
 			
 			if (input.Length <= 27)
 				throw new ArgumentException ("The data is not a tree entry, the size is to small");
 			
-			Array.Copy (input, 0, mode, 0, 6);
-			
-			pos += 7;
+			Array.Copy (input, pos, mode, 0, mode.Length);
+			Console.WriteLine (new GitFileMode (mode).ToString ());
+			pos += (mode.Length + 1);
 			
 			if (!ParseString (input, ref pos, out name))
 				return false;
@@ -278,6 +284,8 @@ namespace Mono.Git.Core
 			pos++;
 			
 			Array.Copy (input, pos, id, 0, 20);
+			
+			pos += 19;
 			
 			return true;
 		}
