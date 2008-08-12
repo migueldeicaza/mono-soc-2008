@@ -275,6 +275,10 @@ namespace Mono.Git.Tests
 			store.Checkout (Environment.CurrentDirectory, tree);
 			
 			Console.WriteLine ("Checkout done WIIIII!!!");
+			
+			Console.WriteLine ("[OT] Testing ls-tree");
+			
+			store.LsTree ("ffa5153020bab4598f676c5b2f7df97bc582989d");
 		}
 	}
 }

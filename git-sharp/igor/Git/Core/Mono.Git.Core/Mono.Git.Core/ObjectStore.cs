@@ -50,6 +50,11 @@ namespace Mono.Git.Core
 		
 		public string Path { get { return path; } }
 		
+		public Object Get (string hexstring)
+		{
+			return Get (new SHA1 (SHA1.FromHexString (hexstring), false));
+		}
+		
 		public Object Get (SHA1 key)
 		{
 			if (cache == null)
@@ -285,6 +290,18 @@ namespace Mono.Git.Core
 			
 			// now we clear the queue
 			write_queue.Clear ();
+		}
+		
+		public void LsTree (string hexstring)
+		{
+			Tree tree = (Tree) Get (hexstring);
+			
+			LsTree (tree);
+		}
+		
+		private void LsTree (Tree tree)
+		{
+			Console.Write (tree);
 		}
 		
 		/// <summary>

@@ -155,6 +155,15 @@ namespace Mono.Git.Core
 			return true;
 		}
 		
+		public override string ToString ()
+		{
+			StringBuilder sb = new StringBuilder (entries.Length);
+			for (int i = 0; i < entries.Length; i++)
+				sb.Append (String.Format ("{0}\n", entries[i]));
+			
+			return sb.ToString ();
+		}
+		
 		protected override byte[] Decode ()
 		{
 			throw new NotImplementedException ();
