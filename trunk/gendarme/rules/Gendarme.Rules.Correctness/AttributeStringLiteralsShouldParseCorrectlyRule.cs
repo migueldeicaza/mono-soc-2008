@@ -71,24 +71,22 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 		
-		private void CheckAttributesIn (IMetadataTokenProvider provider)
+		private RuleResult CheckAttributesIn (ICustomAttributeProvider provider)
 		{
-			ICustomAttributeProvider attributeProvider = provider as ICustomAttributeProvider;
-			if (attributeProvider == null)
-				return;
+			IMetadataTokenProvider metadataProvider = provider as IMetadataTokenProvider;
 
-			foreach (CustomAttribute attribute in attributeProvider.CustomAttributes) 
-				CheckParametersAndValues (provider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+			foreach (CustomAttribute attribute in provider.CustomAttributes) 
+				CheckParametersAndValues (metadataProvider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+			return Runner.CurrentRuleResult;
 		}
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
+
 			if (method.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
-			CheckAttributesIn (method);		
-	
-			return Runner.CurrentRuleResult;
+			return CheckAttributesIn (method);		
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
@@ -109,9 +107,7 @@ namespace Gendarme.Rules.Correctness {
 			if (assembly.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
-			CheckAttributesIn (assembly);			
-
-			return Runner.CurrentRuleResult;
+			return CheckAttributesIn (assembly);			
 		}
 	}
 }
