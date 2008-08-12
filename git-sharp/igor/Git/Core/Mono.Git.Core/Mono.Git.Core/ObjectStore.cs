@@ -315,15 +315,15 @@ namespace Mono.Git.Core
 			foreach (TreeEntry entry in tree.Entries) {
 				string fullPath = baseDir + "/" + entry.Name;
 				
-				if (TreeEntry.IsParent (entry, this)) {
+				if (entry.IsTree ()) {
 					if (!Directory.Exists (fullPath))
 						Directory.CreateDirectory (fullPath);
 					
 					Checkout (fullPath, (Tree) Get (entry.Id));
+					continue;
 				}
 				
-				// Here we need to get the 
-				FileStream fs = new FileStream (fullPath, FileMode.CreateNew, FileAccess.Write);
+				FileStream fs = new FileStream (fullPath, FileMode.Create, FileAccess.ReadWrite);
 				Blob blobToWrite = (Blob) Get (entry.Id);
 				
 				fs.Write (blobToWrite.Data, 0, blobToWrite.Data.Length);

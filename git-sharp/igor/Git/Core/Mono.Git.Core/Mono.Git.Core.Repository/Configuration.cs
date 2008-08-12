@@ -137,7 +137,7 @@ namespace Mono.Git.Core.Repository
 		public void AddConfigValue (ConfigValue val)
 		{
 			if (values == null) {
-				values = new ConfigValue[1];
+				values = new ConfigValue[0];
 				values[0] = val;
 			} else {
 				ConfigValue[] tmp = new ConfigValue[values.Length + 1];

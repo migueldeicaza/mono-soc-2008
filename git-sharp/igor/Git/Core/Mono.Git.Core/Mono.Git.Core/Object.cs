@@ -261,10 +261,10 @@ namespace Mono.Git.Core
 		protected static bool ParseTreeEntry (byte[] input, ref int pos, out byte[] mode, out string name, out byte[] id)
 		{
 			if ((char) input[pos] == '4') {
-				Console.WriteLine ("mode = new byte [5];");
+				//Console.WriteLine ("mode = new byte [5];");
 				mode = new byte [5];
 			} else {
-				Console.WriteLine ("mode = new byte [6];");
+				//Console.WriteLine ("mode = new byte [6];");
 				mode = new byte [6];
 			}
 			
@@ -275,7 +275,7 @@ namespace Mono.Git.Core
 				throw new ArgumentException ("The data is not a tree entry, the size is to small");
 			
 			Array.Copy (input, pos, mode, 0, mode.Length);
-			Console.WriteLine (new GitFileMode (mode).ToString ());
+			//Console.WriteLine (new GitFileMode (mode).ToString ());
 			pos += (mode.Length + 1);
 			
 			if (!ParseString (input, ref pos, out name))
