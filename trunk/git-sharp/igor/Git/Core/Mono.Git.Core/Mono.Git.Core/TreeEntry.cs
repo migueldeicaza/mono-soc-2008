@@ -65,7 +65,18 @@ namespace Mono.Git.Core
 		
 		public override string ToString ()
 		{
-			return String.Format ("{0} {1} {2}", mode, name, id.ToHexString ());
+			return String.Format ("{0} {1} {2} {3}", mode, GetGitType (), id.ToHexString (), name);
+		}
+		
+		/// <summary>
+		/// Blob or Tree?
+		/// </summary>
+		/// <returns>
+		/// A <see cref="System.String"/>
+		/// </returns>
+		private string GetGitType ()
+		{
+			return mode.ModeBits[0] == (byte) 52 ? "tree" : "blob";
 		}
 		
 		public bool IsTree ()
