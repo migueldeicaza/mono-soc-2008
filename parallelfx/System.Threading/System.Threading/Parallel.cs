@@ -109,7 +109,6 @@ namespace System.Threading
 			};
 			
 			InitTasks(tasks, workerMethod, num);
-
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
 		}

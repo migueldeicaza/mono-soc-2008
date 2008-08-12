@@ -192,6 +192,7 @@ namespace System.Threading.Tasks
 					} catch (Exception e) {
 						exception = e;
 					}
+					current = null;
 				} else {
 					this.exception = new TaskCanceledException(this);
 				}
