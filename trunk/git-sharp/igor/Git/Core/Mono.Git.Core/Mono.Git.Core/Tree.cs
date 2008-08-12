@@ -40,21 +40,16 @@ namespace Mono.Git.Core
 		private TreeEntry[] entries;
 		
 		public override Type Type { get { return Type.Tree; } }
-		public TreeEntry[] Entries { get { return entries; } }
+		public TreeEntry[] Entries { get{ return entries; } }
 		
 		public Tree (byte[] content) : base (Type.Tree, content) // TODO: add a real encoding
 		{
 			if (content == null)
 				throw new ArgumentException ("The content provided is null");
 			
-			foreach (byte b in content)
-				Console.Write ((char) b);
-			
-			Console.WriteLine ("");
-			
 			// iterate over the whole array
 			for (int i = 0; i < content.Length; i++) {
-				Console.WriteLine ("uno: {0}, dos: {1}, tres: {2}, cuatro: {3}, cinco: {4}, seis: {5}", (char)content[i], (char)content[i + 1], (char)content[i + 2], (char)content[i + 3], (char)content[i + 4], (char)content[i + 5]);
+				//Console.WriteLine ("uno: {0}, dos: {1}, tres: {2}, cuatro: {3}, cinco: {4}, seis: {5}", (char)content[i], (char)content[i + 1], (char)content[i + 2], (char)content[i + 3], (char)content[i + 4], (char)content[i + 5]);
 				
 				byte[] mode = new byte[6];
 				byte[] id = new byte[20];
@@ -62,18 +57,18 @@ namespace Mono.Git.Core
 				
 				ParseTreeEntry (content, ref i, out mode, out name, out id);
 				
-				Console.WriteLine ("we parse i = " + i);
+//				Console.WriteLine ("we parse i = " + i);
+//				
+//				Console.WriteLine ("mode: " + new GitFileMode (mode));
+//				Console.WriteLine ("name: " + name);
+//				Console.WriteLine ("id: " + new SHA1 (id, false).ToHexString ());
 				
-				Console.WriteLine ("mode: " + new GitFileMode (mode));
-				Console.WriteLine ("name: " + name);
-				Console.WriteLine ("id: " + new SHA1 (id, false).ToHexString ());
+				//string lineRead = Console.ReadLine ();
 				
-				string lineRead = Console.ReadLine ();
+//				if (lineRead.Contains ("q"))
+//					break;
 				
-				if (lineRead.Contains ("q"))
-					break;
-				
-				//AddEntry (mode, name, new SHA1 (id, false));
+				AddEntry (mode, name, new SHA1 (id, false));
 			}
 		}
 		
@@ -89,12 +84,19 @@ namespace Mono.Git.Core
 			
 			ParseTreeEntry (data, ref pos, out mode, out name, out id);
 			
+			Console.WriteLine ("Name: " + name);
+			
 			AddEntry (mode, name, new SHA1 (id, false));
 		}
 		
 		private void AddEntry (byte[] mode, string name, SHA1 id)
 		{
+			if (entries == null) {
+				entries = new TreeEntry[0];
+			}
+			
 			List<TreeEntry> entriesList = new List<TreeEntry> (entries);
+			TreeEntry entry = new TreeEntry (mode, name, id);
 			
 			entriesList.Add (new TreeEntry (mode, name, id));
 			

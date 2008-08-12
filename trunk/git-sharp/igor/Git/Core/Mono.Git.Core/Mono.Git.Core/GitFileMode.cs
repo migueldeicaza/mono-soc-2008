@@ -72,117 +72,42 @@ namespace Mono.Git.Core
 		public GitFileMode (byte[] mode)
 		{
 			if ((char) mode[0] != '4') {
-				file_type = (IndividualFileType) ((char) mode[0]);
-				sym_link = (IndividualFileType) ((char) mode[1]);
-				zero = (IndividualFileType) ((char) mode[2]);
-				user = (IndividualFileMode) ((char) mode[3]);
-				group = (IndividualFileMode) ((char) mode[4]);
-				other = (IndividualFileMode) ((char) mode[5]);
+				file_type = (IndividualFileType) mode[0] - 48;
+				sym_link = (IndividualFileType) mode[1] - 48;
+				zero = (IndividualFileType) mode[2] - 48;
+				user = (IndividualFileMode) mode[3] - 48;
+				group = (IndividualFileMode) mode[4] - 48;
+				other = (IndividualFileMode) mode[5] - 48;
 			} else {
-				file_type = (IndividualFileType) ((char) mode[0]);
-				sym_link = (IndividualFileType) ((char) mode[1]);
+				file_type = (IndividualFileType) mode[0] - 48;
+				sym_link = (IndividualFileType) mode[1] - 48;
 				zero = IndividualFileType.Zero;
-				user = (IndividualFileMode) ((char) mode[2]);
-				group = (IndividualFileMode) ((char) mode[3]);
-				other = (IndividualFileMode) ((char) mode[4]);
+				user = (IndividualFileMode) mode[2] - 48;
+				group = (IndividualFileMode) mode[3] - 48;
+				other = (IndividualFileMode) mode[4] - 48;
 			}
 		}
 		
 		public byte[] ModeBits {
 			get {
 				if (file_type == IndividualFileType.Directory) {
-					return new byte[] {(byte) file_type, (byte) sym_link, (byte) user, (byte) group, (byte) other};
+					return new byte[] {(byte) (file_type + 48), (byte) (sym_link + 48), (byte) (user + 48), (byte) (group + 48), (byte) (other + 48)};
 				}
-				return new byte[] {(byte) file_type, (byte) sym_link, (byte) zero, (byte) user, (byte) group, (byte) other};
+				return new byte[] {(byte) (file_type + 48), (byte) (sym_link + 48), (byte) (zero + 48), (byte) (user + 48), (byte) (group + 48), (byte) (other + 48)};
 			}
 		}
 		
 		public override string ToString ()
 		{
-			if (file_type == IndividualFileType.Directory) {
-				Console.WriteLine ("we go here?");
-				return String.Format ("0{0}{1}{2}{3}{4}", (char) file_type, (char) sym_link, (char) user, (char) group, (char) other);
-			}
+			if (file_type == IndividualFileType.Directory)
+				return String.Format ("0{0}{1}{2}{3}{4}", (uint) file_type, (uint) sym_link, (uint) user, (uint) group, (uint) other);
 			
-			return String.Format ("{0}{1}{2}{3}{4}{5}", (char) file_type, (char) sym_link, (char) zero, (char) user, (char) group, (char) other);
+			return String.Format ("{0}{1}{2}{3}{4}{5}", (uint) file_type, (uint) sym_link, (uint) zero, (uint) user, (uint) group, (uint) other);
+		}
+		
+		public bool IsDirectory ()
+		{
+			return file_type == IndividualFileType.Directory;
 		}
 	}
-//	
-//	public class GitFileMode
-//	{
-//		private byte[] bytes;
-//		private int mode_bits; // mode, in _human_ (e.g. 755 == excecutable file)
-//		
-//		// Git Constants(mostly the meaning of this class)
-//		public static GitFileMode Tree = new GitFileMode (040000);
-//		public static GitFileMode Symlink = new GitFileMode(0120000);
-//		public static GitFileMode RegularFile = new GitFileMode(0100644);
-//		public static GitFileMode ExecutableFile = new GitFileMode(0100755);
-//		
-//		/// <summary>
-//		/// Compares a _human_ filemode in a type to see if its equal
-//		/// </summary>
-//		/// <param name="modeBits">
-//		/// A mode<see cref="System.Int32"/>
-//		/// </param>
-//		/// <param name="type">
-//		/// A type of file<see cref="GitFileModeTypes"/>
-//		/// </param>
-//		/// <returns>
-//		/// A true if are equal false if aren't<see cref="System.Boolean"/>
-//		/// </returns>
-////		public bool Equals (GitFileModeTypes type)
-////		{
-////			switch (type) {
-////			case GitFileModeTypes.Tree:
-////				return (mode_bits & 040000) == 040000;
-////			case GitFileModeTypes.Symlink:
-////				return (mode_bits & 020000) == 020000;
-////			case GitFileModeTypes.RegularFile:
-////				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) == 0;
-////			case GitFileModeTypes.ExecutableFile:
-////				return (mode_bits & 0100000) == 0100000 && (mode_bits & 0111) != 0;
-////			}
-////			
-////			// FIXME: Using this to avoid: not all code paths return a value(CS0161)
-////			return false; 
-////		}
-//		
-//		public byte[] Bytes { get { return bytes; } }
-//		
-//		public GitFileMode (byte[] mode)
-//		{
-//			
-//		}
-//		
-//		/// <summary>
-//		/// Set the filemode from an int representation to an octal representation 
-//		/// </summary>
-//		/// <param name="mode">
-//		/// A filemode<see cref="System.Int32"/>
-//		/// </param>
-//		public GitFileMode (int mode)
-//		{
-//			mode_bits = mode;
-//			
-//			if (mode == 0) {
-//				bytes = new byte[] { (byte) '0' };
-//				return;
-//			}
-//			
-//			byte[] tmp = new byte[10];
-//			int size = tmp.Length;
-//			
-//			while (mode != 0) {
-//				tmp[size--] = (byte) ('0' + (mode & 07));
-//				mode >>= 3;
-//			}
-//			
-//			bytes = new byte[tmp.Length - size];
-//			
-//			for (int i = 0; i < bytes.Length; i++) {
-//				bytes[i] = tmp[size + i];
-//			}
-//		}
-//	}
 }

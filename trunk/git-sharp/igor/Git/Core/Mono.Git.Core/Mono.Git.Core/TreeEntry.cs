@@ -55,8 +55,8 @@ namespace Mono.Git.Core
 			if (String.IsNullOrEmpty (name))
 				throw new ArgumentException ("Name is null, tree entry is invalid");
 			
-			if (mode.Length != 6)
-				throw new ArgumentException ("mode size is incorrect, tree entry is invalid, size has to be 6");
+			if (mode.Length < 5)
+				throw new ArgumentException ("mode size is incorrect, tree entry is invalid, size has to be longer than 5 or 5");
 			
 			this.mode = new GitFileMode (mode);
 			this.name = name;
@@ -65,15 +65,12 @@ namespace Mono.Git.Core
 		
 		public override string ToString ()
 		{
-			return String.Format ("{0} {1} {2}", mode.ToString (), name, id.ToHexString ());
+			return String.Format ("{0} {1} {2}", mode, name, id.ToHexString ());
 		}
 		
-		public static bool IsParent (TreeEntry entry, ObjectStore store)
+		public bool IsTree ()
 		{
-			if (store.Get (entry.Id).Type == Type.Tree)
-				return true;
-			
-			return false;
+			return mode.IsDirectory ();
 		}
 	}
 }
