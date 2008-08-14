@@ -41,6 +41,47 @@ namespace Gendarme.Rules.Correctness {
 		{
 			return original.IndexOf (value, 0, StringComparison.OrdinalIgnoreCase) != -1;
 		}
+		
+		private static bool TryParseUri (string uri)
+		{
+			try {
+				new Uri (uri);
+			}
+			catch (UriFormatException) {
+				return false;
+			}
+			catch (ArgumentNullException) {
+				return false;
+			}
+			return true;
+		}
+
+		private static bool TryParseVersion (string version)
+		{
+			try {
+				new Version (version);
+				return true;
+			}
+			catch (FormatException) {
+				return false;
+			}
+			catch (ArgumentException) {
+				return false;
+			}
+		}
+
+		private static bool TryParseGuid (string guid)
+		{
+			try {
+				new Guid (guid);
+			}
+			catch (FormatException)
+			{
+				return false;
+			}
+			return true;
+		}
+
 
 		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodDefinition constructor, IList values)
 		{
@@ -48,24 +89,28 @@ namespace Gendarme.Rules.Correctness {
 				ParameterDefinition parameter = constructor.Parameters[index];
 				if (String.Compare (parameter.ParameterType.FullName, "System.String") == 0) {
 					string value = (string) values[index];
-					try {
-						if (Contains (parameter.Name, "version")) { 
-							new Version (value);
-							continue;
+					if (Contains (parameter.Name, "version")) { 
+						if (!TryParseVersion (value)) {
+							string msg = String.Format ("The value passed: {0} can't be parsed to a valid Version.", value);
+							Runner.Report (provider, Severity.High, Confidence.High, msg);
 						}
-						if (Contains (parameter.Name, "url") ||
-							Contains (parameter.Name, "uri") ||
-							Contains (parameter.Name, "urn")) {
-							new Uri (value);
-							continue;
-						}
-						if (Contains (parameter.Name, "guid")) {
-							new Guid (value);
-							continue;
-						}
+						continue;
 					}
-					catch {
-						Runner.Report (provider, Severity.High, Confidence.High, String.Format ("The parameter {0} in the attribute {1} is not a valid string for representing the type you are referring.", value, constructor.DeclaringType.FullName));
+					if (Contains (parameter.Name, "url") ||
+						Contains (parameter.Name, "uri") ||
+						Contains (parameter.Name, "urn")) {
+						if (!TryParseUri (value)) {
+							string msg = String.Format ("The valued passed {0} can't be parsed to a valid Uri.", value);
+							Runner.Report (provider, Severity.High, Confidence.High, msg);
+						}
+						continue;
+					}
+					if (Contains (parameter.Name, "guid")) {
+						if (!TryParseGuid (value)) {
+							string msg = String.Format ("The valued passed {0} can't be parsed to a valid Guid.", value);
+							Runner.Report (provider, Severity.High, Confidence.High, msg);
+						}
+						continue;
 					}
 				}
 			}
