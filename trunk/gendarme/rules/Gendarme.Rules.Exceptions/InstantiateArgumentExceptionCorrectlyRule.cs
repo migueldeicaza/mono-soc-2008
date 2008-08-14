@@ -85,9 +85,14 @@ namespace Gendarme.Rules.Exceptions {
 
 		static bool MatchesAnyParameter (MethodDefinition method, string operand)
 		{
-			foreach (ParameterDefinition parameter in method.Parameters) {
-				if (String.Compare (parameter.Name, operand) == 0)
-					return true;
+			if (method.IsSetter) {
+				return String.Compare (method.Name.Substring (4), operand) == 0;
+			}
+			else {
+				foreach (ParameterDefinition parameter in method.Parameters) {
+					if (String.Compare (parameter.Name, operand) == 0)
+						return true;
+				}
 			}
 			return false;
 		}
@@ -135,7 +140,7 @@ namespace Gendarme.Rules.Exceptions {
 				if (!ContainsOnlyStringsAsParameters (constructor))
 					continue;
 					
-				int parameters =  constructor.Parameters.Count;
+				int parameters = constructor.Parameters.Count;
 				
 				if (IsArgumentException (exceptionType)) {
 					if (parameters == 1 && !ParameterIsDescription (method, current)) {

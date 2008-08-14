@@ -328,7 +328,7 @@ namespace Test.Rules.Exceptions {
 		public int WellNamedProperty {
 			set {
 				if (value == 0)
-					throw new ArgumentException ("The parameter is zero.", "Property");
+					throw new ArgumentException ("The parameter is zero.", "WellNamedProperty");
 			}
 		}
 
@@ -349,6 +349,30 @@ namespace Test.Rules.Exceptions {
 		public void FailOnBadNamedPropertyTest ()
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("set_BadNamedProperty", 1);
+		}
+
+		public int WellNamedPropertyWithArgumentNullException {
+			set {
+				throw new ArgumentNullException ("WellNamedPropertyWithArgumentNullException");
+			}
+		}
+
+		[Test]
+		public void SuccessOnWellNamedPropertyWithArgumentNullExceptionTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("set_WellNamedPropertyWithArgumentNullException");
+		}
+
+		public int WellNamedPropertyWithArgumentExceptionAndOneParameter {
+			set {
+				throw new ArgumentException ("This is a sample description.");
+			}
+		}
+
+		[Test]
+		public void SuccessOnWellNamedPropertyWithArgumentExceptionAndOneParameterTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("set_WellNamedPropertyWithArgumentExceptionAndOneParameter");
 		}
 	}
 }
