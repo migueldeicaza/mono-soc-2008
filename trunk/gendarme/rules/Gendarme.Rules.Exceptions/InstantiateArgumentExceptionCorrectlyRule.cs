@@ -32,8 +32,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 
 namespace Gendarme.Rules.Exceptions {
-	[Problem ("You are not passing the arguments in the correct order to ArgumentException and derived. You are hiding useful information to developers.")]
-	[Solution ("Fix the order of the parameters following the recomendations.")]
+	[Problem ("This method throws ArgumentException (or derived) exceptions without specifying an existing parameter name. This can hide useful information to developers.")]
+	[Solution ("Fix the exception parameters to use the correct parameter name (or make sure the parameters are in the right order).")]
 	public class InstantiateArgumentExceptionCorrectlyRule : Rule, IMethodRule {
 		static string[] checkedExceptions = {
 			"System.ArgumentException",
