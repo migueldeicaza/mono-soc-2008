@@ -324,5 +324,31 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("ArgumentExceptionWithTranslatedDescription");
 		}
+
+		public int WellNamedProperty {
+			set {
+				if (value == 0)
+					throw new ArgumentException ("The parameter is zero.", "Property");
+			}
+		}
+
+		[Test]
+		public void SuccessOnWellNamedPropertyTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("set_WellNamedProperty");
+		}
+
+		public int BadNamedProperty {
+			set {
+				if (value == 0)
+					throw new ArgumentException ("The parameter is zero.", "value");
+			}
+		}
+
+		[Test]
+		public void FailOnBadNamedPropertyTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("set_BadNamedProperty", 1);
+		}
 	}
 }
