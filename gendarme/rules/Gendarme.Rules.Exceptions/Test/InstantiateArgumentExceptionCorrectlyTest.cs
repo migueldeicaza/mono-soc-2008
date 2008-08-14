@@ -374,5 +374,17 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("set_WellNamedPropertyWithArgumentExceptionAndOneParameter");
 		}
+
+		public int BadNamedPropertyWithArgumentExceptionAndOneParameter {
+			set {
+				throw new ArgumentException ("BadNamedPropertyWithArgumentExceptionAndOneParameter");
+			}
+		}
+
+		[Test]
+		public void FailOnBadNamedPropertyWithArgumentExceptionAndOneParameterTest ()
+		{
+			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("set_BadNamedPropertyWithArgumentExceptionAndOneParameter", 1);
+		}
 	}
 }
