@@ -386,5 +386,16 @@ namespace Test.Rules.Exceptions {
 		{
 			AssertRuleFailure<InstantiateArgumentExceptionCorrectlyTest> ("set_BadNamedPropertyWithArgumentExceptionAndOneParameter", 1);
 		}
+
+		public ArgumentException MethodReturningException (int value)
+		{
+			return new ArgumentException ("value");
+		}
+
+		[Test]
+		public void SkipOnMethodReturningExceptionTest ()
+		{
+			AssertRuleSuccess<InstantiateArgumentExceptionCorrectlyTest> ("MethodReturningException");
+		}
 	}
 }
