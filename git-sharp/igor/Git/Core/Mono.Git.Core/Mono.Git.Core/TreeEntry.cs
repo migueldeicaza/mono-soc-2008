@@ -65,7 +65,7 @@ namespace Mono.Git.Core
 		
 		public override string ToString ()
 		{
-			return String.Format ("{0} {1} {2} {3}", mode, GetGitType (), id.ToHexString (), name);
+			return String.Format ("{0} {1} {2}\t{3}", mode, GetGitType (), id.ToHexString (), name);
 		}
 		
 		/// <summary>

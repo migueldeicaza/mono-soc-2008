@@ -42,6 +42,14 @@ namespace Mono.Git.Core
 		public override Type Type { get { return Type.Tree; } }
 		public TreeEntry[] Entries { get{ return entries; } }
 		
+		/// <summary>
+		/// We need to create a empty tree to "test"
+		/// </summary>
+		public Tree () : base (Type.Tree, null)
+		{
+			//
+		}
+		
 		public Tree (byte[] content) : base (Type.Tree, content) // TODO: add a real encoding
 		{
 			if (content == null)

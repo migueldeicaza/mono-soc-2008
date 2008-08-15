@@ -35,8 +35,6 @@ namespace Mono.Git.Tests
 			if (args.Length != 1) {
 				Console.WriteLine ("No argument provided");
 				return;
-			} else {
-				Console.WriteLine (args[0]);
 			}
 			
 			switch (args[0]) {
@@ -66,8 +64,26 @@ namespace Mono.Git.Tests
 			case "dir":
 				ObjectTest.ReadDirectories ("/home/igor/gsoc/Git/Tests/bin/Debug");
 				break;
-			case "checkout":
-				ObjectTest.CheckoutTest ();
+			case "checkout1":
+				ObjectTest.CheckoutTest ("ffa5153020bab4598f676c5b2f7df97bc582989d", "/home/igor/gsoc/Git/Tests/bin/Debug/test/.git/objects");
+				break;
+			case "checkout2":
+				// we try with a big git repo(C Git) but since we don't support pack,
+				// we can't really run this test :(
+				ObjectTest.CheckoutTest ("4a7bd524b0f232513255daf7d1f9b430405749e8", "/home/igor/gsoc/Git/Tests/bin/Debug/test2/.git/objects");
+				break;
+			case "ls-tree1":
+				ObjectTest.LsTreeTest ("ffa5153020bab4598f676c5b2f7df97bc582989d", "/home/igor/gsoc/Git/Tests/bin/Debug/test/.git/objects");
+				break;
+			case "ls-tree2":
+				ObjectTest.LsTreeTest ("4a7bd524b0f232513255daf7d1f9b430405749e8", "/home/igor/gsoc/Git/Tests/bin/Debug/test2/.git/objects");
+				break;
+			case "checkinobject":
+				ObjectTest.CheckinObject ("/home/igor/gsoc/Git/Tests/bin/Debug/test3/test.cs", "/home/igor/gsoc/Git/Tests/bin/Debug/test3/.git/objects");
+				break;
+			case "viewobj":
+				ObjectTest.ViewCompressedFile ("/home/igor/gsoc/Git/Tests/bin/Debug/test3/.git/objects/d9/a0bfec6aa9ecce447f6c7eec21025ce3437449");
+				//ObjectTest.ViewCompressedFile ("/home/igor/gsoc/Git/Tests/bin/Debug/test3/.git/objects/3c/ebb761d58bfbbf98823e917a44857ca17ba1bb");
 				break;
 			}
 		}
