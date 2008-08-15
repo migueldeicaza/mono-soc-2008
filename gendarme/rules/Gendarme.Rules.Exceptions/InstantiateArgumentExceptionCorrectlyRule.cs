@@ -57,7 +57,7 @@ namespace Gendarme.Rules.Exceptions {
 		{
 			Instruction current = throwInstruction;
 			while (current != null && exceptionParameters != 0) {
-				if (current.OpCode == OpCodes.Ldstr) {
+				if (current.OpCode.Code == OpCodes.Ldstr.Code) {
 					string operand = (string) current.Operand;
 					//The second operand, a parameter name
 					if (exceptionParameters == 2) {
@@ -102,7 +102,7 @@ namespace Gendarme.Rules.Exceptions {
 			Instruction current = throwInstruction;
 
 			while (current != null) {
-				if (current.OpCode == OpCodes.Ldstr) 
+				if (current.OpCode.Code == OpCodes.Ldstr.Code) 
 					return !MatchesAnyParameter (method, (string) current.Operand);
 				current = current.Previous;
 			}
@@ -129,7 +129,7 @@ namespace Gendarme.Rules.Exceptions {
 				return RuleResult.DoesNotApply;
 
 			foreach (Instruction current in method.Body.Instructions) {
-				if (current.OpCode != OpCodes.Throw) 
+				if (current.OpCode.Code != OpCodes.Throw.Code) 
 					continue;
 				
 				TypeReference exceptionType = GetArgumentExceptionThrown (current);
