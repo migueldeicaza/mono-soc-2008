@@ -38,7 +38,6 @@ namespace Mono.Git.Tests
 	/// </summary>
 	public class ObjectTest
 	{
-		
 		public ObjectTest ()
 		{
 			// Calling the test of create blob hash validation
@@ -257,13 +256,13 @@ namespace Mono.Git.Tests
 			}
 		}
 		
-		public static void CheckoutTest ()
+		public static void CheckoutTest (string hash, string objStorePath)
 		{
-			ObjectStore store = new ObjectStore ("/home/igor/gsoc/Git/Tests/bin/Debug/test/.git/objects");
+			ObjectStore store = new ObjectStore (objStorePath);
 			
-			SHA1 id = new SHA1 (SHA1.FromHexString ("ffa5153020bab4598f676c5b2f7df97bc582989d"), false);
+			SHA1 id = new SHA1 (SHA1.FromHexString (hash), false);
 			
-			Console.WriteLine ("Hash: ffa5153020bab4598f676c5b2f7df97bc582989d");
+			Console.WriteLine ("Hash: " + hash);
 			Console.WriteLine ("Id:   " + id.ToHexString ());
 			
 			Console.WriteLine ("hash created");
@@ -275,10 +274,48 @@ namespace Mono.Git.Tests
 			store.Checkout (Environment.CurrentDirectory, tree);
 			
 			Console.WriteLine ("Checkout done WIIIII!!!");
+		}
+		
+		public static void LsTreeTest (string tree, string path)
+		{
+			ObjectStore store = new ObjectStore (path);
+			store.LsTree (tree);
+		}
+		
+		public static void CheckinObject (string filePath, string storePath)
+		{
+			ObjectStore store = new ObjectStore (storePath);
+			store.Checkin (filePath);
 			
-			Console.WriteLine ("[OT] Testing ls-tree");
+			store.Write ();
+		}
+		
+		public static void ViewCompressedFile (string filePath)
+		{
+			FileStream fs = File.Open (filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 			
-			store.LsTree ("ffa5153020bab4598f676c5b2f7df97bc582989d");
+			byte[] bytes = new byte[(int) fs.Length];
+			
+			fs.Read (bytes, 0, (int) fs.Length);
+			
+			byte[] content = ObjectStore.Decompress (bytes);
+			
+			SHA1 id = new SHA1 (content, true);
+			
+			Console.WriteLine ("ID: {0}", id.ToHexString ());
+			Console.WriteLine ("Path {0}", filePath);
+			
+			Console.WriteLine ("Length: " + content.Length);
+			
+			foreach (char c in content) {
+				if (c == '\n') {
+					Console.WriteLine ("\\n");
+					continue;
+				}
+				if (c == '\0')
+					Console.Write ("[NULL]");
+				Console.Write (c);
+			}
 		}
 	}
 }

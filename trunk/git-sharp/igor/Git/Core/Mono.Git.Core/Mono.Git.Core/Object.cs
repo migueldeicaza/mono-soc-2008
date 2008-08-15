@@ -62,15 +62,32 @@ namespace Mono.Git.Core
 		
 		public Object (Type type, byte[] content)
 		{
-			byte[] header = CreateObjectHeader (type, (content.Length - 1).ToString ());
-			this.content = new byte[header.Length + (content.Length - 1)];
+			// FIXME: ok, if we got a 0 length content(a blob), what we can do?
+			if (content.Length == 0 || content == null)
+				return;
+			
+			byte[] header = CreateObjectHeader (type, content.Length.ToString ());
+			this.content = new byte[header.Length + content.Length];
 			
 			// filling the content
-			Array.Copy (header, 0, this.content, 0, header.Length); // Copying the header first,
-			Array.Copy (content, 0, this.content, header.Length - 1, content.Length); // then the data, on the final data
+			Array.Copy (header, 0, this.content, 0, header.Length); // Copying the header first
+			Array.Copy (content, 0, this.content, header.Length, content.Length); // then the data
+			
+			Console.WriteLine ("Length: " + this.content.Length);
+			foreach (char c in this.content) {
+				if (c == '\n') {
+					Console.WriteLine ("\\n");
+					continue;
+				}
+				if (c == '\0')
+					Console.Write ("[NULL]");
+				Console.Write (c);
+			}
 			
 			// initializing the id with the content
 			id = new SHA1 (this.content, true);
+			
+			Console.WriteLine ("ID: " + id.ToHexString ());
 		}
 		
 		/// <summary>
@@ -85,7 +102,7 @@ namespace Mono.Git.Core
 		/// <returns>
 		/// Header<see cref="System.Byte"/>
 		/// </returns>
-		private static byte[] CreateObjectHeader (Type objType, string dataSize)
+		public static byte[] CreateObjectHeader (Type objType, string dataSize)
 		{
 			return Encoding.UTF8.GetBytes (String.Format ("{0} {1}\0",
 			                                                 Object.TypeToString (objType),

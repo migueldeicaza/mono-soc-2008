@@ -72,7 +72,7 @@ namespace Mono.Git.Core
 			return cache[key];
 		}
 		
-		protected bool ObjectExist (SHA1 id)
+		private bool ObjectExist (SHA1 id)
 		{
 			if (File.Exists (GetObjectFullPath (id)))
 				return true;
@@ -83,12 +83,13 @@ namespace Mono.Git.Core
 		public ObjectStore (string path)
 		{
 			if (Directory.Exists (path)) {
+				write_queue = new List<Object> ();
 				this.path = System.IO.Path.GetFullPath (path);
 			} else
 				throw new ArgumentException ("Invalid provided path");
 		}
 		
-		protected string GetObjectFullPath (SHA1 id)
+		private string GetObjectFullPath (SHA1 id)
 		{
 			return path.EndsWith ("/") ? (path + id.GetGitFileName ()) : (path + "/" + id.GetGitFileName ());
 		}
@@ -154,6 +155,13 @@ namespace Mono.Git.Core
 			DeflateStream ds = new DeflateStream (ms, CompressionMode.Compress);
 			
 			ds.Write (data, 0, data.Length);
+			BinaryWriter bw = new BinaryWriter (ms);
+			
+			bw.Write ((int) 1);
+			bw.Write ((int) 2);
+			bw.Write ((int) 3);
+			bw.Write ((int) 4);
+			
 			ds.Flush ();
 			ds.Close ();
 			
@@ -200,9 +208,31 @@ namespace Mono.Git.Core
 			return list.ToArray ();
 		}
 		
-		protected void WriteBuffer (SHA1 id, byte[] content)
+		/// <summary>
+		/// Create a object first parent... e.g. f4/47d5573b70cf042d036bfa62f55cdefccd9909
+		/// f4 is the parent we create in this method
+		/// </summary>
+		/// <param name="id">
+		/// A <see cref="SHA1"/>
+		/// </param>
+		private void CreateObjectParent (SHA1 id)
+		{
+			string fullPath = null;
+			
+			if (!path.EndsWith ("/"))
+				fullPath = path + "/" + id.ToHexString (0, 1);
+			else
+				fullPath = path + id.ToHexString (0, 1);
+			
+			if (!Directory.Exists (fullPath))
+				Directory.CreateDirectory (fullPath);
+		}
+		
+		private void WriteBuffer (SHA1 id, byte[] content)
 		{
 			try {
+				CreateObjectParent (id);
+				
 				FileStream fs = File.Open (GetObjectFullPath (id), FileMode.CreateNew);
 				BinaryWriter bw = new BinaryWriter (fs);
 				
@@ -211,11 +241,22 @@ namespace Mono.Git.Core
 				bw.Close ();
 				fs.Close ();
 			} catch (Exception e) {
-				Console.WriteLine ("The file object you are trying to write already exist {0}", e);
+				Console.WriteLine ("The file object you are trying to write already exist");
 			}
 		}
 		
-		protected byte[] ReadBuffer (SHA1 id)
+		private void WriteBuffer (SHA1 id, byte[] content, bool overwrite)
+		{
+			if (overwrite) {
+				File.Delete (GetObjectFullPath (id));
+				WriteBuffer (id, content);
+				return;
+			}
+			
+			WriteBuffer (id, content);
+		}
+		
+		private byte[] ReadBuffer (SHA1 id)
 		{
 			try {
 				FileStream fs = File.Open (GetObjectFullPath (id), FileMode.Open);
@@ -235,7 +276,7 @@ namespace Mono.Git.Core
 			return null;
 		}
 		
-		protected void PersistObject (SHA1 id)
+		private void PersistObject (SHA1 id)
 		{
 			Object o = cache[id];
 			
@@ -248,7 +289,7 @@ namespace Mono.Git.Core
 			fs.Close ();
 		}
 		
-		protected byte[] RetrieveContent (SHA1 id)
+		private byte[] RetrieveContent (SHA1 id)
 		{
 			FileStream fs = new FileStream (GetObjectFullPath (id), FileMode.Open, FileAccess.Read);
 			BinaryReader br = new BinaryReader (fs);
@@ -263,22 +304,25 @@ namespace Mono.Git.Core
 			return bytes;
 		}
 		
-		protected Object RetrieveObject (SHA1 id)
+		private Object RetrieveObject (SHA1 id)
 		{
 			byte[] bytes = RetrieveContent (id);
 			
 			return Object.DecodeObject (bytes);
 		}
 		
-		protected void AddToQueue (Object o)
+		private void AddToQueue (Object o)
 		{
+			if (write_queue == null)
+				write_queue = new List<Object> ();
+			
 			write_queue.Add (o);
 		}
 		
 		/// <summary>
 		/// This method write the queue content to the filesystem
 		/// </summary>
-		protected void Write ()
+		public void Write ()
 		{
 			if (write_queue.Count == 0) // means is empty thus we don't need to do anything
 				return;
@@ -302,6 +346,40 @@ namespace Mono.Git.Core
 		private void LsTree (Tree tree)
 		{
 			Console.Write (tree);
+		}
+		
+		/// <summary>
+		/// Checkin a single object by using its path
+		/// </summary>
+		/// <param name="type">
+		/// A <see cref="Type"/>
+		/// </param>
+		/// <param name="path">
+		/// A <see cref="System.String"/>
+		/// </param>
+		public void Checkin (string path)
+		{
+			if (!File.Exists (path)) {
+				Console.WriteLine ("File {0} doesn't exist", path);
+				return;
+			}
+			
+			// Its a tree
+			if (Directory.Exists (path)) {
+				throw new NotImplementedException ("This is not implemented yet");
+				return;
+			}
+			
+			// its a blob
+			FileStream fs = File.Open (path, FileMode.Open, FileAccess.Read);
+			byte[] content = new byte[(int) fs.Length];
+			
+			fs.Read (content, 0, (int) content.Length);
+			fs.Close ();
+			
+			Blob blob = new Blob (content);
+			
+			AddToQueue (blob);
 		}
 		
 		/// <summary>
@@ -329,21 +407,25 @@ namespace Mono.Git.Core
 		/// </param>
 		public void Checkout (string baseDir, Tree tree)
 		{
-			foreach (TreeEntry entry in tree.Entries) {
-				string fullPath = baseDir + "/" + entry.Name;
+			for (int i = 0; i < tree.Entries.Length; i++) {
+				string fullPath = baseDir + "/" + tree.Entries[i].Name;
+				Console.WriteLine ("Entry: #{0} {1} {2}", i, tree.Entries[i].Name, tree.Entries[i].Id.ToHexString ());
 				
-				if (entry.IsTree ()) {
+				if (tree.Entries[i].IsTree ()) {
 					if (!Directory.Exists (fullPath))
 						Directory.CreateDirectory (fullPath);
 					
-					Checkout (fullPath, (Tree) Get (entry.Id));
+					Checkout (fullPath, (Tree) Get (tree.Entries[i].Id));
 					continue;
 				}
 				
-				FileStream fs = new FileStream (fullPath, FileMode.Create, FileAccess.ReadWrite);
-				Blob blobToWrite = (Blob) Get (entry.Id);
+				FileStream fs = new FileStream (fullPath, FileMode.Create, FileAccess.Write);
+				Blob blobToWrite = (Blob) Get (tree.Entries[i].Id);
 				
 				fs.Write (blobToWrite.Data, 0, blobToWrite.Data.Length);
+				
+				// TODO: Set FileAttributes
+				//File.SetAttributes ("", FileAttributes.
 				
 				fs.Close ();
 			}
