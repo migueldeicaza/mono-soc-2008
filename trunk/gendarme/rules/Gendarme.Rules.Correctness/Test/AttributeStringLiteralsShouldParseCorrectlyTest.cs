@@ -28,8 +28,10 @@
 
 using System;
 using Gendarme.Rules.Correctness;
+using Mono.Cecil;
 using Test.Rules.Fixtures;
 using Test.Rules.Definitions;
+using Test.Rules.Helpers;
 using NUnit.Framework;
 
 namespace Test.Rules.Correctness {
@@ -147,6 +149,39 @@ namespace Test.Rules.Correctness {
 		public void FailOnBadAttributedClassWithFieldsTest ()
 		{
 			AssertRuleFailure<BadAttributedClassWithFields> (3);
+		}
+	}
+
+	[TestFixture]
+	public class AttributeStringLiteralsShouldParseCorrectlyAssemblyTest : AssemblyRuleTestFixture<AttributeStringLiteralsShouldParseCorrectlyRule>{
+		private AssemblyDefinition GenerateFakeAssembly (string version, string url, string guid)
+		{
+			AssemblyDefinition definition = DefinitionLoader.GetAssemblyDefinition (this.GetType ());
+			CustomAttribute attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<ValidSince> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (version);
+			definition.CustomAttributes.Add (attribute);
+
+			attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<Reference> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (url);
+			definition.CustomAttributes.Add (attribute);
+
+			attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<Uses> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (guid);
+			definition.CustomAttributes.Add (attribute);
+
+			return definition;
+		}
+
+		[Test]
+		public void SuccessOnWellAttributedAssemblyTest ()
+		{
+			AssertRuleSuccess (GenerateFakeAssembly ("1.0.0.0", "http://www.mono-project.com/Gendarme", "00000101-0000-0000-c000-000000000046"));
+		}
+
+		[Test]
+		public void FailOnBadAttributedAssemblyTest ()
+		{
+			AssertRuleFailure (GenerateFakeAssembly ("foo", "bar", "0"), 3);
 		}
 	}
 }
