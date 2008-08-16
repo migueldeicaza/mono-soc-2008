@@ -60,4 +60,5 @@ rules/Gendarme.Rules.BadPractice/Makefile
 rules/Gendarme.Rules.Serialization/Makefile
 rules/Gendarme.Rules.Correctness/Makefile
 rules/Gendarme.Rules.Exceptions/Makefile
+rules/Gendarme.Rules.Design/Makefile
 ])
