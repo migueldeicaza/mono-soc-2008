@@ -65,5 +65,49 @@ namespace Test.Rules.Design {
 		{
 			AssertRuleFailure<ClassWithDelegateReturningNonVoid> (1);
 		}
+
+		delegate void DelegateWithOneParameter (int x);
+		class ClassWithDelegateWithOneParameter {
+			public event DelegateWithOneParameter CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithOneParameterTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithOneParameter> (1);
+		}
+
+		delegate void DelegateWithBadTypes (int x, char c);
+		class ClassWithDelegateWithBadTypes {
+			public event DelegateWithBadTypes CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithBadTypesTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithBadTypes> (2);
+		}
+
+		delegate void DelegateWithObject (object sender, int x);
+		class ClassWithDelegateWithObject {
+			public event DelegateWithObject CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithObjectTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithObject> (1);
+		}
+
+		delegate void DelegateWithEventArgs (int x, EventArgs e);
+		class ClassWithDelegateWithEventArgs {
+			public event DelegateWithEventArgs CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithEventArgsTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithEventArgs> (1);
+		}
 	}
 }
