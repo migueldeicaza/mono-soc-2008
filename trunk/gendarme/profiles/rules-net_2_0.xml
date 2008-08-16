@@ -1,6 +1,6 @@
 <gendarme>
 	<ruleset name="testing">
-		<rules include="InstantiateArgumentExceptionCorrectlyRule" from="Gendarme.Rules.Exceptions.dll"/>
+		<rules include="AttributeStringLiteralsShouldParseCorrectlyRule" from="Gendarme.Rules.Correctness.dll"/>
 	</ruleset>
 	<ruleset name="net_2_0">
 		<rules include="AvoidCallingProblematicMethodsRule" from="Gendarme.Rules.BadPractice.dll"/>
