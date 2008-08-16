@@ -46,6 +46,7 @@ namespace Gendarme.Rules.Correctness {
 		{
 			try {
 				new Uri (uri);
+				return true;
 			}
 			catch (UriFormatException) {
 				return false;
@@ -53,7 +54,6 @@ namespace Gendarme.Rules.Correctness {
 			catch (ArgumentNullException) {
 				return false;
 			}
-			return true;
 		}
 
 		private static bool TryParseVersion (string version)
@@ -74,12 +74,12 @@ namespace Gendarme.Rules.Correctness {
 		{
 			try {
 				new Guid (guid);
+				return true;
 			}
 			catch (FormatException)
 			{
 				return false;
 			}
-			return true;
 		}
 
 
