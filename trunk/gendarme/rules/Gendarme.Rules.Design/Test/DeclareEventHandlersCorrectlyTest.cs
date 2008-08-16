@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using Gendarme.Rules.Design;
 using Test.Rules.Fixtures;
 using Test.Rules.Definitions;
@@ -41,6 +42,28 @@ namespace Test.Rules.Design {
 			AssertRuleDoesNotApply (SimpleTypes.Interface);
 			AssertRuleDoesNotApply (SimpleTypes.Structure);
 			AssertRuleDoesNotApply (SimpleTypes.Enum);
+		}
+
+		delegate void GoodDelegate (object sender, EventArgs e);
+		class ClassWithGoodDelegate {
+			public event GoodDelegate CustomEvent;
+		}
+
+		[Test]
+		public void SuccessOnClassWithGoodDelegateTest ()
+		{
+			AssertRuleSuccess<ClassWithGoodDelegate> ();
+		}
+
+		delegate int DelegateReturningNonVoid (object sender, EventArgs args);
+		class ClassWithDelegateReturningNonVoid {
+			public event DelegateReturningNonVoid CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateReturningNonVoidTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateReturningNonVoid> (1);
 		}
 	}
 }

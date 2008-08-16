@@ -26,6 +26,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Gendarme.Framework;
@@ -33,24 +34,47 @@ using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Design {
+	[Problem ("")]
+	[Solution ("")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
-		private static IEnumerable<TypeDefinition> GetEventHandlers (TypeDefinition type)
+		private static IEnumerable<FieldDefinition> GetEvents (TypeDefinition type)
 		{
-			List<TypeDefinition> result = new List<TypeDefinition> ();
+			List<FieldDefinition> result = new List<FieldDefinition> ();
 			foreach (FieldDefinition field in type.Fields) {
-				TypeDefinition fieldType = field.FieldType.Resolve ();
-				if (fieldType.IsDelegate ())
-					result.Add (fieldType);		
+				if (field.FieldType.Resolve ().IsDelegate ())
+					result.Add (field);		
 			}
 			return result;
 		}
 
+		private static MethodDefinition GetInvokeMethod (TypeDefinition type)
+		{
+			foreach (MethodDefinition method in type.Methods) {
+				if (String.Compare (method.Name, "Invoke") == 0)
+					return method;
+			}
+			return null;
+		}
+
+		private void CheckReturnVoid (TypeDefinition warned, MethodDefinition invoke)
+		{
+			if (String.Compare (invoke.ReturnType.ReturnType.FullName, "System.Void") != 0)
+				Runner.Report (warned, Severity.Medium, Confidence.High);
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			IEnumerable<TypeDefinition> events = GetEventHandlers (type);
+			IEnumerable<FieldDefinition> events = GetEvents (type);
 			if (events.Count () == 0)
 				return RuleResult.DoesNotApply;
-
+			
+			foreach (FieldDefinition field in events) {
+				MethodDefinition invoke = GetInvokeMethod (field.FieldType.Resolve ());
+				if (invoke != null) {
+					CheckReturnVoid (type, invoke);
+				}
+			}
+				
 			return Runner.CurrentRuleResult;
 		}
 	}
