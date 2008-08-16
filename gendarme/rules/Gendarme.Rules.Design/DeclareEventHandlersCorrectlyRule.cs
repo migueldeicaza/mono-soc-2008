@@ -26,4 +26,14 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using Gendarme.Framework;
+using Mono.Cecil;
 
+namespace Gendarme.Rules.Design {
+	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
+		public RuleResult CheckType (TypeDefinition type)
+		{
+			return Runner.CurrentRuleResult;
+		}
+	}
+}

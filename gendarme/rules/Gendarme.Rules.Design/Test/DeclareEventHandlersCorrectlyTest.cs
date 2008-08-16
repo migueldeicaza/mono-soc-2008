@@ -26,4 +26,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using Gendarme.Rules.Design;
+using Test.Rules.Fixtures;
+using NUnit.Framework;
 
+namespace Test.Rules.Design {
+	[TestFixture]
+	public class DeclareEventHandlesCorrectlyTest : TypeRuleTestFixture<DeclareEventHandlersCorrectlyRule> {
+	}
+}
