@@ -28,10 +28,19 @@
 
 using Gendarme.Rules.Design;
 using Test.Rules.Fixtures;
+using Test.Rules.Definitions;
 using NUnit.Framework;
 
 namespace Test.Rules.Design {
 	[TestFixture]
 	public class DeclareEventHandlesCorrectlyTest : TypeRuleTestFixture<DeclareEventHandlersCorrectlyRule> {
+		[Test]
+		public void SkipOnCanonicalScenariosTest ()
+		{
+			AssertRuleDoesNotApply (SimpleTypes.Class);
+			AssertRuleDoesNotApply (SimpleTypes.Interface);
+			AssertRuleDoesNotApply (SimpleTypes.Structure);
+			AssertRuleDoesNotApply (SimpleTypes.Enum);
+		}
 	}
 }

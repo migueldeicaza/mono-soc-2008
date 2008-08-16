@@ -26,13 +26,30 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+using System.Collections.Generic;
+using System.Linq;
 using Gendarme.Framework;
+using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Design {
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
+		private static IEnumerable<FieldDefinition> GetEvents (TypeDefinition type)
+		{
+			List<FieldDefinition> result = new List<FieldDefinition> ();
+			foreach (FieldDefinition field in type.Fields) {
+				if (field.FieldType.Resolve ().IsDelegate ())
+					result.Add (field);		
+			}
+			return result;
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
+			IEnumerable<FieldDefinition> events = GetEvents (type);
+			if (events.Count () == 0)
+				return RuleResult.DoesNotApply;
+
 			return Runner.CurrentRuleResult;
 		}
 	}
