@@ -56,10 +56,24 @@ namespace Gendarme.Rules.Design {
 			return null;
 		}
 
-		private void CheckReturnVoid (TypeDefinition warned, MethodDefinition invoke)
+		private void CheckReturnVoid (FieldDefinition field, MethodDefinition invoke)
 		{
 			if (String.Compare (invoke.ReturnType.ReturnType.FullName, "System.Void") != 0)
-				Runner.Report (warned, Severity.Medium, Confidence.High);
+				Runner.Report (field, Severity.Low, Confidence.High);
+		}
+
+		private void CheckParameterTypes (FieldDefinition field, MethodDefinition invoke)
+		{
+			if (invoke.Parameters.Count != 2) {
+				Runner.Report (field, Severity.Low, Confidence.High);
+				return;
+			}
+			
+			if (String.Compare (invoke.Parameters[0].ParameterType.FullName, "System.Object") != 0)
+				Runner.Report (field, Severity.Low, Confidence.High);
+
+			if (!invoke.Parameters[1].ParameterType.Inherits ("System.EventArgs"))
+				Runner.Report (field, Severity.Low, Confidence.High);
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
@@ -71,7 +85,8 @@ namespace Gendarme.Rules.Design {
 			foreach (FieldDefinition field in events) {
 				MethodDefinition invoke = GetInvokeMethod (field.FieldType.Resolve ());
 				if (invoke != null) {
-					CheckReturnVoid (type, invoke);
+					CheckReturnVoid (field, invoke);
+					CheckParameterTypes (field, invoke);
 				}
 			}
 				
