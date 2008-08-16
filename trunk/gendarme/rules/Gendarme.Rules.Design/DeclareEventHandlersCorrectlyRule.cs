@@ -34,19 +34,20 @@ using Mono.Cecil;
 
 namespace Gendarme.Rules.Design {
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
-		private static IEnumerable<FieldDefinition> GetEvents (TypeDefinition type)
+		private static IEnumerable<TypeDefinition> GetEventHandlers (TypeDefinition type)
 		{
-			List<FieldDefinition> result = new List<FieldDefinition> ();
+			List<TypeDefinition> result = new List<TypeDefinition> ();
 			foreach (FieldDefinition field in type.Fields) {
-				if (field.FieldType.Resolve ().IsDelegate ())
-					result.Add (field);		
+				TypeDefinition fieldType = field.FieldType.Resolve ();
+				if (fieldType.IsDelegate ())
+					result.Add (fieldType);		
 			}
 			return result;
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			IEnumerable<FieldDefinition> events = GetEvents (type);
+			IEnumerable<TypeDefinition> events = GetEventHandlers (type);
 			if (events.Count () == 0)
 				return RuleResult.DoesNotApply;
 
