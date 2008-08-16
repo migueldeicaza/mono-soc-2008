@@ -76,6 +76,14 @@ namespace Gendarme.Rules.Design {
 				Runner.Report (field, Severity.Low, Confidence.High);
 		}
 
+		private void CheckParameterName (FieldDefinition field, MethodDefinition invoke, int position, string expected)
+		{
+			if (invoke.Parameters.Count >= position + 1) {
+				if (String.Compare (invoke.Parameters[position].Name, expected) != 0)
+					Runner.Report (field, Severity.Low, Confidence.High);
+			}
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			IEnumerable<FieldDefinition> events = GetEvents (type);
@@ -87,6 +95,8 @@ namespace Gendarme.Rules.Design {
 				if (invoke != null) {
 					CheckReturnVoid (field, invoke);
 					CheckParameterTypes (field, invoke);
+					CheckParameterName (field, invoke, 0, "sender");
+					CheckParameterName (field, invoke, 1, "e");
 				}
 			}
 				

@@ -55,7 +55,7 @@ namespace Test.Rules.Design {
 			AssertRuleSuccess<ClassWithGoodDelegate> ();
 		}
 
-		delegate int DelegateReturningNonVoid (object sender, EventArgs args);
+		delegate int DelegateReturningNonVoid (object sender, EventArgs e);
 		class ClassWithDelegateReturningNonVoid {
 			public event DelegateReturningNonVoid CustomEvent;
 		}
@@ -66,7 +66,7 @@ namespace Test.Rules.Design {
 			AssertRuleFailure<ClassWithDelegateReturningNonVoid> (1);
 		}
 
-		delegate void DelegateWithOneParameter (int x);
+		delegate void DelegateWithOneParameter (int sender);
 		class ClassWithDelegateWithOneParameter {
 			public event DelegateWithOneParameter CustomEvent;
 		}
@@ -77,7 +77,7 @@ namespace Test.Rules.Design {
 			AssertRuleFailure<ClassWithDelegateWithOneParameter> (1);
 		}
 
-		delegate void DelegateWithBadTypes (int x, char c);
+		delegate void DelegateWithBadTypes (int sender, char e);
 		class ClassWithDelegateWithBadTypes {
 			public event DelegateWithBadTypes CustomEvent;
 		}
@@ -88,7 +88,7 @@ namespace Test.Rules.Design {
 			AssertRuleFailure<ClassWithDelegateWithBadTypes> (2);
 		}
 
-		delegate void DelegateWithObject (object sender, int x);
+		delegate void DelegateWithObject (object sender, int e);
 		class ClassWithDelegateWithObject {
 			public event DelegateWithObject CustomEvent;
 		}
@@ -99,7 +99,7 @@ namespace Test.Rules.Design {
 			AssertRuleFailure<ClassWithDelegateWithObject> (1);
 		}
 
-		delegate void DelegateWithEventArgs (int x, EventArgs e);
+		delegate void DelegateWithEventArgs (int sender, EventArgs e);
 		class ClassWithDelegateWithEventArgs {
 			public event DelegateWithEventArgs CustomEvent;
 		}
@@ -109,5 +109,28 @@ namespace Test.Rules.Design {
 		{
 			AssertRuleFailure<ClassWithDelegateWithEventArgs> (1);
 		}
+
+		delegate void DelegateWithoutSender (object obj, EventArgs e);
+		class ClassWithDelegateWithoutSender {
+			public event DelegateWithoutSender CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithoutSenderTest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithoutSender> (1);
+		}
+
+		delegate void DelegateWithoutE (object sender, EventArgs eventArgs);
+		class ClassWithDelegateWithoutE {
+			public event DelegateWithoutE CustomEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithDelegateWithoutETest ()
+		{
+			AssertRuleFailure<ClassWithDelegateWithoutE> (1);
+		}
+	
 	}
 }
