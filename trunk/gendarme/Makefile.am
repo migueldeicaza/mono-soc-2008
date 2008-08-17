@@ -1,5 +1,5 @@
 SUBDIRS = . test reporter rules
-EXTRA_DIST = AssemblyInfo.cs.in MIT.X11 
+EXTRA_DIST = MIT.X11 
 
 REWRITE = \
 	sed -e "s|\@prefix\@|$(prefix)|g"       \
