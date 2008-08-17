@@ -21,3 +21,4 @@ ImplementISerializableCorrectlyRule -> r107752, r107753
 ProvideCorrectArgumentsToFormattingMethodsRule -> r108271, r108272
 
 mdb.patch -> r107976
+AssemblyRuleTestFixture.patch -> r110684, r110685
