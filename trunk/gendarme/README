@@ -1,0 +1,76 @@
+This document serves for making a self-evaluation and other comments useful for
+the GSoC.
+===============================================================================
+
+Plan and deliverables:
+======================
+
+* At least_ 20 hours of work every week. [DONE]
+
+* Deliverables:
+  + At least 8 rules. [6 commited to mono svn, and 2 in progress]
+    - I suppose I will write more rules, but I prefer made a mistake writting more rules than writting less.
+  + At least 1 patch to the class lib for every rule, when applicable. [NOT TO ALL]
+  + The shell script and cron configuration for the automated reports. [The
+  script is done, it needs some changes for memory comsumption]
+  + Patches to Gendarme Framework, and Gendarme.[DONE]
+
+Self evaluation about the planning:
+===================================
+
+Well as I said when I was applying, give an estimation is always a hard task.  I
+didn't planned two weeks when I wasn't really productive, the first one for my
+exams, and the second for my mum's trouble.
+
+I should learn from this situation, that although you have the project's lifetime
+more or less controlled I have to take care about the non controlled events,
+because I would like to have completed 10 rules.  With the lost 2 weeks, I think
+I have achieved fully this objective.
+
+As an extra I should say, I have written the reporter tool for modify the XML
+and generate the reports.
+
+Anyways, IMHO I think I have achieved my goals and I have made gendarme a bit
+more useful to mono.
+
+What have I learned?
+====================
+
+Well, the most important thing I have learned this year is how to interact with
+the mono-community and other mono hackers, how to use the tools (bugzilla
+specially) and its conventions.
+
+About the rules
+===============
+
+Well, if I'm talking about cuantity, I have witten 8 rules.  Is not a big
+number if I compare it with the GHOP or with my 2007 GSoC.
+
+But, this rules are more useful and there are really complex rules.  And the
+quality is better, referring quality as amount of false positives (the dark
+beast), performance (Sebastien teaches me how to use the profiler and some
+techniques), and maintainability.
+
+Directory tree
+==============
+
+patches/ <-- patches commited to mono svn (not all, because I don't like to have
+the patches replicated).  As a suggestion, you can see the mono-svn-list and the
+mono-soc-2008 svn too.
+
+profiles/ <-- I keep here the reports (until I upload to my server) and the
+scripts and configurations.
+rules/ <-- rules, rules, rule, rules ...
+reporter/ <-- the reporter code.
+test/ <-- tests for the ConsoleRunner. (It contains some ideas for test gendarme
+framework itself).
+
+My opinion
+==========
+
+Well, personally I think I have achieved my proposed goals.  I'm more involved
+with the mono-development, I will add a mono-contributor badge to my blog soon
+(when I send more patches) :)
+
+And although I haven't need to say this, I wish continue improving Gendarme and Mono (it's
+on my plans).
