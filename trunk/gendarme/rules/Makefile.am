@@ -4,3 +4,5 @@ SUBDIRS = \
 	Gendarme.Rules.Correctness \
 	Gendarme.Rules.Exceptions \
 	Gendarme.Rules.Design
+
+DISTCLEANFILES = Makefile.in
