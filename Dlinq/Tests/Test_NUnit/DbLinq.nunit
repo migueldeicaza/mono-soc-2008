@@ -1,0 +1,10 @@
+﻿<NUnitProject>
+  <Settings activeconfig="Debug" />
+  <Config name="Debug" binpathtype="Auto">
+    <assembly path="bin\Test_NUnit_SQLite.dll" />
+    <assembly path="bin\Test_NUnit_Pgsql.exe" />
+    <assembly path="bin\Test_NUnit_MsSql.dll" />
+    <assembly path="bin\Test_NUnit_MsSql_Strict.dll" />
+  </Config>
+  <Config name="Release" binpathtype="Auto" />
+</NUnitProject>
