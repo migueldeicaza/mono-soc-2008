@@ -1,0 +1,38 @@
+OS:Microsoft Windows NT 5.2.3790 Service Pack 1, Environment.Version:50727
+Open
+Number of Employees:8
+Customer 'UKMOD':
+        Number of pending orders:1
+        ·order: 4
+
+Customer 'BT___':
+        Number of pending orders:2
+        ·order: 2
+        ·order: 3
+
+Customer 'BONAP':
+        Number of pending orders:1
+        ·order: 5
+        It should be sent to: 12, rue des Bouchers Marseille France
+
+Customer 'AIRBU':
+        Number of pending orders:1
+        ·order: 1
+
+
+Are there any order for WARTH? no
+
+Andrew,Fuller, Phone:(111)222333
+airbu:
+att__:
+bonap:91.24.45.40
+bt___:
+warth:981-443655
+customer 'PAUL' already exists, removing...
+done
+Checking if Paul is in the database
+Paul is not in the database
+Inserting new customer..
+done
+Paul is in the database
+PAUL Seville Spain

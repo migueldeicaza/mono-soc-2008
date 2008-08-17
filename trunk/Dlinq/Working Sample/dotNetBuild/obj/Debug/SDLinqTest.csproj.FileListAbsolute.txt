@@ -1,0 +1,6 @@
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\obj\Debug\ResolveAssemblyReference.cache
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\bin\Debug\SDLinqTest.exe
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\bin\Debug\SDLinqTest.pdb
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\obj\Debug\SDLinqTest.exe
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\obj\Debug\SDLinqTest.pdb
+\\192.168.1.35\EjemploDbLinq\SDLinqTest\SDLinqTest\sdlinqWorkingSample\bin\Debug\System.Data.Linq.dll

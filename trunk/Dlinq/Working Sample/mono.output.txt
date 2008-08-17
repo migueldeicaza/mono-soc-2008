@@ -1,0 +1,426 @@
+OS:Unix 2.6.24.19, Environment.Version:50727
+Open
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Count
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+Select Expression build: 360ms
+Select SQL build:        39ms
+Select SQL: SELECT COUNT(*)
+FROM [dbo].[Customers]
+Number of Employees:7
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Call (MethodCallExpression)
+........Object: (null)
+........Method: Any
+........#00000 MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: e
+..........Member: Orders
+......#000 Parameter (ParameterExpression)
+........Parameter: e
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: OrderByDescending
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Implementation.QueryProvider`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call MemberAccess (MemberExpression)
+........Object Parameter (ParameterExpression)
+..........Parameter: c
+........Member: CustomerID
+......#000 Parameter (ParameterExpression)
+........Parameter: c
+Select Expression build: 180ms
+Select SQL build:        8ms
+Select SQL: SELECT e$.[CustomerID], e$.[CompanyName], e$.[ContactName], e$.[ContactTitle], e$.[Address], e$.[City], e$.[Region], e$.[PostalCode], e$.[Country], e$.[Phone], e$.[Fax]
+FROM [dbo].[Customers] e$
+WHERE (SELECT COUNT(*)
+FROM [dbo].[Orders] t1$
+WHERE e$.[CustomerID] = t1$.[CustomerID]) > 0
+ORDER BY e$.[CustomerID] DESC
+Customer 'UKMOD':
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Order]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: other
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: UKMOD
+......#000 Parameter (ParameterExpression)
+........Parameter: other
+Select Expression build: 72ms
+Select SQL build:        0ms
+Select SQL: SELECT [OrderID], [CustomerID], [EmployeeID], [OrderDate], [RequiredDate], [ShippedDate], [ShipVia], [Freight], [ShipName], [ShipAddress], [ShipCity], [ShipRegion], [ShipPostalCode], [ShipCountry]
+FROM [dbo].[Orders]
+WHERE [CustomerID] = 'UKMOD'
+	Number of pending orders:1
+	·order: 4
+
+Customer 'BT___':
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Order]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: other
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: BT___
+......#000 Parameter (ParameterExpression)
+........Parameter: other
+Select Expression build: 32ms
+Select SQL build:        0ms
+Select SQL: SELECT [OrderID], [CustomerID], [EmployeeID], [OrderDate], [RequiredDate], [ShippedDate], [ShipVia], [Freight], [ShipName], [ShipAddress], [ShipCity], [ShipRegion], [ShipPostalCode], [ShipCountry]
+FROM [dbo].[Orders]
+WHERE [CustomerID] = 'BT___'
+	Number of pending orders:2
+	·order: 2
+	·order: 3
+
+Customer 'BONAP':
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Order]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: other
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: BONAP
+......#000 Parameter (ParameterExpression)
+........Parameter: other
+Select Expression build: 46ms
+Select SQL build:        0ms
+Select SQL: SELECT [OrderID], [CustomerID], [EmployeeID], [OrderDate], [RequiredDate], [ShippedDate], [ShipVia], [Freight], [ShipName], [ShipAddress], [ShipCity], [ShipRegion], [ShipPostalCode], [ShipCountry]
+FROM [dbo].[Orders]
+WHERE [CustomerID] = 'BONAP'
+	Number of pending orders:1
+	·order: 5
+	It should be sent to: 12, rue des Bouchers Marseille France
+
+Customer 'AIRBU':
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Order]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: other
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: AIRBU
+......#000 Parameter (ParameterExpression)
+........Parameter: other
+Select Expression build: 38ms
+Select SQL build:        0ms
+Select SQL: SELECT [OrderID], [CustomerID], [EmployeeID], [OrderDate], [RequiredDate], [ShippedDate], [ShipVia], [Freight], [ShipName], [ShipAddress], [ShipCity], [ShipRegion], [ShipPostalCode], [ShipCountry]
+FROM [dbo].[Orders]
+WHERE [CustomerID] = 'AIRBU'
+	Number of pending orders:1
+	·order: 1
+
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Any
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Order]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object MemberAccess (MemberExpression)
+............Object Parameter (ParameterExpression)
+..............Parameter: o
+............Member: Customer
+..........Member: ContactName
+........Right Constant (ConstantExpression)
+..........Value: WARTH
+......#000 Parameter (ParameterExpression)
+........Parameter: o
+Select Expression build: 12ms
+Select SQL build:        0ms
+Select SQL: SELECT COUNT(*)
+FROM [dbo].[Customers] t1$, [dbo].[Orders] o$
+WHERE o$.[CustomerID] = t1$.[CustomerID] AND t1$.[ContactName] = 'WARTH'
+
+Are there any order for WARTH? no
+
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Employee]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Call (MethodCallExpression)
+........Object: (null)
+........Method: Any
+........#00000 MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: e
+..........Member: Orders
+........#00001 Lambda (Expression`1)
+..........Call OrElse (BinaryExpression)
+............Left  Equal (BinaryExpression)
+..............Left  MemberAccess (MemberExpression)
+................Object MemberAccess (MemberExpression)
+..................Object Parameter (ParameterExpression)
+....................Parameter: o
+..................Member: Customer
+................Member: CustomerID
+..............Right Constant (ConstantExpression)
+................Value: AIRBU
+............Right Equal (BinaryExpression)
+..............Left  MemberAccess (MemberExpression)
+................Object MemberAccess (MemberExpression)
+..................Object Parameter (ParameterExpression)
+....................Parameter: o
+..................Member: Customer
+................Member: CustomerID
+..............Right Constant (ConstantExpression)
+................Value: BONAP
+..........#000 Parameter (ParameterExpression)
+............Parameter: o
+......#000 Parameter (ParameterExpression)
+........Parameter: e
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: OrderBy
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Implementation.QueryProvider`1[MsNorthwind.Employee]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call MemberAccess (MemberExpression)
+........Object Parameter (ParameterExpression)
+..........Parameter: e
+........Member: FirstName
+......#000 Parameter (ParameterExpression)
+........Parameter: e
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Select
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Implementation.QueryProvider`1[MsNorthwind.Employee]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call New (NewExpression)
+........Ctor: .ctor
+........#000 Add (BinaryExpression)
+..........Left  Add (BinaryExpression)
+............Left  MemberAccess (MemberExpression)
+..............Object Parameter (ParameterExpression)
+................Parameter: e
+..............Member: FirstName
+............Right Constant (ConstantExpression)
+..............Value: ,
+..........Right MemberAccess (MemberExpression)
+............Object Parameter (ParameterExpression)
+..............Parameter: e
+............Member: LastName
+........#001 MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: e
+..........Member: HomePhone
+......#000 Parameter (ParameterExpression)
+........Parameter: e
+Select Expression build: 25ms
+Select SQL build:        5ms
+Select SQL: SELECT e$.[FirstName], e$.[LastName], e$.[HomePhone]
+FROM [dbo].[Employees] e$
+WHERE (SELECT COUNT(*)
+FROM [dbo].[Orders] o$, [dbo].[Customers] t1$
+WHERE e$.[EmployeeID] = CONVERT(int,o$.[EmployeeID]) AND o$.[CustomerID] = t1$.[CustomerID] AND t1$.[CustomerID] = 'AIRBU' OR t1$.[CustomerID] = 'BONAP') > 0
+ORDER BY e$.[FirstName]
+Andrew,Fuller, Phone:(111)222333
+Bob,Builder, Phone:(777)888999
+Kira,Smith, Phone:
+Nancy,Davolio, Phone:(444)555666
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Where
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call OrElse (BinaryExpression)
+........Left  Call (MethodCallExpression)
+..........Object Call (MethodCallExpression)
+............Object MemberAccess (MemberExpression)
+..............Object Parameter (ParameterExpression)
+................Parameter: c
+..............Member: CustomerID
+............Method: Trim
+..........Method: Contains
+..........#00000 Constant (ConstantExpression)
+............Value: T
+........Right Equal (BinaryExpression)
+..........Left  MemberAccess (MemberExpression)
+............Object Parameter (ParameterExpression)
+..............Parameter: c
+............Member: Country
+..........Right Constant (ConstantExpression)
+............Value: France
+......#000 Parameter (ParameterExpression)
+........Parameter: c
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Select
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Implementation.QueryProvider`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call New (NewExpression)
+........Ctor: .ctor
+........#000 MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: z
+..........Member: Phone
+........#001 Call (MethodCallExpression)
+..........Object MemberAccess (MemberExpression)
+............Object Parameter (ParameterExpression)
+..............Parameter: z
+............Member: CustomerID
+..........Method: ToLower
+......#000 Parameter (ParameterExpression)
+........Parameter: z
+Select Expression build: 115ms
+Select SQL build:        0ms
+Select SQL: SELECT [Phone], [CustomerID]
+FROM [dbo].[Customers]
+WHERE RTRIM(LTRIM([CustomerID])) LIKE '%T%' OR [Country] = 'France'
+airbu:
+att__:
+bonap:91.24.45.40
+bt___:
+warth:981-443655
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: FirstOrDefault
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: x
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: PAUL
+......#000 Parameter (ParameterExpression)
+........Parameter: x
+Select Expression build: 40ms
+Select SQL build:        1ms
+Select SQL: SELECT TOP (1) [CustomerID], [CompanyName], [ContactName], [ContactTitle], [Address], [City], [Region], [PostalCode], [Country], [Phone], [Fax]
+FROM [dbo].[Customers]
+WHERE [CustomerID] = 'PAUL'
+Checking if Paul is in the database
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: FirstOrDefault
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: x
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: PAUL
+......#000 Parameter (ParameterExpression)
+........Parameter: x
+Select Expression build: 47ms
+Select SQL build:        0ms
+Select SQL: SELECT TOP (1) [CustomerID], [CompanyName], [ContactName], [ContactTitle], [Address], [City], [Region], [PostalCode], [Country], [Phone], [Fax]
+FROM [dbo].[Customers]
+WHERE [CustomerID] = 'PAUL'
+Paul is not in the database
+Inserting new customer..
+Insert SQL: INSERT INTO [dbo].[Customers] ([CustomerID], [CompanyName], [ContactName], [ContactTitle], [Address], [City], [Region], [PostalCode], [Country], [Phone], [Fax]) VALUES (@CustomerID, @CompanyName, @ContactName, @ContactTitle, @Address, @City, @Region, @PostalCode, @Country, @Phone, @Fax)
+done
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: FirstOrDefault
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+..#00001 Quote (UnaryExpression)
+....Method : 
+....Operand Lambda (Expression`1)
+......Call Equal (BinaryExpression)
+........Left  MemberAccess (MemberExpression)
+..........Object Parameter (ParameterExpression)
+............Parameter: x
+..........Member: CustomerID
+........Right Constant (ConstantExpression)
+..........Value: PAUL
+......#000 Parameter (ParameterExpression)
+........Parameter: x
+Select Expression build: 30ms
+Select SQL build:        2ms
+Select SQL: SELECT TOP (1) [CustomerID], [CompanyName], [ContactName], [ContactTitle], [Address], [City], [Region], [PostalCode], [Country], [Phone], [Fax]
+FROM [dbo].[Customers]
+WHERE [CustomerID] = 'PAUL'
+Paul is in the database
+PAUL Seville Spain

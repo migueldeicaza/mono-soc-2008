@@ -1,0 +1,20 @@
+Index: TdsComm.cs
+===================================================================
+--- TdsComm.cs	(revision 110536)
++++ TdsComm.cs	(working copy)
+@@ -93,7 +93,14 @@
+ 
+ #if NET_2_0
+ 				IPAddress ip;
+-				if(IPAddress.TryParse(this.dataSource, out ip)) {
++				string ipString;
++				if(dataSource.Contains ("\\")) {
++					ipString=dataSource.Substring (0,dataSource.IndexOf ("\\"));					
++				} else {
++					ipString=dataSource;
++				}
++
++				if(IPAddress.TryParse (ipString, out ip)) {
+ 					endPoint = new IPEndPoint(ip, port);
+ 				} else {
+ 					IPHostEntry hostEntry = Dns.GetHostEntry (this.dataSource);

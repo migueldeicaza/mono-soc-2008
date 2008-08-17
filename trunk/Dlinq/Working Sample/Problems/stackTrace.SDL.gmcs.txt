@@ -1,0 +1,150 @@
+OS:Unix 2.6.24.19, Environment.Version:50727
+Open
+
+ Call (MethodCallExpression)
+..Object: (null)
+..Method: Count
+..#00000 Constant (ConstantExpression)
+....Value: System.Data.Linq.Table`1[MsNorthwind.Customer]
+Select Expression build: 311ms
+Select SQL build:        40ms
+Select SQL: SELECT COUNT(*)
+FROM [dbo].[Customers]
+**
+** ERROR:(method-to-ir.c:2025):target_type_is_incompatible: assertion failed: (cfg->generic_sharing_context)
+Stacktrace:
+
+  at System.Data.Linq.Sugar.Implementation.QueryRunner.SelectSingle (System.Data.Linq.Sugar.SelectQuery,bool) <0xffffffff>
+  at System.Data.Linq.Sugar.Implementation.QueryRunner.SelectSingle (System.Data.Linq.Sugar.SelectQuery,bool) <0x00094>
+  at System.Data.Linq.Sugar.Implementation.QueryRunner.SelectScalar (System.Data.Linq.Sugar.SelectQuery) <0x00117>
+  at System.Data.Linq.Implementation.QueryProvider`1.Execute (System.Linq.Expressions.Expression) <0x00046>
+  at System.Linq.Queryable.Execute (System.Linq.IQueryable`1,System.Reflection.MethodBase) [0x00000] in /media/Datos/Archivos/Proyectos/Mono/mcs/class/System.Core/System.Linq/Queryable.cs:55
+  at System.Linq.Queryable.Count (System.Linq.IQueryable`1) [0x00006] in /media/Datos/Archivos/Proyectos/Mono/mcs/class/System.Core/System.Linq/Queryable.cs:447
+  at SDLinqTest.Test.Main () [0x00062] in /home/geus/Desktop/sdlinqtest/SDLinqTest/SDLinqTest/sdlinqWorkingSample/Test.cs:22
+  at (wrapper runtime-invoke) System.Object.runtime_invoke_void (object,intptr,intptr,intptr) <0xffffffff>
+
+Native stacktrace:
+
+	mono [0x806efd4]
+	[0xb7f41440]
+	/lib/tls/i686/cmov/libc.so.6(abort+0x101) [0xb7d08a01]
+	/usr/lib/libglib-2.0.so.0(g_assertion_message+0x121) [0xb7ed2751]
+	/usr/lib/libglib-2.0.so.0 [0xb7ed2cad]
+	mono [0x81b66b8]
+	mono(mono_method_to_ir2+0x1793d) [0x81d9e8d]
+	mono [0x81afd7f]
+	mono [0x81b1cc1]
+	mono [0x8070c94]
+	[0xb7b6a066]
+	[0xb69bd5d8]
+	[0xb69dfaaf]
+	[0xb69dea2a]
+	[0xb69de902]
+	[0xb77bc470]
+	[0xb77bc1ef]
+	mono(mono_runtime_exec_main+0xeb) [0x8130aab]
+	mono(mono_runtime_run_main+0x173) [0x8131fe3]
+	mono(mono_main+0x13cb) [0x805c82b]
+	mono [0x805aec2]
+	/lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe0) [0xb7cf2450]
+	mono [0x805ae31]
+Cannot access memory at address 0x5f6e
+
+Debug info from gdb:
+
+[Thread debugging using libthread_db enabled]
+[New Thread 0xb7c9a960 (LWP 24430)]
+[New Thread 0xb6b68b90 (LWP 24434)]
+[New Thread 0xb6c6db90 (LWP 24433)]
+[New Thread 0xb73c5b90 (LWP 24432)]
+[New Thread 0xb73e9b90 (LWP 24431)]
+0xb7f41410 in __kernel_vsyscall ()
+  5 Thread 0xb73e9b90 (LWP 24431)  0xb7f41410 in __kernel_vsyscall ()
+  4 Thread 0xb73c5b90 (LWP 24432)  0xb7f41410 in __kernel_vsyscall ()
+  3 Thread 0xb6c6db90 (LWP 24433)  0xb7f41410 in __kernel_vsyscall ()
+  2 Thread 0xb6b68b90 (LWP 24434)  0xb7f41410 in __kernel_vsyscall ()
+  1 Thread 0xb7c9a960 (LWP 24430)  0xb7f41410 in __kernel_vsyscall ()
+
+Thread 5 (Thread 0xb73e9b90 (LWP 24431)):
+#0  0xb7f41410 in __kernel_vsyscall ()
+#1  0xb7e5d196 in nanosleep () from /lib/tls/i686/cmov/libpthread.so.0
+#2  0x08154d21 in collection_thread (unused=0x0) at collection.c:34
+#3  0xb7e554fb in start_thread () from /lib/tls/i686/cmov/libpthread.so.0
+#4  0xb7db2e5e in clone () from /lib/tls/i686/cmov/libc.so.6
+
+Thread 4 (Thread 0xb73c5b90 (LWP 24432)):
+#0  0xb7f41410 in __kernel_vsyscall ()
+#1  0xb7e59aa5 in pthread_cond_wait@@GLIBC_2.3.2 () from /lib/tls/i686/cmov/libpthread.so.0
+#2  0x0814be7f in timedwait_signal_poll_cond (cond=0x832c954, mutex=0x832c93c, timeout=0x80, alertable=0) at handles.c:1490
+#3  0x0814ebbe in _wapi_handle_timedwait_signal_handle (handle=0x404, timeout=0x0, alertable=0) at handles.c:1570
+#4  0x0814ec3c in _wapi_handle_wait_signal_handle (handle=0x404, alertable=0) at handles.c:1530
+#5  0x08155d7a in WaitForSingleObjectEx (handle=0x404, timeout=4294967295, alertable=0) at wait.c:205
+#6  0x080d152a in finalizer_thread (unused=0x0) at gc.c:905
+#7  0x080af960 in start_wrapper (data=0x833f2f0) at threads.c:621
+#8  0x0813ef92 in thread_start_routine (args=0x832cb94) at threads.c:279
+#9  0x08165baf in GC_start_routine (arg=0x35f20) at pthread_support.c:1382
+#10 0xb7e554fb in start_thread () from /lib/tls/i686/cmov/libpthread.so.0
+#11 0xb7db2e5e in clone () from /lib/tls/i686/cmov/libc.so.6
+
+Thread 3 (Thread 0xb6c6db90 (LWP 24433)):
+#0  0xb7f41410 in __kernel_vsyscall ()
+#1  0xb7db3676 in epoll_wait () from /lib/tls/i686/cmov/libc.so.6
+#2  0x080b8e0c in socket_io_epoll_main (p=0x82d9de0) at threadpool.c:548
+#3  0x080af960 in start_wrapper (data=0x854e628) at threads.c:621
+#4  0x0813ef92 in thread_start_routine (args=0x832cda4) at threads.c:279
+#5  0x08165baf in GC_start_routine (arg=0xc4fe0) at pthread_support.c:1382
+#6  0xb7e554fb in start_thread () from /lib/tls/i686/cmov/libpthread.so.0
+#7  0xb7db2e5e in clone () from /lib/tls/i686/cmov/libc.so.6
+
+Thread 2 (Thread 0xb6b68b90 (LWP 24434)):
+#0  0xb7f41410 in __kernel_vsyscall ()
+#1  0xb7e59dd2 in pthread_cond_timedwait@@GLIBC_2.3.2 () from /lib/tls/i686/cmov/libpthread.so.0
+#2  0x0814be3a in timedwait_signal_poll_cond (cond=0x832ccf0, mutex=0x832ccd8, timeout=0xb6b681e8, alertable=1) at handles.c:1500
+#3  0x0814ebbe in _wapi_handle_timedwait_signal_handle (handle=0x40b, timeout=0xb6b681e8, alertable=1) at handles.c:1570
+#4  0x08155b8c in WaitForSingleObjectEx (handle=0x40b, timeout=10000, alertable=1) at wait.c:207
+#5  0x080ba6a2 in async_invoke_io_thread (data=0x0) at threadpool.c:280
+#6  0x080af960 in start_wrapper (data=0x85510e8) at threads.c:621
+#7  0x0813ef92 in thread_start_routine (args=0x832ce28) at threads.c:279
+#8  0x08165baf in GC_start_routine (arg=0xc4fe0) at pthread_support.c:1382
+#9  0xb7e554fb in start_thread () from /lib/tls/i686/cmov/libpthread.so.0
+#10 0xb7db2e5e in clone () from /lib/tls/i686/cmov/libc.so.6
+
+Thread 1 (Thread 0xb7c9a960 (LWP 24430)):
+#0  0xb7f41410 in __kernel_vsyscall ()
+#1  0xb7daf807 in syscall () from /lib/tls/i686/cmov/libc.so.6
+#2  0x0806f06f in mono_handle_native_sigsegv (signal=6, ctx=0xbfecc09c) at mini-exceptions.c:1291
+#3  <signal handler called>
+#4  0xb7f41410 in __kernel_vsyscall ()
+#5  0xb7d07085 in raise () from /lib/tls/i686/cmov/libc.so.6
+#6  0xb7d08a01 in abort () from /lib/tls/i686/cmov/libc.so.6
+#7  0xb7ed2751 in g_assertion_message () from /usr/lib/libglib-2.0.so.0
+#8  0xb7ed2cad in g_assertion_message_expr () from /usr/lib/libglib-2.0.so.0
+#9  0x081b66b8 in target_type_is_incompatible (cfg=0x8a180c0, target=<value optimized out>, arg=0x8a726b4) at method-to-ir.c:2025
+#10 0x081d9e8d in mono_method_to_ir2 (cfg=0x8a180c0, method=0x8a2cb48, start_bblock=0x8a19d04, end_bblock=0x8a19d9c, 
+    return_var=0x0, dont_inline=0x8a5c430, inline_args=0x0, inline_offset=0, is_virtual_call=0) at method-to-ir.c:7349
+#11 0x081afd7f in mini_method_compile (method=0x8a2cb48, opts=30501375, domain=0x34ea0, run_cctors=<value optimized out>, 
+    compile_aot=<value optimized out>, parts=0) at mini.c:13251
+#12 0x081b1cc1 in mono_jit_compile_method (method=0x8a2cb48) at mini.c:13938
+#13 0x08070c94 in mono_magic_trampoline (regs=0xbfeccb30, code=0xb69bd7ec "Y\205�u��\005", m=0x8a2cb48, tramp=0x0)
+    at mini-trampolines.c:249
+#14 0xb7b6a066 in ?? ()
+#15 0xb69bd5d8 in ?? ()
+#16 0xb69dfaaf in ?? ()
+#17 0xb69dea2a in ?? ()
+#18 0xb69de902 in ?? ()
+#19 0xb77bc470 in ?? ()
+#20 0xb77bc1ef in ?? ()
+#21 0x08130aab in mono_runtime_exec_main (method=0x124560, args=0x3be70, exc=0x0) at object.c:3062
+#22 0x08131fe3 in mono_runtime_run_main (method=0x830c2cc, argc=1, argv=0xbfecd31c, exc=0x0) at object.c:2848
+#23 0x0805c82b in mono_main (argc=3, argv=0xbfecd314) at driver.c:957
+#24 0x0805aec2 in main (argc=) at main.c:30
+#0  0xb7f41410 in __kernel_vsyscall ()
+
+=================================================================
+Got a SIGABRT while executing native code. This usually indicates
+a fatal error in the mono runtime or one of the native libraries 
+used by your application.
+=================================================================
+
+Aborted
+
