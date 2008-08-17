@@ -34,8 +34,8 @@ using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Design {
-	[Problem ("")]
-	[Solution ("")]
+	[Problem ("The delegate which handles the event haven't the correct signature.")]
+	[Solution ("You should correct the signature, return type or parameter types or parameter names.")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
 		private static IEnumerable<FieldDefinition> GetEvents (TypeDefinition type)
 		{
