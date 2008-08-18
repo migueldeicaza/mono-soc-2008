@@ -44,16 +44,8 @@ namespace Gendarme.Rules.Correctness {
 		
 		private static bool TryParseUri (string uri)
 		{
-			try {
-				new Uri (uri);
-				return true;
-			}
-			catch (UriFormatException) {
-				return false;
-			}
-			catch (ArgumentNullException) {
-				return false;
-			}
+			Uri parsed = null;
+			return Uri.TryCreate (uri, UriKind.Absolute, out parsed);
 		}
 
 		private static bool TryParseVersion (string version)
