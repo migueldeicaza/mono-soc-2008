@@ -37,12 +37,13 @@ namespace Gendarme.Rules.Design {
 	[Problem ("The delegate which handles the event haven't the correct signature.")]
 	[Solution ("You should correct the signature, return type or parameter types or parameter names.")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
-		private static IEnumerable<FieldDefinition> GetEvents (TypeDefinition type)
+		private static IEnumerable<TypeDefinition> GetEvents (TypeDefinition type)
 		{
-			List<FieldDefinition> result = new List<FieldDefinition> ();
+			List<TypeDefinition> result = new List<TypeDefinition> ();
 			foreach (FieldDefinition field in type.Fields) {
-				if (field.FieldType.Resolve ().IsDelegate ())
-					result.Add (field);		
+				TypeDefinition fieldType = field.FieldType.Resolve ();
+				if (fieldType.IsDelegate () && !result.Contains (fieldType))
+					result.Add (fieldType);		
 			}
 			return result;
 		}
@@ -56,47 +57,47 @@ namespace Gendarme.Rules.Design {
 			return null;
 		}
 
-		private void CheckReturnVoid (FieldDefinition field, MethodDefinition invoke)
+		private void CheckReturnVoid (TypeDefinition type, MethodDefinition invoke)
 		{
 			if (String.Compare (invoke.ReturnType.ReturnType.FullName, "System.Void") != 0)
-				Runner.Report (field, Severity.Medium, Confidence.High, String.Format ("The delegate should return void, not {0}", invoke.ReturnType.ReturnType.FullName));
+				Runner.Report (type, Severity.Medium, Confidence.High, String.Format ("The delegate should return void, not {0}", invoke.ReturnType.ReturnType.FullName));
 		}
 
-		private void CheckParameterTypes (FieldDefinition field, MethodDefinition invoke)
+		private void CheckParameterTypes (TypeDefinition type, MethodDefinition invoke)
 		{
 			if (invoke.Parameters.Count != 2) {
-				Runner.Report (field, Severity.Low, Confidence.High, String.Format ("The signature should have 2 parameters and it has {0} parameters", invoke.Parameters.Count));
+				Runner.Report (type, Severity.Low, Confidence.High, String.Format ("The signature should have 2 parameters and it has {0} parameters", invoke.Parameters.Count));
 				return;
 			}
 			
 			if (String.Compare (invoke.Parameters[0].ParameterType.FullName, "System.Object") != 0)
-				Runner.Report (field, Severity.Medium, Confidence.High, String.Format ("The first parameter should have a object, not {0}", invoke.Parameters[0].ParameterType.FullName));
+				Runner.Report (type, Severity.Medium, Confidence.High, String.Format ("The first parameter should have a object, not {0}", invoke.Parameters[0].ParameterType.FullName));
 
 			if (!invoke.Parameters[1].ParameterType.Inherits ("System.EventArgs"))
-				Runner.Report (field, Severity.Medium, Confidence.High, "The second parameter should be a subclass of System.EventArgs");
+				Runner.Report (type, Severity.Medium, Confidence.High, "The second parameter should be a subclass of System.EventArgs");
 		}
 
-		private void CheckParameterName (FieldDefinition field, MethodDefinition invoke, int position, string expected)
+		private void CheckParameterName (TypeDefinition type, MethodDefinition invoke, int position, string expected)
 		{
 			if (invoke.Parameters.Count >= position + 1) {
 				if (String.Compare (invoke.Parameters[position].Name, expected) != 0)
-					Runner.Report (field, Severity.Low, Confidence.High, String.Format ("The expected name is {0}, not {1}", expected, invoke.Parameters[position].Name));
+					Runner.Report (type, Severity.Low, Confidence.High, String.Format ("The expected name is {0}, not {1}", expected, invoke.Parameters[position].Name));
 			}
 		}
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			IEnumerable<FieldDefinition> events = GetEvents (type);
+			IEnumerable<TypeDefinition> events = GetEvents (type);
 			if (events.Count () == 0)
 				return RuleResult.DoesNotApply;
 			
-			foreach (FieldDefinition field in events) {
-				MethodDefinition invoke = GetInvokeMethod (field.FieldType.Resolve ());
+			foreach (TypeDefinition eventType in events) {
+				MethodDefinition invoke = GetInvokeMethod (eventType);
 				if (invoke != null) {
-					CheckReturnVoid (field, invoke);
-					CheckParameterTypes (field, invoke);
-					CheckParameterName (field, invoke, 0, "sender");
-					CheckParameterName (field, invoke, 1, "e");
+					CheckReturnVoid (eventType, invoke);
+					CheckParameterTypes (eventType, invoke);
+					CheckParameterName (eventType, invoke, 0, "sender");
+					CheckParameterName (eventType, invoke, 1, "e");
 				}
 			}
 				
