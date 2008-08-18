@@ -1,0 +1,35 @@
+Index: Uri.cs
+===================================================================
+--- Uri.cs	(revisión: 110357)
++++ Uri.cs	(copia de trabajo)
+@@ -632,7 +632,7 @@
+ 			if ('A' <= digit && digit <= 'F')
+ 				return (int) (digit - 'A' + 10);
+ 				
+-			throw new ArgumentException ("digit");
++			throw new ArgumentException ("The parameter is a non valid hexadecimal symbol.", "digit");
+ 		}
+ 
+ 		public static string HexEscape (char character) 
+@@ -648,7 +648,7 @@
+ 		public static char HexUnescape (string pattern, ref int index) 
+ 		{
+ 			if (pattern == null) 
+-				throw new ArgumentException ("pattern");
++				throw new ArgumentException ("The parameter is null.", "pattern");
+ 				
+ 			if (index < 0 || index >= pattern.Length)
+ 				throw new ArgumentOutOfRangeException ("index");
+Index: ChangeLog
+===================================================================
+--- ChangeLog	(revisión: 110359)
++++ ChangeLog	(copia de trabajo)
+@@ -1,3 +1,8 @@
++2008-08-13  Néstor Salceda  <nestor.salceda@gmail.com>
++
++	* Uri.cs: Put the correct values in argument exceptions.  Found using
++	Gendarme.
++
+ 2008-04-25  Sebastien Pouliot  <sebastien@ximian.com>
+ 
+ 	* StrongName.cs: New test cases to verify signatures from streams.
