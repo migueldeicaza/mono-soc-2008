@@ -131,6 +131,18 @@ namespace Test.Rules.Design {
 		{
 			AssertRuleFailure<ClassWithDelegateWithoutE> (1);
 		}
-	
+
+		class ClassWithTwoFields {
+			public event DelegateWithoutE CustomEvent;
+			public event DelegateWithoutE CustomEvent1;
+		}
+
+		[Test]
+		public void FailOnClassWithTwoFieldsTest ()
+		{
+			//This error should be warn once, because it's the same
+			//delegate.
+			AssertRuleFailure<ClassWithTwoFields> (1);
+		}
 	}
 }
