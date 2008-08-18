@@ -1,6 +1,6 @@
-AC_INIT(README)
+AC_INIT([gendarme], [0.0.0.1])
 AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(gendarme, 0.0.0.1)
+AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 
 AC_PROG_INSTALL
@@ -43,12 +43,12 @@ AC_SUBST(GENDARME_LIBS)
 
 dnl find assembly paths for unstable installed assemblies that will be
 dnl copied into gendarme installation directory for local usage with the app
-UNSTABLE_INSTALL_ASSEMBLIES="mono-cecil"
-INSTALLED_ASSEMBLIES="`$PKG_CONFIG --variable=Libraries $UNSTABLE_INSTALL_ASSEMBLIES`"
-AC_SUBST(INSTALLED_ASSEMBLIES)
+dnl UNSTABLE_INSTALL_ASSEMBLIES="mono-cecil"
+dnl INSTALLED_ASSEMBLIES="`$PKG_CONFIG --variable=Libraries $UNSTABLE_INSTALL_ASSEMBLIES`"
+dnl AC_SUBST(INSTALLED_ASSEMBLIES)
 
-CECIL_PATH="`$PKG_CONFIG --variable=assemblies_dir mono-cecil`"
-AC_SUBST(CECIL_PATH)
+dnl CECIL_PATH="`$PKG_CONFIG --variable=assemblies_dir mono-cecil`"
+dnl AC_SUBST(CECIL_PATH)
 
 AC_OUTPUT([
 Makefile

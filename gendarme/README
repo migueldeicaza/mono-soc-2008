@@ -65,6 +65,11 @@ reporter/ <-- the reporter code.
 test/ <-- tests for the ConsoleRunner. (It contains some ideas for test gendarme
 framework itself).
 
+In order to avoid overload the SVN with generated code, you can see some
+examples of the reports in:
+
+http://www.babuine.net/gendarme-reports/2.0-reports/
+
 My opinion
 ==========
 
