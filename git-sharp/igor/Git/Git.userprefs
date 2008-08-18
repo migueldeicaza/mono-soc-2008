@@ -1,11 +1,6 @@
 ﻿<UserCombinePreferences version="1.0" filename="/home/igor/gsoc/Git/Git.mds">
   <Files>
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/ObjectStore.cs" line="163" column="21" />
-    <File name="Tests/Main.cs" line="85" column="78" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Blob.cs" line="45" column="4" />
-    <File name="Core/Mono.Git.Core/Mono.Git.Core/Object.cs" line="73" column="57" />
-    <File name="Tests/ObjectTest.cs" line="311" column="1" />
-    <File name="Tests/IndexTest.cs" line="1" column="1" />
+    <File name="Core/Mono.Git.Core/Mono.Git.Core/Diff.cs" line="1" column="1" />
   </Files>
   <Views>
     <ViewMemento id="ProjectPad">
@@ -13,12 +8,9 @@
         <Node name="Core" expanded="True">
           <Node name="Mono.Git.Core" expanded="True">
             <Node name="Mono.Git.Core" expanded="True">
-              <Node name="ObjectStore.cs" selected="True" />
+              <Node name="Diff.cs" selected="True" />
             </Node>
           </Node>
-        </Node>
-        <Node name="Tests" expanded="True">
-          <Node name="Tests" expanded="True" />
         </Node>
       </Node>
     </ViewMemento>
@@ -30,7 +22,7 @@
     </ViewMemento>
   </Views>
   <Properties>
-    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Core/Mono.Git.Core/Mono.Git.Core/ObjectStore.cs" />
+    <Property key="ActiveWindow" value="/home/igor/gsoc/Git/Core/Mono.Git.Core/Mono.Git.Core/Diff.cs" />
     <Property key="ActiveConfiguration" value="Debug" />
   </Properties>
 </UserCombinePreferences>

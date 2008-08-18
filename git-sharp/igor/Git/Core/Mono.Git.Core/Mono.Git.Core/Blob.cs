@@ -27,6 +27,7 @@
 using System;
 using System.IO;
 using System.IO.Compression;
+using System.Text;
 using Mono.Git.Core.Repository;
 
 namespace Mono.Git.Core
@@ -44,6 +45,29 @@ namespace Mono.Git.Core
 		public Blob (byte[] data) : base (Type.Blob, data)
 		{
 			this.data = data;
+		}
+		
+		public bool IsText ()
+		{
+			// FIXME: Very silly implementation :(
+			foreach (char c in data) {
+				if (c == ' ' || c == '\n')
+					continue;
+				if (Char.IsLetterOrDigit (c) || Char.IsPunctuation (c) || Char.IsSymbol (c))
+					continue;
+				
+				return false;
+			}
+			
+			return true;
+		}
+		
+		public string GetText ()
+		{
+			if (IsText ())
+				return Encoding.UTF8.GetString (data);
+			
+			throw new FieldAccessException ("The data in this blob is not text");
 		}
 		
 		protected override byte[] Decode ()
