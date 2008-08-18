@@ -59,28 +59,29 @@ namespace Gendarme.Rules.Design {
 		private void CheckReturnVoid (FieldDefinition field, MethodDefinition invoke)
 		{
 			if (String.Compare (invoke.ReturnType.ReturnType.FullName, "System.Void") != 0)
-				Runner.Report (field, Severity.Low, Confidence.High);
+				Runner.Report (field, Severity.Medium, Confidence.High, String.Format ("The delegate should return void, not {0}", invoke.ReturnType.ReturnType.FullName));
 		}
 
 		private void CheckParameterTypes (FieldDefinition field, MethodDefinition invoke)
 		{
 			if (invoke.Parameters.Count != 2) {
-				Runner.Report (field, Severity.Low, Confidence.High);
+				Runner.Report (field, Severity.Low,
+				Confidence.High, String.Format ("The signature should have 2 parameters and it has {0} parameters", invoke.Parameters.Count));
 				return;
 			}
 			
 			if (String.Compare (invoke.Parameters[0].ParameterType.FullName, "System.Object") != 0)
-				Runner.Report (field, Severity.Low, Confidence.High);
+				Runner.Report (field, Severity.Medium, Confidence.High, String.Format ("The first parameter should have a object, not {0}", invoke.Parameters[0].ParameterType.FullName));
 
 			if (!invoke.Parameters[1].ParameterType.Inherits ("System.EventArgs"))
-				Runner.Report (field, Severity.Low, Confidence.High);
+				Runner.Report (field, Severity.Medium, Confidence.High, "The second parameter should be a subclass of System.EventArgs");
 		}
 
 		private void CheckParameterName (FieldDefinition field, MethodDefinition invoke, int position, string expected)
 		{
 			if (invoke.Parameters.Count >= position + 1) {
 				if (String.Compare (invoke.Parameters[position].Name, expected) != 0)
-					Runner.Report (field, Severity.Low, Confidence.High);
+					Runner.Report (field, Severity.Low, Confidence.High, String.Format ("The expected name is {0}, not {1}", expected, invoke.Parameters[position].Name));
 			}
 		}
 
