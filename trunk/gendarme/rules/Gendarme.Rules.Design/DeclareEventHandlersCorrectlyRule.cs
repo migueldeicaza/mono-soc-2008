@@ -65,8 +65,7 @@ namespace Gendarme.Rules.Design {
 		private void CheckParameterTypes (FieldDefinition field, MethodDefinition invoke)
 		{
 			if (invoke.Parameters.Count != 2) {
-				Runner.Report (field, Severity.Low,
-				Confidence.High, String.Format ("The signature should have 2 parameters and it has {0} parameters", invoke.Parameters.Count));
+				Runner.Report (field, Severity.Low, Confidence.High, String.Format ("The signature should have 2 parameters and it has {0} parameters", invoke.Parameters.Count));
 				return;
 			}
 			
