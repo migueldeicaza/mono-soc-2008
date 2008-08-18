@@ -1,0 +1,75 @@
+Index: AuthorizationRule.cs
+===================================================================
+--- AuthorizationRule.cs	(revisión: 110357)
++++ AuthorizationRule.cs	(copia de trabajo)
+@@ -51,7 +51,7 @@
+ 						      PropagationFlags propagationFlags)
+ 		{
+ 			if (!(identity is SecurityIdentifier)) {
+-				throw new ArgumentException ("identity");
++				throw new ArgumentException ("The parameter should be an instance of SecurityIdentifier type.", "identity");
+ 			}
+ 			
+ 			if (accessMask == 0) {
+Index: AuditRule.cs
+===================================================================
+--- AuditRule.cs	(revisión: 110357)
++++ AuditRule.cs	(copia de trabajo)
+@@ -46,7 +46,7 @@
+ 		{
+ 			if (!(identity is SecurityIdentifier)) {
+ 				/* FIXME: check auditFlags too */
+-				throw new ArgumentException ("identity");
++				throw new ArgumentException ("The constructor is expecting an instance of type SecurityIdentifier.", "identity");
+ 			}
+ 			
+ 			if (accessMask == 0) {
+Index: ChangeLog
+===================================================================
+--- ChangeLog	(revisión: 110358)
++++ ChangeLog	(copia de trabajo)
+@@ -1,3 +1,9 @@
++2008-08-13  Néstor Salceda  <nestor.salceda@gmail.com>
++
++	* AccessRule.cs, AuditRule.cs, AuthorizationRule.cs,
++	EventWaitHandleAuditRule.cs: Put the correct parameters in argument
++	exceptions.  Found using Gendarme.
++
+ 2008-07-02  Andreas Nahr  <ClassDevelopment@A-SoftTech.com>
+ 
+ 	* MutexAccessRule.cs:
+Index: EventWaitHandleAuditRule.cs
+===================================================================
+--- EventWaitHandleAuditRule.cs	(revisión: 110357)
++++ EventWaitHandleAuditRule.cs	(copia de trabajo)
+@@ -57,10 +57,10 @@
+ 				throw new ArgumentNullException ("eventRights");
+ 			}
+ 			if (flags == AuditFlags.None) {
+-				throw new ArgumentException ("flags");
++				throw new ArgumentException ("The expected parameter is different than AuditFlags.None.","flags");
+ 			}
+ 			if (!(identity is SecurityIdentifier)) {
+-				throw new ArgumentException ("identity");
++				throw new ArgumentException ("The expected parameter is an instance of SecurityIdentifier type.","identity");
+ 			}
+ 			
+ 			this.rights = eventRights;
+Index: AccessRule.cs
+===================================================================
+--- AccessRule.cs	(revisión: 110357)
++++ AccessRule.cs	(copia de trabajo)
+@@ -45,11 +45,11 @@
+ 				inheritanceFlags, propagationFlags)
+ 		{
+ 			if (!(identity is SecurityIdentifier)) {
+-				throw new ArgumentException ("identity");
++				throw new ArgumentException ("The method is expecting an instance of a SecurityIdentifier type.", "identity");
+ 			}
+ 			if (type < AccessControlType.Allow ||
+ 			    type > AccessControlType.Deny) {
+-				throw new ArgumentException ("type");
++				throw new ArgumentException ("The parameter should be greater than AccessControlType.Allow and lesser than AccessControlType.Deny.", "type");
+ 			}
+ 			
+ 			

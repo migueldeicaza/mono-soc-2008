@@ -1,0 +1,44 @@
+Index: ChangeLog
+===================================================================
+--- ChangeLog	(revisión: 110359)
++++ ChangeLog	(copia de trabajo)
+@@ -1,3 +1,8 @@
++2008-08-13  Néstor Salceda  <nestor.salceda@gmail.com>
++
++	* SecurityIdentifier.cs: Put the correct values in argument exceptions.
++	Found using Gendarme.
++
+ 2008-05-30  Sebastien Pouliot  <sebastien@ximian.com> 
+ 
+ 	* IdentityReferenceCollection.cs: Remove MonoTODO and throw NIE.
+Index: SecurityIdentifier.cs
+===================================================================
+--- SecurityIdentifier.cs	(revisión: 110357)
++++ SecurityIdentifier.cs	(copia de trabajo)
+@@ -56,7 +56,7 @@
+ 			if (binaryForm == null)
+ 				throw new ArgumentNullException ("binaryForm");
+ 			if ((offset < 0) || (offset > binaryForm.Length - 1))
+-				throw new ArgumentException ("offset");
++				throw new ArgumentException ("The method is expecting an offset greater than 0 and an offset lesser than binaryForm length minus one.", "offset");
+ 
+ 			throw new NotImplementedException ();
+ 		}
+@@ -70,7 +70,7 @@
+ 		{
+ 			switch (sidType) {
+ 			case WellKnownSidType.LogonIdsSid:
+-				throw new ArgumentException ("sidType");
++				throw new ArgumentException ("The method isn't expecting a WellKnownSidType.LogonIdsSid","sidType");
+ 			case WellKnownSidType.AccountAdministratorSid:
+ 			case WellKnownSidType.AccountGuestSid:
+ 			case WellKnownSidType.AccountKrbtgtSid:
+@@ -128,7 +128,7 @@
+ 			if (binaryForm == null)
+ 				throw new ArgumentNullException ("binaryForm");
+ 			if ((offset < 0) || (offset > binaryForm.Length - 1 - this.BinaryLength))
+-				throw new ArgumentException ("offset");
++				throw new ArgumentException ("The offset should be greater than 0 and lesser than the binaryForm minus one minus the BinaryLength.", "offset");
+ 
+ 			// TODO
+ 		}
