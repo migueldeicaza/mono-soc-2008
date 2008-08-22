@@ -28,6 +28,7 @@ using System.Reflection;
 using System.Threading;
 using System.IO;
 using System.Xml.Serialization;
+using System.Collections.Generic;
 
 using ParallelFxTests.RayTracer;
 
@@ -62,40 +63,40 @@ namespace ParallelFxTests
 			CollectionAssert.AreEqual(pixels, rayTracer.Pixels, "#2, pixels in order");
 		}
 
-	  [Test, ExpectedException(typeof(AggregateException))]
-	  public void ParallelForExceptionTestCase()
-	  {
-	    Parallel.For(1, 10, (i) => throw new Exception("foo"));
-	  }
-
-	  [Test]
-	  public void ParallelForEachTestCase()
-	  {
-	    IEnumerable<int> e = Enumerable.Repeat(1, 10);
-	    int count = 0;
-
-	    Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
-
-	    Assert.AreEquals(9, count);
-	  }
-
-	  [Test, ExpectedException(typeof(AggregateException))]
-	  public void ParallelForEachExceptionTestCse()
-	  {
-	    IEnumerable<int> e = Enumerable.Repeat(1, 10);
-	    Parallel.ForEach(e, (element) => throw new Exception("foo"));
-	  }
-
-	  [Test]
-	  public void ParallelWhileTestCase()
-	  {
-	    int i = 0;
-	    int count = 0;
-
-	    Parallel.While(() => Interlocked.Increment(ref i) <= 10, Interlocked.Increment(ref count));
-	    
-	    Assert.AreEquals(10, i, "#1");
-	    Assert.AreEquals(10, count, "#2");
-	  }
+		[Test, ExpectedException(typeof(AggregateException))]
+		public void ParallelForExceptionTestCase()
+		{
+			Parallel.For(1, 10, delegate (int i) { throw new Exception("foo"); });
+		}
+		
+		[Test]
+		public void ParallelForEachTestCase()
+		{
+			IEnumerable<int> e = Enumerable.Repeat(1, 10);
+			int count = 0;
+			
+			Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
+			
+			Assert.AreEqual(9, count);
+		}
+		
+		[Test, ExpectedException(typeof(AggregateException))]
+		public void ParallelForEachExceptionTestCse()
+		{
+			IEnumerable<int> e = Enumerable.Repeat(1, 10);
+			Parallel.ForEach(e, delegate (int element) { throw new Exception("foo"); });
+		}
+		
+		[Test]
+		public void ParallelWhileTestCase()
+		{
+			int i = 0;
+			int count = 0;
+			
+			Parallel.While(() => Interlocked.Increment(ref i) <= 10, () => Interlocked.Increment(ref count));
+			
+			Assert.AreEqual(10, i, "#1");
+			Assert.AreEqual(10, count, "#2");
+		}
 	}
 }
