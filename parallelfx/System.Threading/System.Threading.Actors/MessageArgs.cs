@@ -1,4 +1,4 @@
-// Combinators.cs
+// BufferedActor.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,33 +24,38 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Collections;
 
 namespace System.Threading.Actors
 {
-	public static class Combinators
-	{
-		public static Task AndThen(Action initial, params Action[] chain)
-		{
-			Task root = Task.Create(delegate { initial(); });
-			chain.Aggregate(root, (t, a) => t.ContinueWith(delegate { a(); }));
-			
-			return root;
-		}
+  /* This class is quite similar to what EventArgs are for events. If you want to use a custom
+   * message which wraps up some data for example, subclass this class. TypeFlag & Type can be used
+   * together with an existing enum to help receiver cast to the correct message
+   */
+  public class MessageArgs
+  {
+    int typeFlag;
 
+    protected MessageArgs(int typeFlag)
+    {
+      this.typeFlag = typeFlag;
+    }
 
-	  // The following Loop and LoopWhile are to be used inside actor to simulate a infinite loop or a while-like loop. They have the same semantic but allows other Tasks to be processed and so to not clung the scheduler.
-		public static Task Loop(Action body)
-		{
-			return AndThen(body, delegate { Loop(body); });
-		}
-		
-		public static Task LoopWhile(Action body, Func<bool> predicate)
-		{
-			if (predicate())
-				return AndThen(body, delegate { LoopWhile(body, predicate); });
-			
-			return Task.Create(delegate { });
-		}
-	}
+    public static readonly Empty = new MessageEventArgs(-1);
+
+    public int TypeFlag {
+      get {
+	return typeFlag;
+      }
+    }
+    
+    // FIXME: if doesn't compile use a method
+    public T Type<T> where T : enum {
+      get {
+	return (T)typeFlag;
+      }
+    }
+  }
 }

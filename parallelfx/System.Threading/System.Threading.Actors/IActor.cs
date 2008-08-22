@@ -29,11 +29,11 @@ using System.Threading.Tasks;
 namespace System.Threading.Actors
 {
 	// The type T represents the type of the message passed to the actor
-	public interface IActor<T>
+	public interface IActor
 	{
-		void Send          (object sender, T message);
-		void Receive       (Action<ActorMessage<T>> handler);
-		bool TryReceive    (Action<ActorMessage<T>> handler);
-		T    SendToAndWait<U>(IActor<U> destination, U message);		
+		void Send                 (IActor sender, MessageArgs message);
+		void Receive              (Action<ActorMessage<MessageArgs>> handler);
+		bool TryReceive           (Action<ActorMessage<MessageArgs>> handler);
+		MessageArgs SendToAndWait (IActor destination, MessageArgs message);		
 	}
 }

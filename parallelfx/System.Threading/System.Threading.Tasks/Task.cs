@@ -73,9 +73,8 @@ namespace System.Threading.Tasks
 				
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 			
-			// FIXME: sort-of infinite recursion
-			/*if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
-				Task.Create(action, state, tm, taskCreationOptions);*/
+			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
+			  ContinueWith(_ => action(state), TaskContinuationKind.OnAny, taskCreationOptions);
 		}
 
 		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)

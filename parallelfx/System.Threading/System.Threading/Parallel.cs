@@ -51,15 +51,13 @@ namespace System.Threading
 		
 		static void InitTasks(Task[] tasks, Action<object> action, int count)
 		{
-			for (int i = 0; i < count; i++) {
-				tasks[i] = Task.Create(action);
-			}
+		  InitTasks(tasks, count, () => Task.Create(action));
 		}
 		
-		static void InitTasks(Task[] tasks, Action<object> action, int count, TaskManager tm, TaskCreationOptions opt)
+	  static void InitTasks(Task[] tasks, int count, Func<Task> taskCreator)
 		{
 			for (int i = 0; i < count; i++) {
-				tasks[i] = Task.Create(action, tm, opt);
+			  tasks[i] = taskCreator();
 			}
 		}
 		
@@ -71,6 +69,8 @@ namespace System.Threading
 			foreach (Task t in tasks)
 				t.ContinueWith(cleanCallback, TaskContinuationKind.OnAny, TaskCreationOptions.None, true);
 		}
+
+#region For
 		
 		public static void For(int from, int to, Action<int> action)
 		{
@@ -141,7 +141,29 @@ namespace System.Threading
 			if (threadLocalSelector == null)
 				throw new ArgumentNullException("threadLocalSelector");
 			
-			int num = GetBestWorkerNumber();
+			For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, act));
+		}
+		
+		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
+		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
+		                               TaskManager manager, TaskCreationOptions options)
+	  {
+	    if (body == null)
+	      throw new ArgumentNullException("body");
+	    if (step < 0)
+	      throw new ArgumentOutOfRangeException("step", "step must be positive");
+	    if (threadLocalSelector == null)
+	      throw new ArgumentNullException("threadLocalSelector");
+	    if (manager == null)
+	      throw new ArgumentNullException("manager");
+
+	    For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.Create(act, manager, options)));
+	  }
+
+public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
+			       Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup, Action<Task[], int, Action<object>> tasksCreator)
+		{
+		  int num = GetBestWorkerNumber();
 
 			Task[] tasks = new Task[num];
 			ParallelState<TLocal> state = new ParallelState<TLocal>(tasks, threadLocalSelector);
@@ -155,20 +177,17 @@ namespace System.Threading
 				}
 			};
 			
-			InitTasks(tasks, workerMethod, num);
+			tasksCreator(tasks, num, workerMethod);
 			if (threadLocalCleanup != null)
 				InitCleanerCallback(tasks, state, threadLocalCleanup);
 			
 			Task.WaitAll(tasks);
 			HandleExceptions(tasks);
 		}
-		
-		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                               Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
-		                               TaskManager manager, TaskCreationOptions options)
-		{
-			throw new NotImplementedException();
-		}
+
+#endregion
+
+#region Foreach
 		
 		public static void ForEach<TSource>(IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
@@ -229,61 +248,95 @@ namespace System.Threading
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> enumerable, Func<TLocal> threadLocalSelector,
-		                                            Action<TSource, int, ParallelState<TLocal>> action)
+		                                            Action<TSource, int, ParallelState<TLocal>> body)
 		{
-			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
-			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
-			// most collection.
-			SpinLock sl = new SpinLock(false);
-			
-			int num = GetBestWorkerNumber();
-
-			Task[] tasks = new Task[num];
-			ParallelState<TLocal> state = new ParallelState<TLocal>(tasks, threadLocalSelector);
-			
-			IEnumerator<TSource> enumerator = enumerable.GetEnumerator();
-			int currentIndex = 0;
-			bool isFinished = false;
-			
-			Action<object> workerMethod = delegate {
-				int index = -1;
-				TSource element = default(TSource);
-				
-				while (!isFinished && !state.IsStopped) {
-					try {
-						sl.Enter();
-						// From here it's thread-safe
-						index      = currentIndex++;
-						isFinished = !enumerator.MoveNext();
-						if (isFinished) return;
-						element = enumerator.Current;
-						// End of thread-safety
-					} finally {
-						sl.Exit();
-					}
-					
-					action(element, index, state);
-				}
-			};
-			
-			InitTasks(tasks, workerMethod, num);	
-			
-			Task.WaitAll(tasks);
-			HandleExceptions(tasks);
+		  ForEach<TSource, TLocal>(enumerable, threadLocalSelector, body, null);
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
 		                                            Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
 		{
-			throw new NotImplementedException();
+		  ForEach<TSource, TLocal>(source, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, act, count));
 		}
 		
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
 		                                            Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
 		                                            TaskManager manager, TaskCreationOptions options)
 		{
-			throw new NotImplementedException();
+		  ForEach<TSource, TLocal>(source, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.Create(act, manager, options)));
 		}
+
+	  public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
+						      Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup, Action<Task[], int, Action<object>> tasksCreator) 
+	  {
+	    // Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
+	    // a light weight lock for the 3 or so operations to retrieve an element which should be fast for
+	    // most collection.
+	    SpinLock sl = new SpinLock(false);
+	    
+	    int num = GetBestWorkerNumber();
+	    
+	    Task[] tasks = new Task[num];
+	    ParallelState<TLocal> state = new ParallelState<TLocal>(tasks, threadLocalSelector);
+	    
+	    IEnumerator<TSource> enumerator = enumerable.GetEnumerator();
+	    int currentIndex = 0;
+	    bool isFinished = false;
+	    
+	    Action<object> workerMethod = delegate {
+	      int index = -1;
+	      TSource element = default(TSource);
+	      
+	      while (!isFinished && !state.IsStopped) {
+		try {
+		  sl.Enter();
+		  // From here it's thread-safe
+		  index      = currentIndex++;
+		  isFinished = !enumerator.MoveNext();
+		  if (isFinished) return;
+		  element = enumerator.Current;
+		  // End of thread-safety
+		} finally {
+		  sl.Exit();
+		}
+		
+		action(element, index, state);
+	      }
+	    };
+	    
+	    tasksCreator(tasks, num, workerMethod);
+	    if (threadLocalCleanup != null)
+	      InitCleanerCallback(tasks, state, threadLocalCleanup);
+	    Task.WaitAll(tasks);
+	    HandleExceptions(tasks);
+	  }
+	  
+#endregion
+
+#region While
+	  public static void While(Func<bool> predicate, Action body)
+	  {
+	    While(predicate, (state) => body());
+	  }
+
+	  public static void While(Func<bool> predicate, Action<ParallelState> body)
+	  {
+	    int num = GetBestWorkerNumber();
+	    
+	    Task[] tasks = new Task[num];
+	    ParallelState state = new ParallelState(tasks);
+	    
+	    Action<object> action = delegate {
+	      while (!state.IsStopped && predicate())
+		body(state);
+	    };
+
+	    InitTasks(task, action, num);
+	    Task.WaitAll(tasks);
+	    HandleExceptions(tasks);
+	  }
+
+#endregion
 		
 		public static void Invoke(params Action[] actions)
 		{			
@@ -295,7 +348,7 @@ namespace System.Threading
 			Invoke(actions, (Action a) => Task.Create((o) => a(), tm, tco));
 		}
 		
-		public static void Invoke(Action[] actions, Func<Action, Task> taskCreator)
+		static void Invoke(Action[] actions, Func<Action, Task> taskCreator)
 		{
 			if (actions.Length == 0)
 				throw new ArgumentException("actions is empty");
