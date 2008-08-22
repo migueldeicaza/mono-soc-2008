@@ -26,27 +26,27 @@ using System;
 
 namespace System.Threading.Actors
 {
-	public struct ActorMessage<T>
-	{
-		object sender;
-		T      message;
-		
-		public object Sender {
-			get {
-				return sender;
-			}
-		}
-		
-		public T Message {
-			get {
-				return message;
-			}
-		}
-		
-		public ActorMessage(object sender, T message)
-		{
-			this.sender = sender;
-			this.message = message;
-		}
-	}
+  public struct ActorMessage<T>
+  {
+    IActor sender;
+    T      message;
+    
+    public IActor Sender {
+      get {
+	return sender;
+      }
+    }
+    
+    public T Message {
+      get {
+	return message;
+      }
+    }
+    
+    public ActorMessage(IActor sender, T message)
+      {
+	this.sender = sender;
+	this.message = message;
+      }
+  }
 }

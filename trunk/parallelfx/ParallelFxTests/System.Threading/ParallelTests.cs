@@ -23,6 +23,7 @@
 //
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.IO;
@@ -60,5 +61,41 @@ namespace ParallelFxTests
 			CollectionAssert.AreEquivalent(pixels, rayTracer.Pixels, "#1, same pixels");
 			CollectionAssert.AreEqual(pixels, rayTracer.Pixels, "#2, pixels in order");
 		}
+
+	  [Test, ExpectedException(typeof(AggregateException))]
+	  public void ParallelForExceptionTestCase()
+	  {
+	    Parallel.For(1, 10, (i) => throw new Exception("foo"));
+	  }
+
+	  [Test]
+	  public void ParallelForEachTestCase()
+	  {
+	    IEnumerable<int> e = Enumerable.Repeat(1, 10);
+	    int count = 0;
+
+	    Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
+
+	    Assert.AreEquals(9, count);
+	  }
+
+	  [Test, ExpectedException(typeof(AggregateException))]
+	  public void ParallelForEachExceptionTestCse()
+	  {
+	    IEnumerable<int> e = Enumerable.Repeat(1, 10);
+	    Parallel.ForEach(e, (element) => throw new Exception("foo"));
+	  }
+
+	  [Test]
+	  public void ParallelWhileTestCase()
+	  {
+	    int i = 0;
+	    int count = 0;
+
+	    Parallel.While(() => Interlocked.Increment(ref i) <= 10, Interlocked.Increment(ref count));
+	    
+	    Assert.AreEquals(10, i, "#1");
+	    Assert.AreEquals(10, count, "#2");
+	  }
 	}
 }
