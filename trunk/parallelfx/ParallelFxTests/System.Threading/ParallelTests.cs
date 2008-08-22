@@ -45,7 +45,6 @@ namespace ParallelFxTests
 		int[] pixels;
 		RayTracerApp rayTracer;
 		
-		[SetUp]
 		public void Setup()
 		{
 			Stream stream = Assembly.GetAssembly(typeof(ParallelTests)).GetManifestResourceStream("raytracer-output.xml");
@@ -58,6 +57,7 @@ namespace ParallelFxTests
 		[Test]
 		public void ParallelForTestCase()
 		{
+			Setup();
 			// Test the the output of the Parallel RayTracer is the same than the synchronous ones 
 			CollectionAssert.AreEquivalent(pixels, rayTracer.Pixels, "#1, same pixels");
 			CollectionAssert.AreEqual(pixels, rayTracer.Pixels, "#2, pixels in order");
@@ -77,7 +77,7 @@ namespace ParallelFxTests
 			
 			Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
 			
-			Assert.AreEqual(9, count);
+			Assert.AreEqual(10, count);
 		}
 		
 		[Test, ExpectedException(typeof(AggregateException))]
@@ -95,7 +95,7 @@ namespace ParallelFxTests
 			
 			Parallel.While(() => Interlocked.Increment(ref i) <= 10, () => Interlocked.Increment(ref count));
 			
-			Assert.AreEqual(10, i, "#1");
+			Assert.Greater(i, 10, "#1");
 			Assert.AreEqual(10, count, "#2");
 		}
 	}
