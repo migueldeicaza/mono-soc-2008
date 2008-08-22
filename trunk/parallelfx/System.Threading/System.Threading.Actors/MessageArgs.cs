@@ -30,32 +30,25 @@ using System.Threading.Collections;
 
 namespace System.Threading.Actors
 {
-  /* This class is quite similar to what EventArgs are for events. If you want to use a custom
-   * message which wraps up some data for example, subclass this class. TypeFlag & Type can be used
-   * together with an existing enum to help receiver cast to the correct message
-   */
-  public class MessageArgs
-  {
-    int typeFlag;
-
-    protected MessageArgs(int typeFlag)
-    {
-      this.typeFlag = typeFlag;
-    }
-
-    public static readonly Empty = new MessageEventArgs(-1);
-
-    public int TypeFlag {
-      get {
-	return typeFlag;
-      }
-    }
-    
-    // FIXME: if doesn't compile use a method
-    public T Type<T> where T : enum {
-      get {
-	return (T)typeFlag;
-      }
-    }
-  }
+	/* This class is quite similar to what EventArgs are for events. If you want to use a custom
+	 * message which wraps up some data for example, subclass this class. TypeFlag & Type can be used
+	 * together with an existing enum to help receiver cast to the correct message
+	 */
+	public class MessageArgs
+	{
+		int typeFlag;
+		
+		protected MessageArgs(int typeFlag)
+		{
+			this.typeFlag = typeFlag;
+		}
+		
+		public static readonly MessageArgs Empty = new MessageArgs(-1);
+		
+		public int TypeFlag {
+			get {
+				return typeFlag;
+			}
+		}
+	}
 }
