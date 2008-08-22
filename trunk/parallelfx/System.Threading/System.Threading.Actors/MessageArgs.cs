@@ -31,7 +31,7 @@ using System.Threading.Collections;
 namespace System.Threading.Actors
 {
 	/* This class is quite similar to what EventArgs are for events. If you want to use a custom
-	 * message which wraps up some data for example, subclass this class. TypeFlag & Type can be used
+	 * message which wraps up some data for example, subclass this class. TypeFlag can be used
 	 * together with an existing enum to help receiver cast to the correct message
 	 */
 	public class MessageArgs
