@@ -102,6 +102,30 @@ namespace System.Threading
 		void InitThreadLocal()
 		{
 			LocalDataStoreSlot localStore = Thread.AllocateDataSlot();
+			
+			specializedValue = delegate {
+				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+				// In case it's the first time the Thread access its data
+				if (myWrapper == null) {
+					myWrapper = DataSlotCreator();
+					Thread.SetData(localStore, myWrapper);
+				}
+				
+				return myWrapper.Getter();
+			};
+			isInitialized = delegate {
+				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+				if (myWrapper == null) {
+					myWrapper = DataSlotCreator();
+					Thread.SetData(localStore, myWrapper);
+				}
+				
+				return myWrapper.Init;
+			};
+		}
+
+		DataSlotWrapper DataSlotCreator()
+		{
 			DataSlotWrapper wrapper = new DataSlotWrapper();
 			
 			wrapper.Getter = delegate {
@@ -111,16 +135,7 @@ namespace System.Threading
 				return val;
 			};
 			
-			Thread.SetData(localStore, wrapper);
-			
-			specializedValue = delegate {
-				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
-				return myWrapper.Getter();
-			};
-			isInitialized = delegate {
-				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
-				return myWrapper.Init;
-			};
+			return wrapper;
 		}
 		
 		void ISerializable.GetObjectData (SerializationInfo info, StreamingContext context)

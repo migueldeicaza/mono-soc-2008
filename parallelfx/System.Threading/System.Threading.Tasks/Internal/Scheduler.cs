@@ -124,8 +124,16 @@ namespace System.Threading.Tasks
 			isPulsable = false;
 		}
 		
-		public void UnInhibitPulse() {
+		public void UnInhibitPulse() 
+		{
 			isPulsable = true;
+		}
+
+		public void Dispose()
+		{
+			foreach (ThreadWorker w in workers) {
+				w.Dispose();
+			}
 		}
 		
 		// This one has no participation as it has no Dequeue suitable for stealing

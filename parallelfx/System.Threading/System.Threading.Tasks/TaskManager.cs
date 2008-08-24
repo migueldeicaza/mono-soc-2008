@@ -64,7 +64,8 @@ namespace System.Threading.Tasks
 		
 		protected virtual void Dispose(bool managedRes)
 		{
-			
+			if (managedRes)
+				sched.Dispose();
 		}
 		
 		internal void AddWork(Task t)

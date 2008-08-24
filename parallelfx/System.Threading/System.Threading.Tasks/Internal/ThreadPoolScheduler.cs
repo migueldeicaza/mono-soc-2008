@@ -1,4 +1,4 @@
-// IScheduler.cs
+// ThreadPoolScheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,19 +24,60 @@
 
 using System;
 using System.Threading;
-using System.Collections.Generic;
 
 namespace System.Threading.Tasks
 {
-	internal interface IScheduler: IDisposable
+	internal class ThreadPoolScheduler: IScheduler
 	{
-		void AddWork(Task t);
-		void Participate();
-		void ParticipateUntil(Task task);
-		bool ParticipateUntil(Task task, Func<bool> predicate);
-		void ParticipateUntil(Func<bool> predicate);
-		void PulseAll();
-		/*void InhibitPulse();
-		void UnInhibitPulse();*/
+		SpinWait sw = new SpinWait();
+		
+		#region IDisposable implementation 
+		public void Dispose ()
+		{
+		}
+		#endregion
+
+		#region IScheduler implementation 
+		
+		public void AddWork (Task t)
+		{
+			ThreadPool.QueueUserWorkItem(delegate { t.Execute(AddWork); });
+		}
+		
+		public void Participate ()
+		{
+			throw new NotSupportedException();
+		}
+		
+		public void ParticipateUntil (Task task)
+		{
+			while (!task.IsCompleted)
+				sw.SpinOnce();
+		}
+		
+		public bool ParticipateUntil (Task task, Func<bool> predicate)
+		{
+			while (!task.IsCompleted) {
+				if (predicate())
+					return false;
+				sw.SpinOnce();
+			}
+
+			return true;
+		}
+		
+		public void ParticipateUntil (Func<bool> predicate)
+		{
+			while (!predicate())
+				sw.SpinOnce();
+		}
+		
+		public void PulseAll ()
+		{
+			
+		}
+		
+		#endregion 
+		
 	}
 }

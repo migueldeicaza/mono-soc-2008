@@ -28,7 +28,7 @@ using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
-	internal class ThreadWorker
+	internal class ThreadWorker: IDisposable
 	{
 		static Random r = new Random();
 		
@@ -101,6 +101,13 @@ namespace System.Threading.Tasks
 				this.workerThread.Priority = priority;
 			};
 			threadInitializer();
+		}
+
+		public void Dispose()
+		{
+			Stop();
+			if (!isLocal && workerThread.ThreadState != ThreadState.Stopped)
+				workerThread.Abort();
 		}
 		
 		public void Pulse()
