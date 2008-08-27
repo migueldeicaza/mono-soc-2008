@@ -145,6 +145,18 @@ namespace Test.Rules.Design {
 			AssertRuleFailure<ClassWithTwoFields> (1);
 		}
 
+		delegate int SampleDelegate ();
+
+		class ClassWithDelegate {
+			SampleDelegate myDelegate;
+		}
+
+		[Test]
+		public void SuccessOnClassWithDelegateTest ()
+		{
+			AssertRuleDoesNotApply<ClassWithDelegate> ();
+		}
+
 		//TODO: Check with more than one class:
 		//public class Foo {
 		//	public event DelegateWithoutE CustomEvent;

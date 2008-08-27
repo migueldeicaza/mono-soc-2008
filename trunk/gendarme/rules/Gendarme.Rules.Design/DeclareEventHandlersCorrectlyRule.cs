@@ -37,12 +37,20 @@ namespace Gendarme.Rules.Design {
 	[Problem ("The delegate which handles the event haven't the correct signature.")]
 	[Solution ("You should correct the signature, return type or parameter types or parameter names.")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
+		private static bool HasEventAccessors (TypeDefinition type, string fieldName)
+		{
+			MethodDefinition addEvent = type.GetMethod ("add_" + fieldName);
+			MethodDefinition removeEvent = type.GetMethod ("remove_" + fieldName);
+
+			return addEvent != null && removeEvent != null;
+		}
+
 		private static IEnumerable<TypeDefinition> GetEvents (TypeDefinition type)
 		{
 			List<TypeDefinition> result = new List<TypeDefinition> ();
 			foreach (FieldDefinition field in type.Fields) {
 				TypeDefinition fieldType = field.FieldType.Resolve ();
-				if (fieldType.IsDelegate () && !result.Contains (fieldType))
+				if (fieldType.IsDelegate () && HasEventAccessors (type, field.Name) && !result.Contains (fieldType))
 					result.Add (fieldType);		
 			}
 			return result;
