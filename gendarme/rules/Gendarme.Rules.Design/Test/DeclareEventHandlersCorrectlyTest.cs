@@ -74,7 +74,9 @@ namespace Test.Rules.Design {
 		[Test]
 		public void FailOnClassWithDelegateWithOneParameterTest ()
 		{
-			AssertRuleFailure<ClassWithDelegateWithOneParameter> (1);
+			//The amount of parameters
+			//And the type warning for the first
+			AssertRuleFailure<ClassWithDelegateWithOneParameter> (2);
 		}
 
 		delegate void DelegateWithBadTypes (int sender, char e);
