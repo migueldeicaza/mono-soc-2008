@@ -84,12 +84,12 @@ namespace Gendarme.Rules.Design {
 				return RuleResult.DoesNotApply;
 			
 			foreach (EventDefinition each in type.Events) {
-				//TODO: When is in the svn, a invoke
-				//MethodSignature should be created.
 				TypeDefinition eventType = each.EventType.Resolve ();
 				if (ExistsViolationsForThisRuleIn (eventType))
 					continue;
 
+				//TODO: When is in the svn, a invoke
+				//MethodSignature should be created.
 				MethodDefinition invoke = eventType.GetMethod ("Invoke");
 				if (invoke != null) {
 					//Warn the delegate type, not the client.
