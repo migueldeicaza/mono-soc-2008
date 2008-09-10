@@ -69,21 +69,35 @@ namespace Gendarme.Rules.Design {
 			}
 		}
 
+		private bool ExistsViolationsForThisRuleIn (TypeDefinition type) 
+		{
+			foreach (Defect defect in Runner.Defects) {
+				if ((defect.Rule == this) && (defect.Location == type))
+					return true;
+			}
+			return false;
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			if (type.Events.Count == 0)
 				return RuleResult.DoesNotApply;
 			
 			foreach (EventDefinition each in type.Events) {
-				//TODO: When is with Gendarme, a invoke
-				//MethodDefinition should be created.
-				MethodDefinition invoke = each.EventType.Resolve ().GetMethod ("Invoke");
+				//TODO: When is in the svn, a invoke
+				//MethodSignature should be created.
+				TypeDefinition eventType = each.EventType.Resolve ();
+				if (ExistsViolationsForThisRuleIn (eventType))
+					continue;
+
+				MethodDefinition invoke = eventType.GetMethod ("Invoke");
 				if (invoke != null) {
-					CheckReturnVoid (type, invoke);
-					CheckAmountOfParameters (type, invoke);
-					CheckParameterTypes (type, invoke);
-					CheckParameterName (type, invoke, 0, "sender");
-					CheckParameterName (type, invoke, 1, "e");
+					//Warn the delegate type, not the client.
+					CheckReturnVoid (eventType, invoke);
+					CheckAmountOfParameters (eventType, invoke);
+					CheckParameterTypes (eventType, invoke);
+					CheckParameterName (eventType, invoke, 0, "sender");
+					CheckParameterName (eventType, invoke, 1, "e");
 				}
 			}
 							
