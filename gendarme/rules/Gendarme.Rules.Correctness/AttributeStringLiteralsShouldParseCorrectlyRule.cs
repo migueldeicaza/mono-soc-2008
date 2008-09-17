@@ -68,14 +68,12 @@ namespace Gendarme.Rules.Correctness {
 				new Guid (guid);
 				return true;
 			}
-			catch (FormatException)
-			{
+			catch (FormatException) {
 				return false;
 			}
 		}
 
-
-		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodDefinition constructor, IList values)
+		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodReference constructor, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
 				ParameterDefinition parameter = constructor.Parameters[index];
@@ -110,10 +108,13 @@ namespace Gendarme.Rules.Correctness {
 		
 		private RuleResult CheckAttributesIn (ICustomAttributeProvider provider)
 		{
+			//There isn't a relationship between
+			//IMetadataTokenProvider and ICustomAttributeProvider,
+			//altough a method, or type, implements both interfaces.
 			IMetadataTokenProvider metadataProvider = provider as IMetadataTokenProvider;
 
 			foreach (CustomAttribute attribute in provider.CustomAttributes) 
-				CheckParametersAndValues (metadataProvider, attribute.Constructor.Resolve (), attribute.ConstructorParameters);
+				CheckParametersAndValues (metadataProvider, attribute.Constructor, attribute.ConstructorParameters);
 			return Runner.CurrentRuleResult;
 		}
 
