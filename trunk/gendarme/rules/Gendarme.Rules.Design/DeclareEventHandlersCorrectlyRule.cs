@@ -30,49 +30,50 @@ using System;
 using System.Collections.Generic;
 using Gendarme.Framework;
 using Gendarme.Framework.Rocks;
+using Gendarme.Framework.Helpers;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Design {
 	[Problem ("The delegate which handles the event haven't the correct signature.")]
-	[Solution ("You should correct the signature, return type or parameter types or parameter names.")]
+	[Solution ("You should correct the signature, return type, parameter types or parameter names.")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
 
-		private void CheckReturnVoid (TypeDefinition current, MethodDefinition invoke)
+		private void CheckReturnVoid (TypeReference eventType, MethodReference invoke)
 		{
 			if (String.Compare (invoke.ReturnType.ReturnType.FullName, "System.Void") != 0)
-				Runner.Report (current, Severity.Medium, Confidence.High, String.Format ("The delegate should return void, not {0}", invoke.ReturnType.ReturnType.FullName));
+				Runner.Report (eventType, Severity.Medium, Confidence.High, String.Format ("The delegate should return void, not {0}", invoke.ReturnType.ReturnType.FullName));
 		}
 
-		private void CheckAmountOfParameters (TypeDefinition current, MethodDefinition invoke)
+		private void CheckAmountOfParameters (TypeReference eventType, MethodReference invoke)
 		{
 			if (invoke.Parameters.Count != 2)
-				Runner.Report (current, Severity.Medium, Confidence.High, String.Format ("The delegate should have 2 parameters"));
+				Runner.Report (eventType, Severity.Medium, Confidence.High, String.Format ("The delegate should have 2 parameters"));
 		}
 
-		private void CheckParameterTypes (TypeDefinition current, MethodDefinition invoke)
+		private void CheckParameterTypes (TypeReference eventType, MethodReference invoke)
 		{
 			if (invoke.Parameters.Count >= 1) {
 				if (String.Compare (invoke.Parameters[0].ParameterType.FullName, "System.Object") != 0)
-					Runner.Report (current, Severity.Medium, Confidence.High, String.Format ("The first parameter should have an object, not {0}", invoke.Parameters[0].ParameterType.FullName));
+					Runner.Report (eventType, Severity.Medium, Confidence.High, String.Format ("The first parameter should have an object, not {0}", invoke.Parameters[0].ParameterType.FullName));
 			}
 			if (invoke.Parameters.Count >= 2) {
 				if (!invoke.Parameters[1].ParameterType.Inherits ("System.EventArgs"))
-					Runner.Report (current, Severity.Medium, Confidence.High, "The second parameter should be a subclass of System.EventArgs");
+					Runner.Report (eventType, Severity.Medium, Confidence.High, "The second parameter should be a subclass of System.EventArgs");
 			}
 		}
 
-		private void CheckParameterName (TypeDefinition current, MethodDefinition invoke, int position, string expected)
+		private void CheckParameterName (TypeReference eventType, MethodReference invoke, int position, string expected)
 		{
 			if (invoke.Parameters.Count >= position + 1) {
 				if (String.Compare (invoke.Parameters[position].Name, expected) != 0)
-					Runner.Report (current, Severity.Low, Confidence.High, String.Format ("The expected name is {0}, not {1}", expected, invoke.Parameters[position].Name));
+					Runner.Report (eventType, Severity.Low, Confidence.High, String.Format ("The expected name is {0}, not {1}", expected, invoke.Parameters[position].Name));
 			}
 		}
 
-		private bool ExistsViolationsForThisRuleIn (TypeDefinition type) 
+		private bool ExistsViolationsForThisRuleIn (TypeReference eventType) 
 		{
 			foreach (Defect defect in Runner.Defects) {
-				if ((defect.Rule == this) && (defect.Location == type))
+				if ((defect.Rule == this) && (defect.Location == eventType))
 					return true;
 			}
 			return false;
@@ -84,20 +85,19 @@ namespace Gendarme.Rules.Design {
 				return RuleResult.DoesNotApply;
 			
 			foreach (EventDefinition each in type.Events) {
-				TypeDefinition eventType = each.EventType.Resolve ();
-				if (ExistsViolationsForThisRuleIn (eventType))
+				//Warn the delegate type only once for this
+				//rule, this avoids mess the people with
+				//messages for the same error.
+				if (ExistsViolationsForThisRuleIn (each.EventType))
 					continue;
 
-				//TODO: When is in the svn, a invoke
-				//MethodSignature should be created.
-				MethodDefinition invoke = eventType.GetMethod ("Invoke");
+				MethodReference invoke = each.EventType.GetMethod (MethodSignatures.Invoke);
 				if (invoke != null) {
-					//Warn the delegate type, not the client.
-					CheckReturnVoid (eventType, invoke);
-					CheckAmountOfParameters (eventType, invoke);
-					CheckParameterTypes (eventType, invoke);
-					CheckParameterName (eventType, invoke, 0, "sender");
-					CheckParameterName (eventType, invoke, 1, "e");
+					CheckReturnVoid (each.EventType, invoke);
+					CheckAmountOfParameters (each.EventType, invoke);
+					CheckParameterTypes (each.EventType, invoke);
+					CheckParameterName (each.EventType, invoke, 0, "sender");
+					CheckParameterName (each.EventType, invoke, 1, "e");
 				}
 			}
 							

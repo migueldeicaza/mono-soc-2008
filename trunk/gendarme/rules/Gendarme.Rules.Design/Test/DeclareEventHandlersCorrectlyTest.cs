@@ -158,16 +158,5 @@ namespace Test.Rules.Design {
 		{
 			AssertRuleDoesNotApply<ClassWithDelegate> ();
 		}
-
-		//TODO: Check with more than one class:
-		//public class Foo {
-		//	public event DelegateWithoutE CustomEvent;
-		//}
-		//
-		//public class Bar {
-		//	public event DelegateWithoutE CustomEvent;
-		//}
-		//It should report only one error, because it's the same
-		//delegate.
 	}
 }
