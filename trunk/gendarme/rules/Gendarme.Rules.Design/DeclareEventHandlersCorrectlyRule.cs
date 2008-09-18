@@ -37,6 +37,7 @@ namespace Gendarme.Rules.Design {
 	[Problem ("The delegate which handles the event haven't the correct signature.")]
 	[Solution ("You should correct the signature, return type, parameter types or parameter names.")]
 	public class DeclareEventHandlersCorrectlyRule : Rule, ITypeRule {
+		static IList<TypeReference> possibleTargets = new List<TypeReference> ();
 
 		private void CheckReturnVoid (TypeReference eventType, MethodReference invoke)
 		{
@@ -70,38 +71,32 @@ namespace Gendarme.Rules.Design {
 			}
 		}
 
-		private bool ExistsViolationsForThisRuleIn (TypeReference eventType) 
-		{
-			foreach (Defect defect in Runner.Defects) {
-				if ((defect.Rule == this) && (defect.Location == eventType))
-					return true;
-			}
-			return false;
-		}
-
 		public RuleResult CheckType (TypeDefinition type)
 		{
 			if (type.Events.Count == 0)
 				return RuleResult.DoesNotApply;
-			
-			foreach (EventDefinition each in type.Events) {
-				//Warn the delegate type only once for this
-				//rule, this avoids mess the people with
-				//messages for the same error.
-				if (ExistsViolationsForThisRuleIn (each.EventType))
-					continue;
 
-				MethodReference invoke = each.EventType.GetMethod (MethodSignatures.Invoke);
+			foreach (EventDefinition each in type.Events) {
+				if (!possibleTargets.Contains (each.EventType))
+					possibleTargets.Add (each.EventType);	
+			}
+			return Runner.CurrentRuleResult;
+		}
+
+		public override void TearDown (IRunner runner)
+		{
+			foreach (TypeReference type in possibleTargets) {
+				MethodReference invoke = type.GetMethod (MethodSignatures.Invoke);
 				if (invoke != null) {
-					CheckReturnVoid (each.EventType, invoke);
-					CheckAmountOfParameters (each.EventType, invoke);
-					CheckParameterTypes (each.EventType, invoke);
-					CheckParameterName (each.EventType, invoke, 0, "sender");
-					CheckParameterName (each.EventType, invoke, 1, "e");
+					CheckReturnVoid (type, invoke);
+					CheckAmountOfParameters (type, invoke);
+					CheckParameterTypes (type, invoke);
+					CheckParameterName (type, invoke, 0, "sender");
+					CheckParameterName (type, invoke, 1, "e");
 				}
 			}
-							
-			return Runner.CurrentRuleResult;
+			possibleTargets.Clear ();
+			base.TearDown (runner);
 		}
 	}
 }
