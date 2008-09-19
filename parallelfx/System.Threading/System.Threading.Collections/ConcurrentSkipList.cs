@@ -24,11 +24,13 @@
 
 using System;
 using System.Threading;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace System.Threading.Collections
 {
 	
-	public class ConcurrentSkipList<T>//: IConcurrentCollection<T>
+	public class ConcurrentSkipList<T>: IConcurrentCollection<T>
 	{
 		// Used for randomSeed
 		static readonly Random r = new Random();
@@ -36,9 +38,11 @@ namespace System.Threading.Collections
 		// avoid heavy local array creation at each method call and use 
 		// for thread locallity ThreadStatic attribute
 		[ThreadStaticAttribute]
-		static readonly Node[] preds = new Node[MaxHeight];
+		static Node[] preds;
 		[ThreadStaticAttribute]
-		static readonly Node[] succs = new Node[MaxHeight];
+		static Node[] succs;
+
+		int count = 0;
 		
 		class Node
 		{
@@ -55,7 +59,7 @@ namespace System.Threading.Collections
 				Key = key;
 				Value = value;
 				TopLayer = heightValue - 1;
-				Nexts = new Node[heightValue];
+				Nexts = new Node[heightValue + 1];
 				SpinLock = new SpinLock(false);
 			}
 		}
@@ -66,25 +70,42 @@ namespace System.Threading.Collections
 		const int MaxHeight = 200;
 		int randomSeed;
 
+		Func<T, int> GetKey;
+
 		public ConcurrentSkipList()
 		{
+			GetKey = delegate (T value) { return value.GetHashCode(); };
+			Init();
+		}
+
+		public ConcurrentSkipList(IEqualityComparer<T> comparer)
+		{
+			GetKey = delegate (T value) { return comparer.GetHashCode(value); };
+			Init();
+		}
+
+		void Init()
+		{
+			if (succs == null)
+				succs = new Node[MaxHeight];
+			if (preds == null)
+				preds = new Node[MaxHeight];
+			
 			leftSentinel = new Node(int.MinValue, default(T), MaxHeight);
 			rightSentinel = new Node(int.MaxValue, default(T), MaxHeight);
 
 			for (int i = 0; i < MaxHeight; i++) {
 				leftSentinel.Nexts[i] = rightSentinel;
 			}
-			Init();
-		}
-
-		void Init()
-		{
 			// The or ensures that randomSeed != 0
 			randomSeed = r.Next() | 0x0100;
 		}
 
 		public bool Add(T value)
 		{
+			if (value == null)
+				throw new ArgumentNullException("value");
+			
 			CleanArrays();
 			int topLayer = GetRandomLevel();
 			int v = GetKey(value);
@@ -117,12 +138,58 @@ namespace System.Threading.Collections
 				} finally {
 					Unlock(preds, highestLocked);
 				}
+				Interlocked.Increment(ref count);
+				return true;
+			}
+		}
+
+		bool IConcurrentCollection<T>.Remove(out T value)
+		{
+			throw new NotSupportedException();
+		}
+
+		public T[] ToArray()
+		{
+			return null;
+		}
+
+		public void CopyTo(T[] array, int startIndex)
+		{
+			IEnumerator<T> e = GetInternalEnumerator();
+			for (int i = startIndex; i < array.Length; i++) {
+				if (!e.MoveNext())
+					return;
+				array[i] = e.Current;
+			}
+			e.Dispose();
+		}
+
+		void ICollection.CopyTo(Array array, int startIndex)
+		{
+			T[] temp = array as T[];
+			if (temp == null)
+				return;
+
+			CopyTo(temp, startIndex);
+		}
+
+		object ICollection.SyncRoot {
+			get {
+				return this;
+			}
+		}
+
+		bool ICollection.IsSynchronized {
+			get {
 				return true;
 			}
 		}
 
 		public bool Remove(T value)
 		{
+			if (value == null)
+				throw new ArgumentNullException("value");
+			
 			CleanArrays();
 			Node toDelete = null;
 			bool isMarked = false;
@@ -159,6 +226,7 @@ namespace System.Threading.Collections
 					} finally {
 						Unlock(preds, highestLocked);
 					}
+					Interlocked.Decrement(ref count);
 					return true;
 				} else {
 					return false;
@@ -168,9 +236,42 @@ namespace System.Threading.Collections
 
 		public bool Contains(T value)
 		{
+			if (value == null)
+				throw new ArgumentNullException("value");
+			
 			CleanArrays();
 			int found = FindNode(GetKey(value), preds, succs);
 			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
+		}
+
+		public int Count {
+			get {
+				return count;
+			}
+		}
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			return GetInternalEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetInternalEnumerator();
+		}
+		
+		IEnumerator<T> GetInternalEnumerator()
+		{
+			Node curr = leftSentinel;
+			while ((curr = curr.Nexts[0]) != rightSentinel) {
+				// If there is an Add operation ongoing we wait a little
+				// Possible optimization : use a helping scheme
+				SpinWait sw = new SpinWait();
+				while (!curr.FullyLinked) {
+					sw.SpinOnce();
+				}
+				yield return curr.Value;
+			}
 		}
 
 		void Unlock(Node[] preds, int highestLocked)
@@ -245,11 +346,6 @@ namespace System.Threading.Collections
 			int level = 1;
 			while (((x >>= 1) & 1) != 0) ++level;
 			return level;
-		}
-
-		int GetKey(T value)
-		{
-			return value.GetHashCode();
 		}
 		
 		void CleanArrays()

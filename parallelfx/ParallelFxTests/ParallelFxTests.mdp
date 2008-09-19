@@ -39,6 +39,7 @@
     <File name="System.Threading/ManualResetEventSlimTests.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/SemaphoreSlimTests.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/FutureTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Collections/ConcurrentSkipListTests.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
@@ -50,5 +51,5 @@
     <ProjectReference type="Assembly" localcopy="True" refto="deps/nunit.mocks.dll" />
     <ProjectReference type="Project" localcopy="True" refto="System.Threading" />
   </References>
-  <GtkDesignInfo gtkVersion="2.12.2" />
+  <GtkDesignInfo />
 </Project>
