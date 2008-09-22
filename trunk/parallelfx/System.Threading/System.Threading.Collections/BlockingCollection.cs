@@ -215,6 +215,7 @@ namespace System.Threading.Collections
 		
 		public static int RemoveAny(BlockingCollection<T>[] collections, out T item)
 		{
+			item = default(T);
 			CheckArray(collections);
 			int index = 0;
 			foreach (var coll in collections) {
@@ -229,6 +230,8 @@ namespace System.Threading.Collections
 		
 		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item)
 		{
+			item = default(T);
+			
 			CheckArray(collections);
 			int index = 0;
 			foreach (var coll in collections) {
@@ -241,6 +244,8 @@ namespace System.Threading.Collections
 		
 		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, TimeSpan ts)
 		{
+			item = default(T);
+			
 			CheckArray(collections);
 			int index = 0;
 			foreach (var coll in collections) {
@@ -253,6 +258,8 @@ namespace System.Threading.Collections
 		
 		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
 		{
+			item = default(T);
+			
 			CheckArray(collections);
 			int index = 0;
 			foreach (var coll in collections) {

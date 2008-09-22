@@ -89,10 +89,9 @@ namespace System.Linq
 				return result;
 			}
 			
-			//readonly object syncRoot = new object();
-			
 			public bool MoveNext(out T item, out int index)
 			{
+				item = default(T);
 				bool result = false;
 				index = -1;
 				
@@ -105,12 +104,6 @@ namespace System.Linq
 				} finally {
 					sl.Exit();
 				}
-				/*lock (syncRoot) {
-					if (result = enumerator.MoveNext()) {
-						current = item = enumerator.Current;
-						index = ++currIndex;
-					}
-				}*/
 				
 				return result;
 			}
