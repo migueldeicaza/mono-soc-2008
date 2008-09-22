@@ -150,7 +150,12 @@ namespace System.Threading.Collections
 
 		public T[] ToArray()
 		{
-			return null;
+			int countSnapshot = count;
+			T[] temp = new T[countSnapshot];
+			
+			CopyTo(temp, 0);
+
+			return temp;
 		}
 
 		public void CopyTo(T[] array, int startIndex)

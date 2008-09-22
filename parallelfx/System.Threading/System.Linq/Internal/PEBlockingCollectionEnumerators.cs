@@ -100,6 +100,7 @@ namespace System.Linq
 		
 		public override bool MoveNext(out T item, out int index)
 		{
+			item = default(T);
 			T privElement = default(T);
 			int i = index = -1;
 			bool isValid = false;

@@ -67,5 +67,19 @@ namespace ParallelFxTests
 
 			Assert.AreEqual("1234", s);
 		}
+
+		[TestAttribute]
+		public void ToArrayTestCase()
+		{
+			int[] expected = new int[] { 1, 2, 3, 4 };
+			AddStuff();
+			int[] array = skiplist.ToArray();
+			CollectionAssert.AreEqual(expected, array, "#1");
+
+			Array.Clear(array, 0, array.Length);
+			skiplist.CopyTo(array, 0);
+			CollectionAssert.AreEqual(expected, array, "#2");
+		}
+		 
 	}
 }
