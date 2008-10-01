@@ -101,6 +101,7 @@ namespace System.Threading.Collections
 		/// <returns></returns>
 		public bool TryDequeue(out T value)
 		{
+			value = default(T);
 			bool advanced = false;
 			while (!advanced) {
 				Node oldHead = head;
@@ -124,7 +125,6 @@ namespace System.Threading.Collections
 				}
 			}
 
-			value = default(T);
 			Interlocked.Decrement(ref count);
 			return true;
 		}

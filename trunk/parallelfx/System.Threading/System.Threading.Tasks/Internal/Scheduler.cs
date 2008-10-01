@@ -148,6 +148,8 @@ namespace System.Threading.Tasks
 		{
 			if (!parent.IsCompleted)
 				return false;
+			if (parent.ChildTasks.Count == 0)
+				return true;
 			
 			return !parent.ChildTasks.Where((t) => !t.IsCompleted).Any();
 		}

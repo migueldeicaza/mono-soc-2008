@@ -787,11 +787,21 @@ namespace System.Linq
 		                                                                         IEnumerable<TSecond> second,
 		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
 		{
-			/*IParallelEnumerable<TSecond> sTemp = ParallelEnumerableFactory.GetFromIEnumerable(second, DefaultDop);
-			IParallelEnumerator<TSecond> enumerator = sTemp.GetParallelEnumerator();
-			
-			return null;*/
-			throw new NotImplementedException();
+			IConcurrentCollection<TResult> result = new ConcurrentStack<TResult>();
+			IParallelEnumerator<TFirst> pEnum1 = first.GetParallelEnumerator();
+			IParallelEnumerator<TSecond> pEnum2 = ParallelEnumerableFactory
+				.GetFromIEnumerable(second, first.Dop()).GetParallelEnumerator();
+
+			TFirst element1;
+			TSecond element2;
+			int index;
+
+			while (pEnum1.MoveNext(out element1, out index) && pEnum2.MoveNext(out element2, out index)) {
+				//Console.WriteLine("({0},{1})", element1.ToString(), element2.ToString());
+				result.Add(resultSelector(element1, element2));
+			}
+
+			return ParallelEnumerableFactory.GetFromIEnumerable(result, first.Dop());
 		}
 		#endregion
 		
