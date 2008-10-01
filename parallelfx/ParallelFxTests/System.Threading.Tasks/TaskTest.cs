@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
-using NUnit.Mocks;
 
 namespace ParallelFxTests
 {
@@ -169,25 +168,58 @@ namespace ParallelFxTests
 			Assert.IsNotNull(cont, "#2");
 			Assert.IsTrue(result, "#3");
 		}
+
+		[TestAttribute]
+		public void MultipleTaskTestCase()
+		{
+			bool r1 = false, r2 = false, r3 = false;
+
+			Task t1 = Task.Create(delegate {
+				r1 = true;
+			});
+			Task t2 = Task.Create(delegate {
+				r2 = true;
+			});
+			Task t3 = Task.Create(delegate {
+				r3 = true;
+			});
+			
+			t1.Wait();
+			t2.Wait();
+			t3.Wait();
+
+			Assert.IsTrue(r1, "#1");
+			Assert.IsTrue(r2, "#2");
+			Assert.IsTrue(r3, "#3");
+		}
 		
 		[Test]
 		public void WaitChildTestCase()
 		{
 			bool r1 = false, r2 = false, r3 = false;
+
+			Task.Create(delegate { Console.WriteLine("foo"); });
+
+			//Console.WriteLine("bar");
 			
 			Task t = Task.Create(delegate {
+				//Console.WriteLine("foobar");
 				Task.Create(delegate {
 					Thread.Sleep(50);
 					r1 = true;
+					Console.WriteLine("finishing 1");
 				});
 				Task.Create(delegate {
-					Thread.Sleep(100);
+					Thread.Sleep(1000);
 					r2 = true;
+					Console.WriteLine("finishing 2");
 				});
 				Task.Create(delegate {
 					Thread.Sleep(150);
 					r3 = true;
+					Console.WriteLine("finishing 3");
 				});
+				//Console.WriteLine("barfoo");
 			});
 			
 			t.Wait();

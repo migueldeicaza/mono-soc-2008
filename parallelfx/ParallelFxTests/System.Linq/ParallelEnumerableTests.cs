@@ -150,6 +150,16 @@ namespace ParallelFxTests
 			
 			Assert.AreEqual(sync.Count(), async.Count(), "#2");
 		}
+
+		[TestAttribute]
+		public void ZipTestCase()
+		{
+			IParallelEnumerable<int> async1 = ParallelEnumerable.Range(0, 10);
+			IParallelEnumerable<int> async2 = ParallelEnumerable.Repeat(1, 10).Zip(async1, (e1, e2) => e1 + e2);
+
+			int[] expected = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+			CollectionAssert.AreEquivalent(expected, async2.ToArray(), "#1");
+		}
 		
 		[TestAttribute]
 		public void RangeTestCase()

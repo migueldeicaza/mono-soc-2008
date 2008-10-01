@@ -54,6 +54,20 @@ namespace ParallelFxTests
 		public void AddTestCase()
 		{
 			Assert.IsTrue(skiplist.Add(1), "#1");
+			Assert.AreEqual(1, skiplist.Count, "#2");
+		}
+
+		[TestAttribute]
+		public void RemoveTestCase()
+		{
+			Assert.IsFalse(skiplist.Remove(2), "#1");
+			Assert.IsFalse(skiplist.Remove(3), "#2");
+			int count = skiplist.Count;
+			
+			AddStuff();
+			Assert.IsTrue(skiplist.Remove(1), "#3");
+			Assert.IsTrue(skiplist.Remove(2), "#4");
+			Assert.AreEqual(count - 2, skiplist.Count, "#5");
 		}
 
 		[TestAttribute]

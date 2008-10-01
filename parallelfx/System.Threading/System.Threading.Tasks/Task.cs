@@ -38,7 +38,7 @@ namespace System.Threading.Tasks
 		static Action<Task> childWorkAdder;
 		static int          id = 0;
 		
-		IConcurrentCollection<Task> childTasks = new ConcurrentQueue<Task>();
+		IConcurrentCollection<Task> childTasks = new ConcurrentStack<Task>();
 		Task parent  = current;
 		Task creator = current;
 		
@@ -190,8 +190,9 @@ namespace System.Threading.Tasks
 						InnerInvoke();
 					} catch (Exception e) {
 						exception = e;
+					} finally {
+						current = null;
 					}
-					current = null;
 				} else {
 					this.exception = new TaskCanceledException(this);
 				}

@@ -92,9 +92,9 @@ namespace ParallelFxTests
 			int value;
 			queue.TryPeek(out value);
 			Assert.AreEqual(0, value, "#1");
-			queue.TryDequeue(out value);
-			queue.TryDequeue(out value);
-			Assert.AreEqual(1, value, "#2 : " + value);
+			Assert.IsTrue(queue.TryDequeue(out value), "#2");
+			Assert.IsTrue(queue.TryDequeue(out value), "#3");
+			Assert.AreEqual(1, value, "#4");
 		}
 		
 		[Test()]
