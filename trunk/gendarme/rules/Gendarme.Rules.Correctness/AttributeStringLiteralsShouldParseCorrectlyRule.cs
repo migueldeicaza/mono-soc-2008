@@ -127,15 +127,27 @@ namespace Gendarme.Rules.Correctness {
 			return CheckAttributesIn (method);		
 		}
 
+		static bool ContainsCustomAttributes (IEnumerable providers)
+		{
+			foreach (ICustomAttributeProvider provider in providers) {
+				if (provider.CustomAttributes.Count != 0)
+					return true;
+			}
+			return false;
+		}
+
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			if (type.CustomAttributes.Count == 0 && type.Fields.Count == 0)
+			if (type.CustomAttributes.Count == 0 && !ContainsCustomAttributes (type.Fields) && !ContainsCustomAttributes (type.Properties))
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (type);
 			
 			foreach (FieldDefinition field in type.Fields)
 				CheckAttributesIn (field); 
+
+			foreach (PropertyDefinition definition in type.Properties)
+				CheckAttributesIn (definition);
 
 			return Runner.CurrentRuleResult;
 		}
