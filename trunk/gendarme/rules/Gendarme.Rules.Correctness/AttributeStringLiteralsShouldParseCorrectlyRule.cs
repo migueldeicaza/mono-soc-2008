@@ -138,7 +138,10 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckType (TypeDefinition type)
 		{
-			if (type.CustomAttributes.Count == 0 && !ContainsCustomAttributes (type.Fields) && !ContainsCustomAttributes (type.Properties))
+			if (type.CustomAttributes.Count == 0 &&
+				!ContainsCustomAttributes (type.Fields) &&
+				!ContainsCustomAttributes (type.Properties) &&
+				!ContainsCustomAttributes (type.Events))
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (type);
@@ -146,8 +149,11 @@ namespace Gendarme.Rules.Correctness {
 			foreach (FieldDefinition field in type.Fields)
 				CheckAttributesIn (field); 
 
-			foreach (PropertyDefinition definition in type.Properties)
-				CheckAttributesIn (definition);
+			foreach (PropertyDefinition property in type.Properties)
+				CheckAttributesIn (property);
+
+			foreach (EventDefinition eventDefinition in type.Events) 
+				CheckAttributesIn (eventDefinition);
 
 			return Runner.CurrentRuleResult;
 		}
