@@ -150,6 +150,40 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleFailure<BadAttributedClassWithFields> (3);
 		}
+
+		class ClassWithWellAttributedProperty {
+			[ValidSince ("1.0.0.0")]
+			[Reference ("http://www.mono-project.com/Gendarme")]
+			[Uses ("00000101-0000-0000-c000-000000000046")]
+			public int Property {
+				get {
+					return 0;
+				}
+			}
+		}
+
+		[Test]
+		public void SuccessOnClassWithWellAttributedPropertyTest ()
+		{
+			AssertRuleSuccess<ClassWithWellAttributedProperty> ();	
+		}
+
+		class ClassWithBadAttributedProperty {
+			[ValidSince ("foo")]
+			[Reference ("bar")]
+			[Uses ("0")]
+			public int Property {
+				get {
+					return 0;
+				}
+			}
+		}
+
+		[Test]
+		public void FailOnClassWithBadAttributedPropertyTest ()
+		{
+			AssertRuleFailure<ClassWithBadAttributedProperty> (3);
+		}
 	}
 
 	[TestFixture]
