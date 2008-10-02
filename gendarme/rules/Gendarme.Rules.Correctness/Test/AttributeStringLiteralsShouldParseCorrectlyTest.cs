@@ -184,6 +184,32 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleFailure<ClassWithBadAttributedProperty> (3);
 		}
+
+		class ClassWithWellAttributedEvent {
+			[ValidSince ("1.0.0.0")]
+			[Reference ("http://www.mono-project.com/Gendarme")]
+			[Uses ("00000101-0000-0000-c000-000000000046")]
+			event EventHandler<EventArgs> customEvent;
+		}
+
+		[Test]
+		public void SuccessOnClassWithWellAttributedEventTest ()
+		{
+			AssertRuleSuccess<ClassWithWellAttributedEvent> ();
+		}
+
+		class ClassWithBadAttributedEvent {
+			[ValidSince ("foo")]
+			[Reference ("bar")]
+			[Uses ("0")]
+			event EventHandler<EventArgs> customEvent;
+		}
+
+		[Test]
+		public void FailOnClassWithBadAttributedEventTest ()
+		{
+			AssertRuleFailure<ClassWithBadAttributedEvent> (3);
+		}
 	}
 
 	[TestFixture]
