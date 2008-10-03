@@ -120,14 +120,15 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
-			if (method.CustomAttributes.Count == 0 && !ContainsCustomAttributes (method.Parameters))
+			if (method.CustomAttributes.Count == 0 && !ContainsCustomAttributes (method.Parameters) && method.ReturnType.CustomAttributes.Count == 0)
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (method);		
 
 			foreach (ParameterDefinition parameter in method.Parameters) 
 				CheckAttributesIn (parameter);
-			
+
+			CheckAttributesIn (method.ReturnType);
 
 			return Runner.CurrentRuleResult;
 		}
