@@ -118,6 +118,31 @@ namespace Test.Rules.Correctness {
 			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadParameterAttributedMethod", 3);
 		}
 
+		[return:ValidSince ("1.0.0.0")]
+		[return:Reference ("http://www.mono-project.com/Gendarme")]
+		[return:Uses ("00000101-0000-0000-c000-000000000046")]
+		public void WellReturnParameterAttributedMethod ()
+		{
+		}
+
+		[Test]
+		public void SuccessOnWellReturnParameterAttributedMethodTest ()
+		{
+			AssertRuleSuccess<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("WellReturnParameterAttributedMethod");
+		}
+
+		[return:ValidSince ("foo")]
+		[return:Reference ("bar")]
+		[return:Uses ("0")]
+		public void BadReturnParameterAttributedMethod ()
+		{
+		}
+
+		[Test]
+		public void FailOnBadReturnParameterAttributedMethodTest ()
+		{
+			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadReturnParameterAttributedMethod");
+		}
 	}
 
 	[TestFixture]
