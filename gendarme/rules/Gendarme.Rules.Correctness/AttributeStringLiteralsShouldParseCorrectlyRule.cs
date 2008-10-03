@@ -120,11 +120,16 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
-
-			if (method.CustomAttributes.Count == 0)
+			if (method.CustomAttributes.Count == 0 && !ContainsCustomAttributes (method.Parameters))
 				return RuleResult.DoesNotApply;
 			
-			return CheckAttributesIn (method);		
+			CheckAttributesIn (method);		
+
+			foreach (ParameterDefinition parameter in method.Parameters) 
+				CheckAttributesIn (parameter);
+			
+
+			return Runner.CurrentRuleResult;
 		}
 
 		static bool ContainsCustomAttributes (IEnumerable providers)
