@@ -89,6 +89,35 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadAttributedMethod", 3);
 		}
+
+		public void WellParameterAttributedMethod (
+		[ValidSince ("1.0.0.0")]
+		[Reference ("http://www.mono-project.com/Gendarme")]
+		[Uses ("00000101-0000-0000-c000-000000000046")]
+		int x)
+		{
+		}
+
+		[Test]
+		public void SuccessOnWellParameterAttributedMethodTest ()
+		{
+			AssertRuleSuccess<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("WellParameterAttributedMethod");
+		}
+
+		public void BadParameterAttributedMethod (
+		[ValidSince ("foo")]
+		[Reference ("bar")]
+		[Uses ("0")]
+		int x)
+		{
+		}
+
+		[Test]
+		public void FailOnBadParameterAttributedMethodTest ()
+		{
+			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadParameterAttributedMethod", 3);
+		}
+
 	}
 
 	[TestFixture]
