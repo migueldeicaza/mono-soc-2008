@@ -312,9 +312,12 @@ namespace Test.Rules.Correctness {
 		{
 			AssemblyDefinition definition = DefinitionLoader.GetAssemblyDefinition (this.GetType ());
 			
-			foreach (CustomAttribute attribute in new ArrayList (definition.CustomAttributes)) 
-				definition.CustomAttributes.Remove (attribute);
-					
+			foreach (CustomAttribute attribute in new ArrayList (definition.CustomAttributes)) {
+				//We only revert our changes on assembly.
+				if (String.Compare (attribute.Constructor.DeclaringType.FullName, "System.Runtime.CompilerServices.RuntimeCompatibilityAttribute") != 0)
+					definition.CustomAttributes.Remove (attribute);
+			}
+			
 			for (int index = 0; index < definition.Modules.Count; index++) {
 				if (String.Compare (definition.Modules[index].Name, "test") == 0)
 					definition.Modules.Remove (definition.Modules[index]);
