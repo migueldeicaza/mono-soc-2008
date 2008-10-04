@@ -37,18 +37,18 @@ namespace Gendarme.Rules.Correctness {
 	[Solution ("You should format correctly the reported parameters.")]
 	public class AttributeStringLiteralsShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
 
-		private static bool Contains (string original, string value)
+		static bool Contains (string original, string value)
 		{
 			return original.IndexOf (value, 0, StringComparison.OrdinalIgnoreCase) != -1;
 		}
 		
-		private static bool TryParseUri (string uri)
+		static bool TryParseUri (string uri)
 		{
 			Uri parsed = null;
 			return Uri.TryCreate (uri, UriKind.Absolute, out parsed);
 		}
 
-		private static bool TryParseVersion (string version)
+		static bool TryParseVersion (string version)
 		{
 			try {
 				new Version (version);
@@ -62,7 +62,7 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 
-		private static bool TryParseGuid (string guid)
+		static bool TryParseGuid (string guid)
 		{
 			try {
 				new Guid (guid);
@@ -73,7 +73,7 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 
-		private void CheckParametersAndValues (IMetadataTokenProvider provider, MethodReference constructor, IList values)
+		void CheckParametersAndValues (IMetadataTokenProvider provider, IMethodSignature constructor, IList values)
 		{
 			for (int index = 0; index < values.Count; index++) {
 				ParameterDefinition parameter = constructor.Parameters[index];
@@ -106,7 +106,7 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 		
-		private RuleResult CheckAttributesIn (ICustomAttributeProvider provider)
+		RuleResult CheckAttributesIn (ICustomAttributeProvider provider)
 		{
 			//There isn't a relationship between
 			//IMetadataTokenProvider and ICustomAttributeProvider,
