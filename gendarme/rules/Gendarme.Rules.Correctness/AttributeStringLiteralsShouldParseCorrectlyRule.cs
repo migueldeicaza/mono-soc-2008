@@ -166,10 +166,15 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckAssembly (AssemblyDefinition assembly)
 		{
-			if (assembly.CustomAttributes.Count == 0)
+			if (assembly.CustomAttributes.Count == 0 && !ContainsCustomAttributes (assembly.Modules))
 				return RuleResult.DoesNotApply;
 			
-			return CheckAttributesIn (assembly);			
+			CheckAttributesIn (assembly);
+
+			foreach (ModuleDefinition module in assembly.Modules)
+				CheckAttributesIn (module);
+			
+			return Runner.CurrentRuleResult;			
 		}
 	}
 }
