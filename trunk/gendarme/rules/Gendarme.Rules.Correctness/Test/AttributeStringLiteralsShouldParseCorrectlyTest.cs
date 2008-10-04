@@ -27,6 +27,7 @@
 //
 
 using System;
+using System.Collections;
 using Gendarme.Rules.Correctness;
 using Mono.Cecil;
 using Test.Rules.Fixtures;
@@ -286,6 +287,40 @@ namespace Test.Rules.Correctness {
 			return definition;
 		}
 
+		private AssemblyDefinition GenerateFakeModuleAnnotatedAssembly (string version, string url, string guid)
+		{
+			AssemblyDefinition definition = DefinitionLoader.GetAssemblyDefinition (this.GetType ());
+			ModuleDefinition module = new ModuleDefinition ("test", definition);
+			definition.Modules.Add (module);
+			CustomAttribute attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<ValidSince> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (version);
+			module.CustomAttributes.Add (attribute);
+
+			attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<Reference> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (url);
+			module.CustomAttributes.Add (attribute);
+
+			attribute = new CustomAttribute (DefinitionLoader.GetMethodDefinition<Uses> (".ctor", new Type[] {typeof (string)}));
+			attribute.ConstructorParameters.Add (guid);
+			module.CustomAttributes.Add (attribute);
+
+			return definition;
+		}
+
+		[TearDown]
+		public void TearDown ()
+		{
+			AssemblyDefinition definition = DefinitionLoader.GetAssemblyDefinition (this.GetType ());
+			
+			foreach (CustomAttribute attribute in new ArrayList (definition.CustomAttributes)) 
+				definition.CustomAttributes.Remove (attribute);
+					
+			for (int index = 0; index < definition.Modules.Count; index++) {
+				if (String.Compare (definition.Modules[index].Name, "test") == 0)
+					definition.Modules.Remove (definition.Modules[index]);
+			}
+		}
+
 		[Test]
 		public void SuccessOnWellAttributedAssemblyTest ()
 		{
@@ -296,6 +331,18 @@ namespace Test.Rules.Correctness {
 		public void FailOnBadAttributedAssemblyTest ()
 		{
 			AssertRuleFailure (GenerateFakeAssembly ("foo", "bar", "0"), 3);
+		}
+
+		[Test]
+		public void SuccessOnWellAttributedModuleTest ()
+		{
+			AssertRuleSuccess (GenerateFakeModuleAnnotatedAssembly ("1.0.0.0", "http://www.mono-project.com/Gendarme", "00000101-0000-0000-c000-000000000046"));
+		}
+
+		[Test]
+		public void FailOnBadAttributedModuleTest ()
+		{
+			AssertRuleFailure (GenerateFakeModuleAnnotatedAssembly ("foo", "bar", "0"), 3);
 		}
 	}
 }
