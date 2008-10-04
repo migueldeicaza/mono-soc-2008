@@ -106,15 +106,21 @@ namespace Gendarme.Rules.Correctness {
 			}
 		}
 		
-		RuleResult CheckAttributesIn (ICustomAttributeProvider provider)
-		{
+		RuleResult CheckAttributesIn (ICustomAttributeProvider provider) {
 			//There isn't a relationship between
 			//IMetadataTokenProvider and ICustomAttributeProvider,
 			//altough a method, or type, implements both interfaces.
 			IMetadataTokenProvider metadataProvider = provider as IMetadataTokenProvider;
-
+	
 			foreach (CustomAttribute attribute in provider.CustomAttributes) 
 				CheckParametersAndValues (metadataProvider, attribute.Constructor, attribute.ConstructorParameters);
+			return Runner.CurrentRuleResult;
+		}
+
+		RuleResult CheckAttributesIn (IEnumerable targets)
+		{
+			foreach (ICustomAttributeProvider provider in targets) 
+				CheckAttributesIn (provider);	
 			return Runner.CurrentRuleResult;
 		}
 
@@ -127,14 +133,9 @@ namespace Gendarme.Rules.Correctness {
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (method);		
-
-			foreach (ParameterDefinition parameter in method.Parameters) 
-				CheckAttributesIn (parameter);
-
-			foreach (GenericParameter genericParameter in method.GenericParameters)
-				CheckAttributesIn (genericParameter);
-
+			CheckAttributesIn (method.Parameters);
 			CheckAttributesIn (method.ReturnType);
+			CheckAttributesIn (method.GenericParameters);
 
 			return Runner.CurrentRuleResult;
 		}
@@ -158,18 +159,10 @@ namespace Gendarme.Rules.Correctness {
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (type);
-			
-			foreach (FieldDefinition field in type.Fields)
-				CheckAttributesIn (field); 
-
-			foreach (PropertyDefinition property in type.Properties)
-				CheckAttributesIn (property);
-
-			foreach (EventDefinition eventDefinition in type.Events) 
-				CheckAttributesIn (eventDefinition);
-
-			foreach (GenericParameter genericParameter in type.GenericParameters) 
-				CheckAttributesIn (genericParameter);
+			CheckAttributesIn (type.Fields); 
+			CheckAttributesIn (type.Properties);
+			CheckAttributesIn (type.Events);
+			CheckAttributesIn (type.GenericParameters);
 
 			return Runner.CurrentRuleResult;
 		}
@@ -180,9 +173,7 @@ namespace Gendarme.Rules.Correctness {
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (assembly);
-
-			foreach (ModuleDefinition module in assembly.Modules)
-				CheckAttributesIn (module);
+			CheckAttributesIn (assembly.Modules);
 			
 			return Runner.CurrentRuleResult;			
 		}
