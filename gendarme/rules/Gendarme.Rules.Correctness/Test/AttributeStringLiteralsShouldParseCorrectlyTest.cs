@@ -144,6 +144,26 @@ namespace Test.Rules.Correctness {
 		{
 			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadReturnParameterAttributedMethod");
 		}
+
+		public void WellGenericParameterAttributedMethod<[ValidSince ("1.0.0.0"), Reference ("http://www.mono-project.com/Gendarme"), Uses ("00000101-0000-0000-c000-000000000046")] T> ()
+		{
+		}
+
+		[Test]
+		public void SuccessOnWellGenericParameterAttributedMethodTest ()
+		{
+			AssertRuleSuccess<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("WellGenericParameterAttributedMethod");
+		}
+
+		public void BadGenericParameterAttributedMethod<[ValidSince ("foo"), Reference ("bar"), Uses ("0")] T>  ()
+		{
+		}
+
+		[Test]
+		public void FailOnBadGenericParameterAttributedMethodTest ()
+		{
+			AssertRuleFailure<AttributeStringLiteralsShouldParseCorrectlyMethodTest> ("BadGenericParameterAttributedMethod", 3);
+		}
 	}
 
 	[TestFixture]
@@ -264,6 +284,24 @@ namespace Test.Rules.Correctness {
 		public void FailOnClassWithBadAttributedEventTest ()
 		{
 			AssertRuleFailure<ClassWithBadAttributedEvent> (3);
+		}
+
+		class ClassWithWellAttributedGenericParameter<[ValidSince ("1.0.0.0"), Reference ("http://www.mono-project.com/Gendarme"), Uses ("00000101-0000-0000-c000-000000000046")] T> {
+		}
+
+		[Test]
+		public void SuccessOnClassWithWellAttributedGenericParameterTest ()
+		{
+			AssertRuleSuccess<ClassWithWellAttributedGenericParameter<int>> ();
+		}
+
+		class ClassWithBadAttributedGenericParameter<[ValidSince ("foo"), Reference ("bar"), Uses ("0")] T> {
+		}
+
+		[Test]
+		public void FailOnClassWithBadAttributedGenericParameterTest ()
+		{
+			AssertRuleFailure<ClassWithWellAttributedGenericParameter<int>> (3);
 		}
 	}
 
