@@ -301,7 +301,7 @@ namespace Test.Rules.Correctness {
 		[Test]
 		public void FailOnClassWithBadAttributedGenericParameterTest ()
 		{
-			AssertRuleFailure<ClassWithWellAttributedGenericParameter<int>> (3);
+			AssertRuleFailure<ClassWithBadAttributedGenericParameter<int>> (3);
 		}
 	}
 

@@ -120,13 +120,19 @@ namespace Gendarme.Rules.Correctness {
 
 		public RuleResult CheckMethod (MethodDefinition method)
 		{
-			if (method.CustomAttributes.Count == 0 && !ContainsCustomAttributes (method.Parameters) && method.ReturnType.CustomAttributes.Count == 0)
+			if (method.CustomAttributes.Count == 0 &&
+				!ContainsCustomAttributes (method.Parameters) &&
+				method.ReturnType.CustomAttributes.Count == 0 &&
+				!ContainsCustomAttributes (method.GenericParameters))
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (method);		
 
 			foreach (ParameterDefinition parameter in method.Parameters) 
 				CheckAttributesIn (parameter);
+
+			foreach (GenericParameter genericParameter in method.GenericParameters)
+				CheckAttributesIn (genericParameter);
 
 			CheckAttributesIn (method.ReturnType);
 
@@ -147,7 +153,8 @@ namespace Gendarme.Rules.Correctness {
 			if (type.CustomAttributes.Count == 0 &&
 				!ContainsCustomAttributes (type.Fields) &&
 				!ContainsCustomAttributes (type.Properties) &&
-				!ContainsCustomAttributes (type.Events))
+				!ContainsCustomAttributes (type.Events) &&
+				!ContainsCustomAttributes (type.GenericParameters))
 				return RuleResult.DoesNotApply;
 			
 			CheckAttributesIn (type);
@@ -160,6 +167,9 @@ namespace Gendarme.Rules.Correctness {
 
 			foreach (EventDefinition eventDefinition in type.Events) 
 				CheckAttributesIn (eventDefinition);
+
+			foreach (GenericParameter genericParameter in type.GenericParameters) 
+				CheckAttributesIn (genericParameter);
 
 			return Runner.CurrentRuleResult;
 		}
