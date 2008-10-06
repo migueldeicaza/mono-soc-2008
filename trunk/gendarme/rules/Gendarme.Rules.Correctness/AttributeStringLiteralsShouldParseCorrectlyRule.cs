@@ -33,6 +33,40 @@ using Gendarme.Framework.Rocks;
 using Mono.Cecil;
 
 namespace Gendarme.Rules.Correctness {
+
+	/// <summary>
+	/// As attributes are used at compile time, only constants can
+	/// be passed to constructors.  You can use an uri but you have to pass the
+	/// uri as an string, and this can lead you at some errors in run time.
+	///
+	/// This rule checks attributes with the following types represented as
+	/// a string:
+	/// <list type="bullet">
+	/// <item>
+	/// <description>Version</description>
+	/// </item>
+	/// <item>
+	/// <description>Guid</description>
+	/// </item>
+	/// <item>
+	/// <description>Url</description>
+	/// </item>
+	/// </list>
+	/// </summary>
+	/// <example>
+	/// Bad example:
+	/// <code>
+	/// [assembly: AssemblyFileVersion ("fooo")]
+	/// </code>
+	/// </example>
+	/// <example>
+	/// Good example:
+	/// <code>
+	/// [assembly: AssemblyFileVersion ("0.0.1.*")]
+	/// </code>
+	/// </example>
+	/// <remarks>This rule is available only in Gendarme SVN</remarks>
+
 	[Problem ("As you are representing urls, versions or guids as strings, those parameters could be bad formatted and could cause some troubles at run time.")]
 	[Solution ("You should format correctly the reported parameters.")]
 	public class AttributeStringLiteralsShouldParseCorrectlyRule : Rule, IMethodRule, ITypeRule, IAssemblyRule {
