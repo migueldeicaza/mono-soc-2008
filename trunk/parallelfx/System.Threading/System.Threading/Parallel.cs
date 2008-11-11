@@ -43,7 +43,10 @@ namespace System.Threading
 		
 		static void HandleExceptions(IEnumerable<Task> tasks)
 		{
-			IEnumerable<Exception> exs = tasks.Where(t => t.Exception != null).Select(t => t.Exception);
+			IEnumerable<Exception> exs = tasks.Where(t => t.Exception != null)
+				.Where(t => !(t.Exception is TaskCanceledException))
+					.Select(t => t.Exception);
+			
 			if (exs.Any()) {
 				throw new AggregateException(exs);
 			}
@@ -51,13 +54,13 @@ namespace System.Threading
 		
 		static void InitTasks(Task[] tasks, Action<object> action, int count)
 		{
-		  InitTasks(tasks, count, () => Task.Create(action));
+			InitTasks(tasks, count, () => Task.StartNew(action, TaskCreationOptions.Detached));
 		}
 		
 		static void InitTasks(Task[] tasks, int count, Func<Task> taskCreator)
 		{
 			for (int i = 0; i < count; i++) {
-			  tasks[i] = taskCreator();
+				tasks[i] = taskCreator();
 			}
 		}
 		
@@ -69,8 +72,8 @@ namespace System.Threading
 			foreach (Task t in tasks)
 				t.ContinueWith(cleanCallback, TaskContinuationKind.OnAny, TaskCreationOptions.None, true);
 		}
-
-#region For
+		
+		#region For
 		
 		public static void For(int from, int to, Action<int> action)
 		{
@@ -159,7 +162,7 @@ namespace System.Threading
 				throw new ArgumentNullException("manager");
 			
 			For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector,
-			            body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.Create(act, manager, options)));
+			            body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.StartNew(act, manager, options)));
 		}
 		
 		public static void For<TLocal>(int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
@@ -265,7 +268,7 @@ namespace System.Threading
 		                                            Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
 		                                            TaskManager manager, TaskCreationOptions options)
 		{
-			ForEach<TSource, TLocal>(source, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.Create(act, manager, options)));
+			ForEach<TSource, TLocal>(source, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks(a, count, () => Task.StartNew(act, manager, options)));
 		}
 
 		public static void ForEach<TSource, TLocal>(IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
@@ -343,12 +346,12 @@ namespace System.Threading
 		#region Invoke
 		public static void Invoke(params Action[] actions)
 		{			
-			Invoke(actions, (Action a) => Task.Create((o) => a()));
+			Invoke(actions, (Action a) => Task.StartNew((o) => a()));
 		}
 		
 		public static void Invoke(Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
-			Invoke(actions, (Action a) => Task.Create((o) => a(), tm, tco));
+			Invoke(actions, (Action a) => Task.StartNew((o) => a(), tm, tco));
 		}
 		
 		static void Invoke(Action[] actions, Func<Action, Task> taskCreator)
@@ -387,7 +390,7 @@ namespace System.Threading
 			// Initialize worker
 			Task[] tasks = new Task[num];
 			for (int i = 0; i < num; i++) {
-				tasks[i] = Task.Create(_ => action());
+				tasks[i] = Task.StartNew(_ => action());
 			}
 			
 			// Register wait callback if any

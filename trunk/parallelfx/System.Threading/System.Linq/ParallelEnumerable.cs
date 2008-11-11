@@ -190,7 +190,29 @@ namespace System.Linq
 		}
 		#endregion
 		
-		
+		#region Helper function / predicate
+		static bool NullableExistencePredicate<T>(T? nullable) where T : struct
+		{
+			return nullable.HasValue;
+		}
+
+		static T NullableExtractor<T>(T? nullable) where T : struct
+		{
+			return nullable.Value;
+		}
+
+		// For bestSelector, if first arg is better than second returns true
+		static T BestOrder<T>(IParallelEnumerable<T> source, Func<T, T, bool> bestSelector, T seed)
+		{
+			T best = seed;
+			
+			best = source.Aggregate(() => seed,
+			                        (first, second) => (bestSelector(first, second)) ? first : second,
+			                        (first, second) => (bestSelector(first, second)) ? first : second,
+			                        (e) => e);
+			return best;
+		}
+		#endregion
 		
 		// ------------------------------------------------------------------------------------
 		
@@ -282,7 +304,7 @@ namespace System.Linq
 		#region
 		public static IParallelEnumerable<T> Reverse<T>(this IParallelEnumerable<T> source)
 		{
-			// Maybe not an optimum
+			// HACK
 			List<T> temp = source.ToList();
 			temp.Reverse();
 			return ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
@@ -420,6 +442,43 @@ namespace System.Linq
 			return source.Aggregate((decimal)0, (e1, e2) => e1 + e2, (sum1, sum2) => sum1 + sum2, (sum) => sum);
 		}
 		#endregion
+
+		#region Sum (nullable)
+		public static int Sum(IParallelEnumerable<int?> source)
+		{
+			return source.Where(NullableExistencePredicate<int>).Select<int?, int>(NullableExtractor<int>).Sum();
+		}
+		
+		public static byte Sum(IParallelEnumerable<byte?> source)
+		{
+			return Sum(source.Where(NullableExistencePredicate<byte>).Select<byte?, byte>(NullableExtractor<byte>));
+		}
+		
+		/*public static short Sum(IParallelEnumerable<short?> source)
+		{
+			return source.Where(NullableExistencePredicate<short>).Select<int?, int>(NullableExtractor<short>).Sum();
+		}*/
+		
+		public static long Sum(IParallelEnumerable<long?> source)
+		{
+			return source.Where(NullableExistencePredicate<long>).Select<long?, long>(NullableExtractor<long>).Sum();
+		}
+		
+		public static float Sum(IParallelEnumerable<float?> source)
+		{
+			return source.Where(NullableExistencePredicate<float>).Select<float?, float>(NullableExtractor<float>).Sum();
+		}
+		
+		public static double Sum(IParallelEnumerable<double?> source)
+		{
+			return source.Where(NullableExistencePredicate<double>).Select<double?, double>(NullableExtractor<double>).Sum();
+		}
+		
+		public static decimal Sum(IParallelEnumerable<decimal?> source)
+		{
+			return source.Where(NullableExistencePredicate<decimal>).Select<decimal?, decimal>(NullableExtractor<decimal>).Sum();
+		}
+		#endregion
 		
 		#region Min - Max
 		public static int Min(this IParallelEnumerable<int> source)
@@ -491,19 +550,80 @@ namespace System.Linq
 		{
 			return BestOrder(source, (first, second) => first > second, decimal.MinValue);
 		}
+		#endregion
+
 		
-		// For bestSelector, if first arg is better than second returns true
-		static T BestOrder<T>(IParallelEnumerable<T> source, Func<T, T, bool> bestSelector, T seed)
+		#region Min - Max (Nullable)
+		
+		/*public static int Min(this IParallelEnumerable<int?> source)
 		{
-			T best = seed;
-			
-			best = source.Aggregate(() => seed,
-			                        (first, second) => (bestSelector(first, second)) ? first : second,
-			                        (first, second) => (bestSelector(first, second)) ? first : second,
-			                        (e) => e);
-			return best;
+			return source.Where(NullableExistencePredicate<int>).Select(NullableExtractor<int>).Min();
 		}
 		
+		public static byte Min(this IParallelEnumerable<byte?> source)
+		{
+			return source.Where(NullableExistencePredicate<byte>).Min();
+		}
+		
+		public static short Min(this IParallelEnumerable<short?> source)
+		{
+			return source.Where(NullableExistencePredicate<short>).Min();
+		}
+		
+		public static long Min(this IParallelEnumerable<long?> source)
+		{
+			return source.Where(NullableExistencePredicate<long>).Min();
+		}
+		
+		public static float Min(this IParallelEnumerable<float?> source)
+		{
+			return source.Where(NullableExistencePredicate<float>).Min();
+		}
+		
+		public static double Min(this IParallelEnumerable<double?> source)
+		{
+			return source.Where(NullableExistencePredicate<double>).Min();
+		}
+		
+		public static decimal Min(this IParallelEnumerable<decimal?> source)
+		{
+			return source.Where(NullableExistencePredicate<decimal>).Min();
+		}
+		
+		public static int Max(this IParallelEnumerable<int?> source)
+		{
+			return source.Where(NullableExistencePredicate<int>).Max();
+		}
+		
+		public static byte Max(this IParallelEnumerable<byte?> source)
+		{
+			return source.Where(NullableExistencePredicate<byte>).Max();
+		}
+		
+		public static short Max(this IParallelEnumerable<short?> source)
+		{
+			return source.Where(NullableExistencePredicate<short>).Max();
+		}
+		
+		public static long Max(this IParallelEnumerable<long?> source)
+		{
+			return source.Where(NullableExistencePredicate<long>).Max();
+		}
+		
+		public static float Max(this IParallelEnumerable<float?> source)
+		{
+			return source.Where(NullableExistencePredicate<float>).Max();
+		}
+		
+		public static double Max(this IParallelEnumerable<double?> source)
+		{
+			return source.Where(NullableExistencePredicate<double>).Max();
+		}
+		
+		public static decimal Max(this IParallelEnumerable<decimal?> source)
+		{
+			return source.Where(NullableExistencePredicate<decimal>).Max();
+		}*/
 		#endregion
 		
 		#region Aggregate
@@ -523,8 +643,10 @@ namespace System.Linq
 		                                                               Func<TAccumulate, TResult> resultSelector)
 		{
 			int count = Parallel.GetBestWorkerNumber();
+			
 			TAccumulate[] accumulators = new TAccumulate[count];
 			int[] switches = new int[count];
+			
 			for (int i = 0; i < count; i++) {
 				accumulators[i] = seedFactory();
 			}
@@ -788,9 +910,12 @@ namespace System.Linq
 		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
 		{
 			IConcurrentCollection<TResult> result = new ConcurrentStack<TResult>();
+			
 			IParallelEnumerator<TFirst> pEnum1 = first.GetParallelEnumerator();
-			IParallelEnumerator<TSecond> pEnum2 = ParallelEnumerableFactory
-				.GetFromIEnumerable(second, first.Dop()).GetParallelEnumerator();
+
+			IParallelEnumerable<TSecond> pEnumerable = 
+				second as IParallelEnumerable<TSecond> ?? ParallelEnumerableFactory.GetFromIEnumerable(second, first.Dop());
+			IParallelEnumerator<TSecond> pEnum2 = pEnumerable.GetParallelEnumerator();
 
 			TFirst element1;
 			TSecond element2;

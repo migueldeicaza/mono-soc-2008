@@ -28,27 +28,27 @@ namespace System.Threading.Tasks
 {
 	public static class Future
 	{
-		public static Future<T> Create<T>()
+		public static Future<T> StartNew<T>()
 		{
-			return Create<T>(null, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew<T>(null, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function)
+		public static Future<T> StartNew<T>(Func<T> function)
 		{
-			return Create<T>(function, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew<T>(function, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskCreationOptions options)
+		public static Future<T> StartNew<T>(Func<T> function, TaskCreationOptions options)
 		{
-			return Create<T>(function, TaskManager.Current, options);
+			return StartNew<T>(function, TaskManager.Current, options);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm)
+		public static Future<T> StartNew<T>(Func<T> function, TaskManager tm)
 		{
-			return Create<T>(function, tm, TaskCreationOptions.None);
+			return StartNew<T>(function, tm, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
+		public static Future<T> StartNew<T>(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
 			Future<T> future = new Future<T>(tm, function, options, true);
 			
@@ -91,11 +91,15 @@ namespace System.Threading.Tasks
 					value = f();
 				};
 			} else {
-				func = delegate {};
+				func = EmptyFunc;
 			}
 			
 			if (scheduleNow)
 				Schedule();
+		}
+
+		static void EmptyFunc()
+		{
 		}
 		
 		protected override void InnerInvoke ()
@@ -105,27 +109,27 @@ namespace System.Threading.Tasks
 			func = null;
 		}
 		
-		public static Future<T> Create()
+		public static Future<T> StartNew()
 		{
-			return Create(null, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew(null, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create(Func<T> function)
+		public static Future<T> StartNew(Func<T> function)
 		{
-			return Create(function, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew(function, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create(Func<T> function, TaskCreationOptions options)
+		public static Future<T> StartNew(Func<T> function, TaskCreationOptions options)
 		{
-			return Create(function, TaskManager.Current, options);
+			return StartNew(function, TaskManager.Current, options);
 		}
 		
-		public static Future<T> Create(Func<T> function, TaskManager tm)
+		public static Future<T> StartNew(Func<T> function, TaskManager tm)
 		{
-			return Create(function, tm, TaskCreationOptions.None);
+			return StartNew(function, tm, TaskCreationOptions.None);
 		}
 		
-		public static Future<T> Create(Func<T> function, TaskManager tm, TaskCreationOptions options)
+		public static Future<T> StartNew(Func<T> function, TaskManager tm, TaskCreationOptions options)
 		{
 			Future<T> future = new Future<T>(tm, function, options, true);
 			

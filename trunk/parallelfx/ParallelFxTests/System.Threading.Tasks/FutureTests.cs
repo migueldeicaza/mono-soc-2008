@@ -35,7 +35,7 @@ namespace ParallelFxTests
 	{
 		Future<int> InitTestFuture()
 		{
-			return Future.Create(() => 5);
+			return Future.StartNew(() => 5);
 		}
 		
 		[Test]
@@ -50,7 +50,7 @@ namespace ParallelFxTests
 		[Test]
 		public void EmptyFutureTestCase()
 		{
-			Future<int> f = Future.Create<int>();
+			Future<int> f = Future.StartNew<int>();
 			f.Value = 3;
 			
 			Assert.AreEqual(3, f.Value, "#1");
@@ -66,7 +66,7 @@ namespace ParallelFxTests
 		[Test, ExpectedExceptionAttribute()]
 		public void ManualSetTwoTimesTestCase()
 		{
-			Future<int> f = Future.Create<int>();
+			Future<int> f = Future.StartNew<int>();
 			f.Value = 2;
 			f.Value = 3;
 		}

@@ -32,7 +32,7 @@ namespace System.Threading.Actors
 	{
 		public static Task AndThen(Action initial, params Action[] chain)
 		{
-			Task root = Task.Create(delegate { initial(); });
+			Task root = Task.StartNew(delegate { initial(); });
 			chain.Aggregate(root, (t, a) => t.ContinueWith(delegate { a(); }));
 			
 			return root;
@@ -50,7 +50,7 @@ namespace System.Threading.Actors
 			if (predicate())
 				return AndThen(body, delegate { LoopWhile(body, predicate); });
 			
-			return Task.Create(delegate { });
+			return Task.StartNew(delegate { });
 		}
 	}
 }

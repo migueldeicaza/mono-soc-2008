@@ -32,7 +32,7 @@ namespace System.Linq
 	{
 		protected bool isLast = true;
 		protected bool isOrdered = false;
-		protected int dop;
+		protected int  dop;
 		
 		protected ParallelEnumerableBase(int dop)
 		{
