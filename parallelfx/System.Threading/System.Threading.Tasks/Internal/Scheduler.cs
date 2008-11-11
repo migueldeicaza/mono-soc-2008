@@ -34,7 +34,7 @@ namespace System.Threading.Tasks
 		ConcurrentStack<Task> workQueue;
 		//ConcurrentStack<Task>[] workBuffers;
 		ThreadWorker[]        workers;
-		ThreadWorker          participant;
+		//ThreadWorker          participant;
 		bool                  isPulsable = true;
 		
 		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
@@ -43,12 +43,9 @@ namespace System.Threading.Tasks
 			workQueue = new ConcurrentStack<Task>();
 			workers = new ThreadWorker[maxWorker];
 			
-			// -1 because the last ThreadWorker of the list is the one who call Participate
-			for (int i = 0; i < maxWorker - 1; i++) {
+			for (int i = 0; i < maxWorker; i++) {
 				workers[i] = new ThreadWorker(this, workers, workQueue, maxStackSize, priority);
 			}
-			
-			participant = new ThreadWorker(this, workers, workQueue, false, 0, ThreadPriority.Normal);
 		}
 		
 		public void AddWork(Task t)
@@ -59,24 +56,12 @@ namespace System.Threading.Tasks
 			PulseAll();
 		}
 		
-		// Behave like a normal worker without regards for certain task completion.
-		// Useful for certain application like Actors
-		public void Participate()
-		{
-			ThreadWorker worker = GetLocalThreadWorker();
-			workers[workers.Length - 1] = worker;
-			worker.WorkerMethod();
-			workers[workers.Length - 1] = null;
-		}
-		
 		public void ParticipateUntil(Task task)
 		{
 			if (AreTasksFinished(task))
 				return;
 			
-			ThreadWorker participant = GetLocalThreadWorker();
-			
-			participant.WorkerMethod(delegate {
+			ParticipateUntil(delegate {
 				return AreTasksFinished(task);
 			});
 		}
@@ -87,9 +72,8 @@ namespace System.Threading.Tasks
 				return false;
 			
 			bool isFromPredicate = false;
-			ThreadWorker participant = GetLocalThreadWorker();
 			
-			participant.WorkerMethod(delegate {
+			ParticipateUntil(delegate {
 				if (predicate()) {
 					isFromPredicate = true;
 					return true;
@@ -103,10 +87,8 @@ namespace System.Threading.Tasks
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
 		// also when our wait condition is ok
 		public void ParticipateUntil(Func<bool> predicate)
-		{
-			ThreadWorker participant = GetLocalThreadWorker();
-			
-			participant.WorkerMethod(predicate);
+		{	
+			ThreadWorker.WorkerMethod(predicate, workQueue, workers);
 		}
 		
 		public void PulseAll()
@@ -136,22 +118,12 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		// This one has no participation as it has no Dequeue suitable for stealing
-		// that's why it's not in the workers array
-		ThreadWorker GetLocalThreadWorker()
-		{
-			// It's ok to do the lazy init like this as there is only one thread which call this method (if the user don't mess up !)
-			return participant;
-		}
-		
 		bool AreTasksFinished(Task parent)
 		{
 			if (!parent.IsCompleted)
 				return false;
-			if (parent.ChildTasks.Count == 0)
-				return true;
 			
-			return !parent.ChildTasks.Where((t) => !t.IsCompleted).Any();
+			return parent.ChildTasks;
 		}
 	}
 }

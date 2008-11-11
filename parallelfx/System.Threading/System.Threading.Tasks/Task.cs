@@ -38,7 +38,7 @@ namespace System.Threading.Tasks
 		static Action<Task> childWorkAdder;
 		static int          id = 0;
 		
-		IConcurrentCollection<Task> childTasks = new ConcurrentStack<Task>();
+		CountdownEvent childTasks = new CountdownEvent(1);
 		Task parent  = current;
 		Task creator = current;
 		
@@ -61,7 +61,7 @@ namespace System.Threading.Tasks
 		{
 			this.taskCreationOptions = taskCreationOptions;
 			this.m_taskManager = TaskManager.Current = tm;
-			this.action = action == null ? delegate (object o) { } : action;
+			this.action = action == null ? EmptyFunc : action;
 			this.m_stateObject = state;
 			this.taskId = Interlocked.Increment(ref id);
 
@@ -69,8 +69,8 @@ namespace System.Threading.Tasks
 			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached))
 				parent = null;
 			else if (parent != null)
-				parent.AddChild(this);
-				
+				parent.AddChild();
+
 			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 			
 			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
@@ -85,35 +85,40 @@ namespace System.Threading.Tasks
 		~Task() {
 			Dispose(false);
 		}
+
+		static void EmptyFunc(object o)
+		{
+
+		}
 		
 		#region Create and ContinueWith
-		public static Task Create(Action<object> action)
+		public static Task StartNew(Action<object> action)
 		{
-			return Create(action, null, TaskManager.Default, TaskCreationOptions.None);
+			return StartNew(action, null, TaskManager.Default, TaskCreationOptions.None);
 		}
 		
-		public static Task Create(Action<object> action, object state)
+		public static Task StartNew(Action<object> action, object state)
 		{
-			return Create(action, state, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew(action, state, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Task Create(Action<object> action, TaskManager tm)
+		public static Task StartNew(Action<object> action, TaskManager tm)
 		{
-			return Create(action, null, tm, TaskCreationOptions.None);
+			return StartNew(action, null, tm, TaskCreationOptions.None);
 		}
 		
-		public static Task Create(Action<object> action, TaskCreationOptions options)
+		public static Task StartNew(Action<object> action, TaskCreationOptions options)
 		{
-			return Create(action, null, TaskManager.Current, options);
+			return StartNew(action, null, TaskManager.Current, options);
 		}
 		
 		
-		public static Task Create(Action<object> action, TaskManager tm, TaskCreationOptions options)
+		public static Task StartNew(Action<object> action, TaskManager tm, TaskCreationOptions options)
 		{
-			return Create(action, null, tm, options);
+			return StartNew(action, null, tm, options);
 		}
 		
-		public static Task Create(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
+		public static Task StartNew(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
 		{
 			Task result = new Task(tm, action, state, options);
 			result.Schedule();
@@ -224,9 +229,14 @@ namespace System.Threading.Tasks
 			threadStart();
 		}
 		
-		internal void AddChild(Task t)
+		internal void AddChild()
 		{
-			childTasks.Add(t);
+			childTasks.Increment();
+		}
+
+		internal void ChildCompleted()
+		{
+			childTasks.Decrement();
 		}
 
 		protected virtual void InnerInvoke()
@@ -239,12 +249,17 @@ namespace System.Threading.Tasks
 		
 		protected void Finish()
 		{
+			// If there wasn't any child created in the task we set the CountdownEvent
+			childTasks.Decrement();
+			// Tell parent that we are finished
+			if (!CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
+				parent.ChildCompleted();
 			Dispose();
 		}
 		
-		internal IConcurrentCollection<Task> ChildTasks {
+		internal bool ChildTasks {
 			get {
-				return childTasks;
+				return childTasks.IsSet;
 			}
 		}
 		#endregion
@@ -435,6 +450,12 @@ namespace System.Threading.Tasks
 		}
 		
 		public bool IsCanceled {
+			get {
+				return isCanceled.Value && isCompleted;
+			}
+		}
+
+		public bool IsCancellationRequested {
 			get {
 				return isCanceled.Value;
 			}

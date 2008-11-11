@@ -104,8 +104,9 @@ namespace System.Threading.Tasks
 			get {
 				return tcurrent;
 			}
-			internal set {
-				tcurrent = value;	
+			set {
+				if (value != null)
+					tcurrent = value;	
 			}
 		}
 		

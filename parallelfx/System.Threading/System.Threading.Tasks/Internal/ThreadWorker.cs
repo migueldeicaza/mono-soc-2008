@@ -152,7 +152,7 @@ namespace System.Threading.Tasks
 		}
 		
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
-		internal bool WorkerMethod()
+		bool WorkerMethod()
 		{
 			bool result = false;
 			bool hasStolenFromOther;
@@ -205,16 +205,15 @@ namespace System.Threading.Tasks
 		// Almost same as above but with an added predicate and treating one item at a time. 
 		// It's used by Scheduler Participate(...) method for special waiting case like
 		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
-		internal void WorkerMethod(Func<bool> predicate)
+		public static void WorkerMethod(Func<bool> predicate, ConcurrentStack<Task> sharedWorkQueue, ThreadWorker[] others)
 		{
-			
 			while (!predicate()) {
 				Task value;
 				
 				// Dequeue only one item as we have restriction
 				if (sharedWorkQueue.TryPop(out value)) {
 					if (value != null) {
-						value.Execute(childWorkAdder);
+						value.Execute(null);
 					}
 				}
 				
@@ -225,14 +224,13 @@ namespace System.Threading.Tasks
 				
 				// Try to complete other work by stealing since our desired tasks may be in other worker
 				ThreadWorker other;
-				for (int it = stealingStart; it < stealingStart + workerLength; it++) {
-					int i = it % workerLength;
-					if ((other = others[i]) == null || other == this)
+				for (int i = 0; i < others.Length; i++) {
+					if ((other = others[i]) == null)
 						continue;
 					
 					if (other.dDeque.PopTop(out value) == PopResult.Succeed) {
 						if (value != null) {
-							value.Execute(childWorkAdder);
+							value.Execute(null);
 						}
 					}
 					

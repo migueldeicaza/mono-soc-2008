@@ -52,14 +52,14 @@ namespace ParallelFxTests
 		void InitWithDelegate(Action<object> action)
 		{
 			for (int i = 0; i < max; i++) {
-				tasks[i] = Task.Create(action);
+				tasks[i] = Task.StartNew(action);
 			}
 		}
 		
 		void InitWithDelegate(Action<object> action, int startIndex)
 		{
 			for (int i = startIndex; i < max; i++) {
-				tasks[i] = Task.Create(action);
+				tasks[i] = Task.StartNew(action);
 			}
 		}
 		
@@ -67,7 +67,7 @@ namespace ParallelFxTests
 		public void WaitAnyTest()
 		{
 			int achieved = 0;
-			tasks[0] = Task.Create(delegate {
+			tasks[0] = Task.StartNew(delegate {
 				Interlocked.Increment(ref achieved);
 			});
 			InitWithDelegate(delegate {
@@ -111,7 +111,7 @@ namespace ParallelFxTests
 		{
 			bool result = false;
 			
-			Task t = Task.Create(delegate { });
+			Task t = Task.StartNew(delegate { });
 			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAny);
 			t.Wait();
 			cont.Wait();
@@ -126,7 +126,7 @@ namespace ParallelFxTests
 		{
 			bool result = false;
 			
-			Task t = Task.Create(delegate { });
+			Task t = Task.StartNew(delegate { });
 			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnCompletedSuccessfully);
 			t.Wait();
 			cont.Wait();
@@ -159,7 +159,7 @@ namespace ParallelFxTests
 		{
 			bool result = false;
 			
-			Task t = Task.Create(delegate {throw new Exception("foo"); });
+			Task t = Task.StartNew(delegate {throw new Exception("foo"); });
 			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnFailed);
 			t.Wait();
 			cont.Wait();
@@ -174,13 +174,13 @@ namespace ParallelFxTests
 		{
 			bool r1 = false, r2 = false, r3 = false;
 
-			Task t1 = Task.Create(delegate {
+			Task t1 = Task.StartNew(delegate {
 				r1 = true;
 			});
-			Task t2 = Task.Create(delegate {
+			Task t2 = Task.StartNew(delegate {
 				r2 = true;
 			});
-			Task t3 = Task.Create(delegate {
+			Task t3 = Task.StartNew(delegate {
 				r3 = true;
 			});
 			
@@ -198,23 +198,23 @@ namespace ParallelFxTests
 		{
 			bool r1 = false, r2 = false, r3 = false;
 
-			Task.Create(delegate { Console.WriteLine("foo"); });
+			Task.StartNew(delegate { Console.WriteLine("foo"); });
 
 			//Console.WriteLine("bar");
 			
-			Task t = Task.Create(delegate {
+			Task t = Task.StartNew(delegate {
 				//Console.WriteLine("foobar");
-				Task.Create(delegate {
+				Task.StartNew(delegate {
 					Thread.Sleep(50);
 					r1 = true;
 					Console.WriteLine("finishing 1");
 				});
-				Task.Create(delegate {
+				Task.StartNew(delegate {
 					Thread.Sleep(1000);
 					r2 = true;
 					Console.WriteLine("finishing 2");
 				});
-				Task.Create(delegate {
+				Task.StartNew(delegate {
 					Thread.Sleep(150);
 					r3 = true;
 					Console.WriteLine("finishing 3");

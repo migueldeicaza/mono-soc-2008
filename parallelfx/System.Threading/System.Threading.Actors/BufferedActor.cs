@@ -39,13 +39,13 @@ namespace System.Threading.Actors
 		// The BufferedActor passed as argument represents this.
 		public BufferedActor(Action<BufferedActor> body)
 		{
-			Task.Create(delegate { body(this); });
+			Task.StartNew(delegate { body(this); });
 		}
 		
 		// Use this ctor in derived class and override Act method to do the actual processing
 		protected BufferedActor()
 		{
-			Task.Create(delegate { Act(); });
+			Task.StartNew(delegate { Act(); });
 		}
 		
 		protected virtual void Act()
@@ -73,7 +73,7 @@ namespace System.Threading.Actors
 		{
 			ActorMessage<MessageArgs> message;
 			if (mbox.TryDequeue(out message)) {
-				Task.Create(delegate { handler(message); });
+				Task.StartNew(delegate { handler(message); });
 				return true;
 			}
 			

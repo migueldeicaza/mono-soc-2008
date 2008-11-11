@@ -33,6 +33,6 @@ namespace System.Threading.Tasks
 		SuppressExecutionContextFlow,
 		RespectCreatorCancellation,
 		SelfReplicating,
-		Detached
+		Detached,
 	}
 }

@@ -26,13 +26,32 @@ using System;
 
 namespace System.Threading.Transactions
 {
-	
-	
-	public class Transaction
-	{
+  /* Todo : register all access/modification 
+   *
+   */
+  /* Probably better to use a interface here */
+  public class Transaction: IDisposable
+  {
+	// Register a list of ITrObject and uses MCas to try update each
+	// ITrObject
+
+	public Transaction()
+	  {
 		
-		public Transaction()
-		{
-		}
+	  }
+
+	public void Commit()
+	{
+	  
 	}
+	
+	#region IDisposable implementation 
+	  
+	  public void Dispose ()
+	  {
+		Commit();
+	  }
+	
+	#endregion 
+	  }
 }

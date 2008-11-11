@@ -31,7 +31,7 @@ namespace System.Threading.Tasks
 	internal interface IScheduler: IDisposable
 	{
 		void AddWork(Task t);
-		void Participate();
+		//void Participate();
 		void ParticipateUntil(Task task);
 		bool ParticipateUntil(Task task, Func<bool> predicate);
 		void ParticipateUntil(Func<bool> predicate);
