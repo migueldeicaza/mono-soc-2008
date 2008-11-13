@@ -24,6 +24,7 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading.Collections;
 
@@ -124,7 +125,7 @@ namespace System.Linq
 		
 		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
 		{
-			source.IsNotLast();
+			//source.IsNotLast();
 			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
 			
 			Parallel.SpawnBestNumber(delegate {
@@ -138,18 +139,18 @@ namespace System.Linq
 		}
 		
 		static IParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
-		                                                    Func<Action<TResult, bool, int>, int, TSource, bool> action)
+		                                                    Func<int, TSource, ResultReturn<TResult>> action)
 		{
-			source.IsNotLast();
+			//source.IsNotLast();
 			
-			Func<IParallelEnumerator<TSource>, Action<TResult, bool, int>, bool> a 
-			                  = delegate(IParallelEnumerator<TSource> feedEnum, Action<TResult, bool, int> adder) {
+			Func<IParallelEnumerator<TSource>, ResultReturn<TResult>> a 
+			                  = delegate(IParallelEnumerator<TSource> feedEnum) {
 				TSource item;
 				int i;
 				if (feedEnum.MoveNext (out item, out i)) {
-					return action (adder, i, item);
+					return action (i, item);
 				} else {
-					return false;
+					return new ResultReturn<TResult>(false, false, default(TResult), -1);
 				}
 			};
 			
@@ -228,30 +229,28 @@ namespace System.Linq
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
-			return Process<TSource, TResult> (source, delegate (Action<TResult, bool, int> adder, int i, TSource e) {
-				adder(selector(e, i), true, i);
-				return true;
+			return Process<TSource, TResult> (source, delegate (int i, TSource e) {
+				return new ResultReturn<TResult>(true, true, selector(e, i), i);
 			});
 		}
 		#endregion
 		
 		#region Where
 		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
-		                                                                    Func<TSource, bool> predicate)
+		                                                          Func<TSource, bool> predicate)
 		{
 			return Where(source, (TSource e, int index) => predicate(e));
 		}
 		
 		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
-		                                                                    Func<TSource, int, bool> predicate)
+		                                                          Func<TSource, int, bool> predicate)
 		{
-			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (predicate(e, i))
 					// TODO: Make the given back index correct 
-					adder(e, true, i);
+					return new ResultReturn<TSource>(true, true, e, i);
 				else
-					adder(default(TSource), false, i);
-				return true;
+					return new ResultReturn<TSource>(true, false, default(TSource), i);
 			});
 		}
 		#endregion
@@ -259,7 +258,12 @@ namespace System.Linq
 		#region Count
 		public static int Count<TSource>(this IParallelEnumerable<TSource> source)
 		{
-			return Count(source, _ => true);
+			return source.Aggregate<TSource, int, int>(() => 0,
+			                                           (acc, e) => acc + 1,
+			                                           (acc1, acc2) => acc1 + acc2,
+			                                           (result) => result);
+			                                           
+			//return Count(source, _ => true);
 		}
 		
 		public static int Count<TSource>(this IParallelEnumerable<TSource> source, Func<TSource, bool> predicate)
@@ -642,19 +646,34 @@ namespace System.Linq
 		                                                               Func<TAccumulate, TAccumulate, TAccumulate> finalReduceFunc,
 		                                                               Func<TAccumulate, TResult> resultSelector)
 		{
-			int count = Parallel.GetBestWorkerNumber();
+			int count = Parallel.GetBestWorkerNumber() + 1;
 			
 			TAccumulate[] accumulators = new TAccumulate[count];
-			int[] switches = new int[count];
+			//int[] switches = new int[count];
 			
 			for (int i = 0; i < count; i++) {
 				accumulators[i] = seedFactory();
 			}
-			
-			int index = -1;
-			
+
+			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
+
+			// Still hackish in the sense that it's not wrapped, hovewer remove the overhead of Interlocked
+			Task[] tasks = new Task[count];
+			for (int i = 0; i < count; i++) {
+				int reserved = i;
+				tasks[i] = Task.StartNew(delegate {
+					TSource item;
+					int index;
+					
+					while (feedEnum.MoveNext(out item, out index)) {
+						accumulators[reserved] = intermediateReduceFunc(accumulators[reserved], item);
+					}
+					
+				});
+			}
+			Task.WaitAll(tasks);
 			// Process to intermediate result into distinct domain
-			Process<TSource>(source, delegate (int j, TSource element) {
+			/*Process<TSource>(source, delegate (int j, TSource element) {
 				int i;
 				
 				// HACK: do the local var thing on Process/SpawnBestNumber side
@@ -664,7 +683,7 @@ namespace System.Linq
 				// Reduce results on each domain
 				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
 				switches[i] = 0;
-			}, true);
+			}, true);*/
 			
 			// Reduce the final domains into a single one
 			for (int i = 1; i < count; i++) {
@@ -685,10 +704,10 @@ namespace System.Linq
 			IParallelEnumerable<TSource> temp = 
 				ParallelEnumerableFactory.GetFromIParallelEnumerable(source.Dop(), source, second);
 			
-			return Process<TSource, TSource>(temp, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
-				adder(e, true, i);
-				return true;
+			return Process<TSource, TSource>(temp, delegate (int i, TSource e) {
+				return new ResultReturn<TSource>(true, true, e, i);
 			});
+			
 		}
 		#endregion
 		
@@ -697,12 +716,11 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (Interlocked.Increment(ref counter) <= count) {
-					adder(e, true, i);
-					return true;
+					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
-					return false;
+					return new ResultReturn<TSource>(false, false, default(TSource), -1);
 				}
 			});
 		}
@@ -710,7 +728,7 @@ namespace System.Linq
 		public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source, 
 		                                                              Func<TSource, bool> predicate)
 		{
-			return source.SkipWhile((e, i) => predicate(e));
+			return source.TakeWhile((e, i) => predicate(e));
 		}
 		
 		public static IParallelEnumerable<TSource> TakeWhile<TSource>(this IParallelEnumerable<TSource> source, 
@@ -718,12 +736,11 @@ namespace System.Linq
 		{
 			bool stopFlag = true;
 			
-			return Process<TSource, TSource> (source, delegate (Action<TSource, bool, int> adder, int i, TSource e) {
+			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (stopFlag && (stopFlag = predicate(e, i))) {
-					adder(e, true, i);
-					return true;
+					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
-					return false;
+					return new ResultReturn<TSource>(false, false, default(TSource), -1);
 				}
 			});
 		}

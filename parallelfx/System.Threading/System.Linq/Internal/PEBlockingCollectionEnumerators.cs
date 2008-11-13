@@ -30,6 +30,24 @@ using System.Threading.Collections;
 
 namespace System.Linq
 {
+	#region Return value
+	internal struct ResultReturn<T>
+	{
+		public readonly bool Result;
+		public readonly bool IsValid;
+		public readonly T Item;
+		public readonly int Index;
+
+		public ResultReturn(bool r, bool v, T item, int i)
+		{
+			Result = r;
+			IsValid = v;
+			Item = item;
+			Index = i;
+		}
+	}
+	#endregion
+	
 	#region BlockingCollectionEnumeratorBase
 	internal abstract class BlockingCollectionEnumeratorBase<T>: IParallelEnumerator<T>
 	{
@@ -78,14 +96,14 @@ namespace System.Linq
 		
 		SpinLock sl = new SpinLock(false);
 		readonly SpinWait sw = new SpinWait();
-		readonly Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
+		readonly Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		readonly IParallelEnumerator<TSource> enumerator;
 		// first element of the tuple is the index and the second is the element of the IEnumerator
 		//readonly BlockingCollection<Tuple<int, T>> buffer = new BlockingCollection<Tuple<int, T>>();
 
 		int  currIndex = -1;
 		
-		public BlockingCollectionOrderedEnumerator(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
+		public BlockingCollectionOrderedEnumerator(Func<IParallelEnumerator<TSource>, ResultReturn<T>> action,
 		                                           IParallelEnumerator<TSource> enumerator)
 		{
 			this.action = action;
@@ -101,33 +119,25 @@ namespace System.Linq
 		public override bool MoveNext(out T item, out int index)
 		{
 			item = default(T);
-			T privElement = default(T);
-			int i = index = -1;
-			bool isValid = false;
-			bool result  = false;
-			Action<T, bool, int> adder = delegate (T e, bool v, int ind) {
-				if (isValid = v) {
-					privElement = e;
-					i = ind;
-				}
-			};
+			index = -1;
+			ResultReturn<T> result;
 			
-			result = action(enumerator, adder);
+			result = action(enumerator);
 				
 			bool hasGoodValue = false;
-			while (!hasGoodValue && result) {
+			while (!hasGoodValue && result.Result) {
 				try {
 					sl.Enter();
-					if (result && i == currIndex + 1) {
+					if (result.Result && result.Index == currIndex + 1) {
 						// If we have the right element index-speaking then everything is fine
 						currIndex++;
 						// If the element is invalid we just udpate the currIndex and fetch a new element
-						if (isValid) {
-							current = item  = privElement;
-							index = i;
+						if (result.IsValid) {
+							current = item = result.Item;
+							index = result.Index;
 							hasGoodValue = true;
 						} else {
-							result = action(enumerator, adder);
+							result = action(enumerator);
 						}
 					}
 				} finally {
@@ -137,7 +147,7 @@ namespace System.Linq
 					sw.SpinOnce();
 			}
 			
-			return result;
+			return result.Result;
 		}
 	}
 	#endregion
@@ -145,55 +155,42 @@ namespace System.Linq
 	#region not last Enumerator
 	internal class BlockingCollectionEnumerator<TSource, T>: BlockingCollectionEnumeratorBase<T>
 	{
-		readonly Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
+		readonly Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		readonly IParallelEnumerator<TSource> enumerator;
 		
 		bool isValid;
 		
-		public BlockingCollectionEnumerator(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
+		public BlockingCollectionEnumerator(Func<IParallelEnumerator<TSource>, ResultReturn<T>> action,
 		                                    IParallelEnumerator<TSource> enumerator)
 		{
 			this.action = action;
 			this.enumerator = enumerator;
 		}
 		
-		void CurrentAdder(T element, bool isValid, int index)
-		{
-			if (this.isValid = isValid)
-				current = element;
-		}
-		
 		public override bool MoveNext()
 		{
-			bool result;
+			ResultReturn<T> result;
 			do {
-				result = action(enumerator, CurrentAdder);
-			} while (!isValid && result);
+				result = action(enumerator);
+				if (this.isValid = result.IsValid)
+					current = result.Item;
+			} while (!isValid && result.Result);
 			
-			return result;
+			return result.Result;
 		}
 		
 		public override bool MoveNext(out T item, out int index)
 		{
-			T privElement = default(T);
-			int i = -1;
-			bool isValid = false;
-			bool result  = false;
-			Action<T, bool, int> adder = delegate (T e, bool v, int ind) {
-				if (isValid = v) {
-					privElement = e;
-					i = ind;
-				}
-			};
+			ResultReturn<T> result;
 			
 			do {
-				result = action(enumerator, adder);
-			} while(!isValid && result);
+				result = action(enumerator);
+			} while(!result.IsValid && result.Result);
 			
-			current = item  = privElement;
-			index = i;
+			current = item = result.Item;
+			index = result.Index;
 			
-			return result;
+			return result.Result;
 		}
 	}
 	#endregion

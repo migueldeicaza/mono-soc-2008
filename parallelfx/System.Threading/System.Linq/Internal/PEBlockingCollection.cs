@@ -33,11 +33,11 @@ namespace System.Linq
 	internal class PEBlockingCollection<TSource, T>: ParallelEnumerableBase<T>
 	{
 		BlockingCollection<T> bColl;
-		Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action;
+		Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		IParallelEnumerable<TSource> source;
 		
 		public PEBlockingCollection(BlockingCollection<T> bColl,
-		                            Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
+		                            Func<IParallelEnumerator<TSource>, ResultReturn<T>> action,
 		                            IParallelEnumerable<TSource> source, int dop): base(dop)
 		{
 			this.bColl = bColl;
@@ -45,19 +45,15 @@ namespace System.Linq
 			this.source = source;
 		}
 		
-		void BlockingCollectionAdder(T element, bool isValid, int index)
-		{
-			if (isValid) {
-				bColl.TryAdd(element);
-			}
-		}
-		
 		void LaunchUnorderedLast(IParallelEnumerator<TSource> enumerator)
 		{
 			Parallel.SpawnBestNumber(delegate {
 				while (!bColl.IsAddingCompleted) {
-					if (!action(enumerator, BlockingCollectionAdder))
+					ResultReturn<T> result = action(enumerator);
+					if (!result.Result)
 						break;
+					if (result.IsValid)
+						bColl.TryAdd(result.Item);
 				}
 			}, dop, () => bColl.CompleteAdding());
 		}
@@ -67,36 +63,36 @@ namespace System.Linq
 			SpinLock sl = new SpinLock(false);
 			SpinWait sw = new SpinWait();
 			int indexToBeAdded = -1;
-			
-			Action<T, bool, int> adderFunc = delegate (T element, bool isValid, int index) {
-				bool added = false;
-				while (!added) {
-					try {
-						sl.Enter();
-						if (index == indexToBeAdded + 1) {
-							if (!isValid) {
-								// Just increment the index to let the next possible
-								// valid item going in
-								indexToBeAdded++;
-							} else {
-								bColl.Add(element);
-								indexToBeAdded++;
-							}
-							added = true;
-						}	
-					} finally {
-						sl.Exit();
-					}
-					
-					if (!added)
-						sw.SpinOnce();
-				}
-			};
 				
 			Parallel.SpawnBestNumber(delegate {
-				while (!bColl.IsAddingCompleted)
-					if (!action(enumerator, adderFunc)) 
+				while (!bColl.IsAddingCompleted) {
+					ResultReturn<T> result = action(enumerator);
+					if (!result.Result) 
 						break;
+					
+					bool added = false;
+					while (!added) {
+						try {
+							sl.Enter();
+							if (result.Index == indexToBeAdded + 1) {
+								if (!result.IsValid) {
+									// Just increment the index to let the next possible
+									// valid item going in
+									indexToBeAdded++;
+								} else {
+									bColl.Add(result.Item);
+									indexToBeAdded++;
+								}
+								added = true;
+							}	
+						} finally {
+							sl.Exit();
+						}
+						
+						if (!added)
+							sw.SpinOnce();
+					}	
+				}
 			}, dop, () => bColl.CompleteAdding());
 		}
 		
