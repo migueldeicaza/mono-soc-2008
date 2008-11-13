@@ -30,7 +30,7 @@ namespace System.Linq
 {
 	internal abstract class ParallelEnumerableBase<T>: IParallelEnumerable<T>
 	{
-		protected bool isLast = true;
+		protected bool isLast = false;
 		protected bool isOrdered = false;
 		protected int  dop;
 		

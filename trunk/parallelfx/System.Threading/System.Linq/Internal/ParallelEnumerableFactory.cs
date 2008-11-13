@@ -31,15 +31,15 @@ namespace System.Linq
 	
 	internal static class ParallelEnumerableFactory
 	{
-		public static ParallelEnumerableBase<T> GetFromBlockingCollection<TSource, T>(Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
-		                                                                           IParallelEnumerable<TSource> source)
+		public static ParallelEnumerableBase<T> GetFromBlockingCollection<TSource, T>(Func<IParallelEnumerator<TSource>, ResultReturn<T>> action,
+		                                                                              IParallelEnumerable<TSource> source)
 		{
 			return new System.Linq.PEBlockingCollection<TSource, T>(new BlockingCollection<T>(), action, source, source.Dop());
 		}
 		
 		public static ParallelEnumerableBase<T> GetFromBlockingCollection<TSource, T>(BlockingCollection<T> coll,
-		                                                                  Func<IParallelEnumerator<TSource>, Action<T, bool, int>, bool> action,
-		                                                                  IParallelEnumerable<TSource> source)
+		                                                                              Func<IParallelEnumerator<TSource>, ResultReturn<T>> action,
+		                                                                              IParallelEnumerable<TSource> source)
 		{
 			return new System.Linq.PEBlockingCollection<TSource, T>(coll, action, source, source.Dop());
 		}

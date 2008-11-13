@@ -385,7 +385,7 @@ namespace System.Threading
 		internal static Task[] SpawnBestNumber(Action action, int dop, bool wait, Action callback)
 		{
 			// Get the optimum amount of worker to create
-			int num = dop == -1 ? (wait ? GetBestWorkerNumber() : GetBestWorkerNumber() - 1) : dop;
+			int num = dop == -1 ? (wait ? GetBestWorkerNumber() + 1 : GetBestWorkerNumber()) : dop;
 			
 			// Initialize worker
 			Task[] tasks = new Task[num];
