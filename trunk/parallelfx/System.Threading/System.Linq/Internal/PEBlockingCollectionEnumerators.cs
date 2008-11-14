@@ -29,25 +29,7 @@ using System.Collections.Generic;
 using System.Threading.Collections;
 
 namespace System.Linq
-{
-	#region Return value
-	internal struct ResultReturn<T>
-	{
-		public readonly bool Result;
-		public readonly bool IsValid;
-		public readonly T Item;
-		public readonly int Index;
-
-		public ResultReturn(bool r, bool v, T item, int i)
-		{
-			Result = r;
-			IsValid = v;
-			Item = item;
-			Index = i;
-		}
-	}
-	#endregion
-	
+{	
 	#region BlockingCollectionEnumeratorBase
 	internal abstract class BlockingCollectionEnumeratorBase<T>: IParallelEnumerator<T>
 	{
