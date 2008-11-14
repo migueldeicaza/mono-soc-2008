@@ -26,12 +26,13 @@ using System;
 
 namespace System.Threading.Transactions
 {
-  public interface ITrObject<T> where T : ICloneable
-  {
-	T OpenRead(Transaction tr);
-	T OpenWrite(Transaction tr);
-	T Open(Transaction tr, TransactionOpeningMode mode);
 	
-	void Release();
-  }
+	public interface ITrObject<T> where T : ICloneable
+	{
+		T OpenRead(Transaction tr);
+		T OpenWrite(Transaction tr);
+		T Open(Transaction tr, TransactionOpeningMode mode);
+		
+		void Release();
+	}
 }

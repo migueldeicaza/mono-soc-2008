@@ -26,6 +26,7 @@ using System;
 
 namespace System.Threading.Transactions
 {
+	
 	public enum TransactionOpeningMode
 	{
 		Read,
