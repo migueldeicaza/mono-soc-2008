@@ -26,16 +26,16 @@ using System;
 
 namespace System.Threading.Transactions
 {
-  public static class TransactionalMemory
-  {
-	public static Transaction StartNewTransaction()
+	public static class TransactionalMemory
 	{
-	  return null;
-	}
+		public static Transaction StartNewTransaction()
+		{
+			return null;
+		}
 
-	public static ITrObject<T> GetTransactionObjectFor<T>(T obj) where T : ICloneable
-	{
-	  return null;
+		public static ITrObject<T> GetTransactionObjectFor<T>(T obj) where T : ICloneable
+		{
+			return null;
+		}
 	}
-  }
 }

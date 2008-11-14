@@ -26,9 +26,10 @@ using System;
 
 namespace System.Threading.Transactions
 {
-  public interface IConflictManager
-  {
-	void HandleConflict(Transaction firstTr, Transaction secondTr);
-
-  }
+	
+	public interface IConflictManager
+	{
+		void HandleConflict(Transaction firstTr, Transaction secondTr);
+		
+	}
 }
