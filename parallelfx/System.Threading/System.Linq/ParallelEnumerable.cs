@@ -150,7 +150,7 @@ namespace System.Linq
 				if (feedEnum.MoveNext (out item, out i)) {
 					return action (i, item);
 				} else {
-					return new ResultReturn<TResult>(false, false, default(TResult), -1);
+					return ResultReturn<TResult>.False;
 				}
 			};
 			
@@ -649,7 +649,6 @@ namespace System.Linq
 			int count = Parallel.GetBestWorkerNumber() + 1;
 			
 			TAccumulate[] accumulators = new TAccumulate[count];
-			//int[] switches = new int[count];
 			
 			for (int i = 0; i < count; i++) {
 				accumulators[i] = seedFactory();
@@ -657,6 +656,7 @@ namespace System.Linq
 
 			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
 
+			// Process to intermediate result into distinct domain
 			// Still hackish in the sense that it's not wrapped, hovewer remove the overhead of Interlocked
 			Task[] tasks = new Task[count];
 			for (int i = 0; i < count; i++) {
@@ -672,18 +672,6 @@ namespace System.Linq
 				});
 			}
 			Task.WaitAll(tasks);
-			// Process to intermediate result into distinct domain
-			/*Process<TSource>(source, delegate (int j, TSource element) {
-				int i;
-				
-				// HACK: do the local var thing on Process/SpawnBestNumber side
-				do {
-					i = Interlocked.Increment(ref index) % count;
-				} while (Interlocked.Exchange(ref switches[i], 1) == 1);
-				// Reduce results on each domain
-				accumulators[i] = intermediateReduceFunc(accumulators[i], element);
-				switches[i] = 0;
-			}, true);*/
 			
 			// Reduce the final domains into a single one
 			for (int i = 1; i < count; i++) {
@@ -720,7 +708,7 @@ namespace System.Linq
 				if (Interlocked.Increment(ref counter) <= count) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
-					return new ResultReturn<TSource>(false, false, default(TSource), -1);
+					return ResultReturn<TSource>.False;
 				}
 			});
 		}
@@ -740,7 +728,7 @@ namespace System.Linq
 				if (stopFlag && (stopFlag = predicate(e, i))) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
-					return new ResultReturn<TSource>(false, false, default(TSource), -1);
+					return ResultReturn<TSource>.False;
 				}
 			});
 		}
@@ -925,25 +913,20 @@ namespace System.Linq
 		public static IParallelEnumerable<TResult> Zip<TFirst, TSecond, TResult>(this IParallelEnumerable<TFirst> first,
 		                                                                         IEnumerable<TSecond> second,
 		                                                                         Func<TFirst, TSecond, TResult> resultSelector)
-		{
-			IConcurrentCollection<TResult> result = new ConcurrentStack<TResult>();
-			
-			IParallelEnumerator<TFirst> pEnum1 = first.GetParallelEnumerator();
-
+		{			
 			IParallelEnumerable<TSecond> pEnumerable = 
 				second as IParallelEnumerable<TSecond> ?? ParallelEnumerableFactory.GetFromIEnumerable(second, first.Dop());
-			IParallelEnumerator<TSecond> pEnum2 = pEnumerable.GetParallelEnumerator();
+			IParallelEnumerator<TSecond> pEnum = pEnumerable.GetParallelEnumerator();
 
-			TFirst element1;
-			TSecond element2;
-			int index;
-
-			while (pEnum1.MoveNext(out element1, out index) && pEnum2.MoveNext(out element2, out index)) {
-				//Console.WriteLine("({0},{1})", element1.ToString(), element2.ToString());
-				result.Add(resultSelector(element1, element2));
-			}
-
-			return ParallelEnumerableFactory.GetFromIEnumerable(result, first.Dop());
+			return Process(first, (index, element) => {
+				TSecond element2;
+				int i;
+				
+				if (pEnum.MoveNext(out element2, out i))
+					return new ResultReturn<TResult>(true, true, resultSelector(element, element2), index);
+				else
+					return ResultReturn<TResult>.False; 
+			});
 		}
 		#endregion
 		
