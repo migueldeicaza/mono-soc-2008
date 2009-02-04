@@ -89,7 +89,7 @@ namespace System.Linq
 			}
 		}
 		
-		public override IParallelEnumerator<int> GetParallelEnumerator()
+		public override IParallelEnumerator<int> GetParallelEnumerator(bool isLast)
 		{
 			return new PERangeEnumerator(start, count);
 		}

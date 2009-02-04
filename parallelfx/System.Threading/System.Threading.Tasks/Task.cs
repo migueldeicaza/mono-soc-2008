@@ -55,7 +55,6 @@ namespace System.Threading.Tasks
 		
 		Action<object> action;
 		EventHandler   completed;
-		ThreadStart    threadStart;
 			
 		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
 		{
@@ -178,7 +177,7 @@ namespace System.Threading.Tasks
 		void CheckAndSchedule(bool executeSync, Task continuation)
 		{
 			if (executeSync)
-				continuation.threadStart();
+				continuation.ThreadStart();
 			else
 				continuation.Schedule();
 		}
@@ -186,31 +185,7 @@ namespace System.Threading.Tasks
 		
 		#region Internal and protected thingies
 		internal protected void Schedule()
-		{
-			threadStart = delegate {
-				if (!isCanceled.Value
-				    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
-					current = this;
-					try {
-						InnerInvoke();
-					} catch (Exception e) {
-						exception = e;
-					} finally {
-						current = null;
-					}
-				} else {
-					this.exception = new TaskCanceledException(this);
-				}
-				
-				isCompleted = true;
-				
-				// Call the event in the correct style
-				EventHandler tempCompleted = completed;
-				if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
-				
-				Finish();
-			};
-			
+		{			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null) {
 				m_taskManager.AddWork(this);
@@ -223,10 +198,35 @@ namespace System.Threading.Tasks
 			}
 		}
 		
+		void ThreadStart()
+		{
+			if (!isCanceled.Value
+			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
+				current = this;
+				try {
+					InnerInvoke();
+				} catch (Exception e) {
+					exception = e;
+				} finally {
+					current = null;
+				}
+			} else {
+				this.exception = new TaskCanceledException(this);
+			}
+			
+			isCompleted = true;
+			
+			// Call the event in the correct style
+			EventHandler tempCompleted = completed;
+			if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
+			
+			Finish();
+		}
+		
 		internal void Execute(Action<Task> childAdder)
 		{
 			childWorkAdder = childAdder;
-			threadStart();
+			ThreadStart();
 		}
 		
 		internal void AddChild()

@@ -171,11 +171,11 @@ namespace System.Threading
 		
 		#region ISupportsCancellation implementation 
 		
-		
 		public void Cancel()
 		{
 			
 		}
+		
 		public bool IsCanceled {
 			get {
 				return false;

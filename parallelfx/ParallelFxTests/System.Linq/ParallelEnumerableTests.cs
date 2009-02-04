@@ -49,7 +49,7 @@ namespace ParallelFxTests
 			int[] sync  = Enumerable.ToArray(syncEnumerable);
 			int[] async = Enumerable.ToArray(asyncEnumerable);
 			
-			// This is not AreEquals because IParallelEnumerable is not non-deterministic (IParallelOrderedEnumerable is)
+			// This is not AreEquals because IParallelEnumerable is non-deterministic (IParallelOrderedEnumerable is)
 			// thus the order of the initial Enumerable might not be preserved
 			CollectionAssert.AreEquivalent(sync, async, "#" + count);
 		}

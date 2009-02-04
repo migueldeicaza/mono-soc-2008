@@ -28,7 +28,7 @@ using System.Runtime.ConstrainedExecution;
 
 namespace System.Threading
 {
-	public class SpinLock
+	public struct SpinLock
 	{
 		const int isFree = 0;
 		const int isOwned = 1;
@@ -168,8 +168,7 @@ namespace System.Threading
 		//[ReliabilityContractAttribute]
 		public void Exit() 
 		{ 
-			threadWhoTookLock = int.MinValue;
-			lockState = isFree;
+			Exit(false);
 		}
 
 		public void Exit(bool flushReleaseWrites) 

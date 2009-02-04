@@ -1,4 +1,4 @@
-// IConflictManager.cs
+// ITrObject.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -26,10 +26,15 @@ using System;
 
 namespace System.Threading.Transactions
 {
-	
-	public interface IConflictManager
+	public abstract class ITrObject
 	{
-		void HandleConflict(Transaction firstTr, Transaction secondTr);
-		
+		internal Swappable<ICloneable> Object;
+	}
+	
+	public interface ITrObject<T> where T : class, ICloneable
+	{
+		T OpenRead(Transaction tr);
+		T OpenWrite(Transaction tr);
+		T Open(Transaction tr, TransactionOpeningMode mode);
 	}
 }

@@ -49,7 +49,7 @@ namespace System.Linq
 			const int chunkSize = 10;
 			
 			readonly IEnumerable<T> enumerable;
-			SpinLock sl = new SpinLock(false);
+			readonly SpinLock sl;
 			
 			IEnumerator<T> enumerator;
 			T current;
@@ -59,6 +59,7 @@ namespace System.Linq
 			{
 				this.enumerable = enumerable;
 				this.enumerator = enumerable.GetEnumerator();
+				this.sl = new SpinLock(false);
 			}
 			
 			T IEnumerator<T>.Current {
@@ -83,7 +84,7 @@ namespace System.Linq
 						current = enumerator.Current;
 					}
 				} finally {
-					sl.Exit();
+					sl.Exit(true);
 				}
 				
 				return result;
@@ -102,7 +103,7 @@ namespace System.Linq
 						index   = ++currIndex;
 					}
 				} finally {
-					sl.Exit();
+					sl.Exit(true);
 				}
 				
 				return result;
@@ -114,7 +115,7 @@ namespace System.Linq
 					sl.Enter();
 					enumerator = enumerable.GetEnumerator();
 				} finally {
-					sl.Exit();
+					sl.Exit(true);
 				}
 			}
 			
@@ -124,7 +125,7 @@ namespace System.Linq
 			}
 		}
 		
-		public override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)
 		{
 			return new PEIEnumerableEnumerator(enumerable);
 		}

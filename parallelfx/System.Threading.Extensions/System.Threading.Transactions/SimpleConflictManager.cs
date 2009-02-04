@@ -1,4 +1,4 @@
-// Common.cs
+// SimpleConflictManager.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -24,12 +24,15 @@
 
 using System;
 
-namespace System.Threading.Transactions
+namespace System.Threading
 {
 	
-	public enum TransactionOpeningMode
+	
+	public class SimpleConflictManager
 	{
-		Read,
-		Write
+		
+		public SimpleConflictManager()
+		{
+		}
 	}
 }

@@ -36,11 +36,26 @@ namespace System.Threading
 		LazyInitMode mode;
 		Func<T>      valueSelector;
 		Func<bool>   isInitialized;
-		T            value;
 		Func<T>      specializedValue;
+		T            value;
 		
-		readonly Func<T> finalValue;
-		static readonly Func<bool> finalIsInitialized = delegate { return true; };
+		readonly SpinLock spinLock;
+		LocalDataStoreSlot localStore;
+		
+		static bool StartIsInitialized()
+		{
+			return false;
+		}
+		
+		static bool FinalIsInitialized()
+		{
+			return true;
+		}
+		
+		T DefaultFinalValue()
+		{
+			return value;
+		}
 		
 		class DataSlotWrapper
 		{
@@ -54,12 +69,16 @@ namespace System.Threading
 		
 		public LazyInit(Func<T> valueSelector, LazyInitMode mode)
 		{
+			// Common initialization
 			this.valueSelector = valueSelector;
 			this.mode = mode;
-			this.finalValue = delegate { return value; };
+			specializedValue = null;
+			value = default(T);
+			spinLock = new SpinLock(false);
+			localStore = null;
+			isInitialized = StartIsInitialized;
 			
-			isInitialized = delegate { return false; };
-			
+			// Depending on mode, do specific initialization
 			switch (mode) {
 				case LazyInitMode.AllowMultipleExecution:
 					InitAllowMultipleExecution();
@@ -75,61 +94,75 @@ namespace System.Threading
 		
 		void InitAllowMultipleExecution()
 		{
-			specializedValue = delegate {
-				value = valueSelector();
-				isInitialized = finalIsInitialized;
-				specializedValue = finalValue;
-				return value;
-			};
+			specializedValue = GetValueMultipleExecution;
 		}
 		
 		void InitEnsureSingleExecution()
 		{
-			SpinLock sl = new SpinLock(false);
-			specializedValue = delegate {
-				try {
-					sl.Enter();
-					if (!isInitialized()) {
-						isInitialized = finalIsInitialized;
-						value = valueSelector();
-						specializedValue = finalValue;
-					}
-				} finally { sl.Exit(); }
-				return value;
-			};
+			specializedValue = GetValueSingleExecution;
 		}
 		
 		void InitThreadLocal()
 		{
-			LocalDataStoreSlot localStore = Thread.AllocateDataSlot();
+			localStore = Thread.AllocateDataSlot();
 			
-			specializedValue = delegate {
-				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
-				// In case it's the first time the Thread access its data
-				if (myWrapper == null) {
-					myWrapper = DataSlotCreator();
-					Thread.SetData(localStore, myWrapper);
+			specializedValue = GetValueThreadLocal;
+			
+			isInitialized = IsInitializedThreadLocal;
+		}
+		
+		T GetValueMultipleExecution()
+		{
+			value = valueSelector();
+			isInitialized = FinalIsInitialized;
+			specializedValue = DefaultFinalValue;
+			return value;
+		}
+		
+		T GetValueSingleExecution()
+		{
+			try {
+				spinLock.Enter();
+				if (!isInitialized()) {
+					isInitialized = FinalIsInitialized;
+					value = valueSelector();
+					specializedValue = DefaultFinalValue;
 				}
+			} finally { spinLock.Exit(); }
+			
+			return value;
+		}
+		
+		T GetValueThreadLocal()
+		{
+			DataSlotWrapper myWrapper = Thread.GetData(localStore) as DataSlotWrapper;
+			// In case it's the first time the Thread access its data
+			if (myWrapper == null) {
+				myWrapper = DataSlotCreator();
+				Thread.SetData(localStore, myWrapper);
+			}
 				
-				return myWrapper.Getter();
-			};
-			isInitialized = delegate {
-				DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
-				if (myWrapper == null) {
-					myWrapper = DataSlotCreator();
-					Thread.SetData(localStore, myWrapper);
-				}
-				
-				return myWrapper.Init;
-			};
+			return myWrapper.Getter();
+		}
+		
+		bool IsInitializedThreadLocal()
+		{
+			DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+			if (myWrapper == null) {
+				myWrapper = DataSlotCreator();
+				Thread.SetData(localStore, myWrapper);
+			}
+			
+			return myWrapper.Init;
 		}
 
 		DataSlotWrapper DataSlotCreator()
 		{
 			DataSlotWrapper wrapper = new DataSlotWrapper();
-			
+			Func<T> valSelector = valueSelector;
+	
 			wrapper.Getter = delegate {
-				T val = valueSelector();
+				T val = valSelector();
 				wrapper.Init = true;
 				wrapper.Getter = delegate { return val; };
 				return val;
@@ -143,7 +176,6 @@ namespace System.Threading
 			throw new NotImplementedException ();
 		}
 		
-		
 		public bool Equals (LazyInit<T> other)
 		{
 			// TODO: Find its it's correct or not via unit tests
@@ -152,8 +184,11 @@ namespace System.Threading
 		
 		public override bool Equals (object other)
 		{
-			LazyInit<T> temp = other as LazyInit<T>;
-			return temp == null ? false : Equals(temp);
+			if (!(other is LazyInit<T>))
+				return false;
+			
+			LazyInit<T> temp = (LazyInit<T>)other;
+			return Equals(temp);
 		}
 		
 		public override int GetHashCode()
@@ -168,7 +203,8 @@ namespace System.Threading
 		
 		public T Value {
 			get {
-				return specializedValue();
+				Func<T> temp = specializedValue;
+				return temp();
 			}
 		}
 		
@@ -180,7 +216,8 @@ namespace System.Threading
 		
 		public bool IsInitialized {
 			get {
-				return isInitialized();
+				Func<bool> temp = isInitialized;
+				return temp();
 			}
 		}
 	}

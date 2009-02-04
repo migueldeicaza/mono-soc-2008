@@ -38,7 +38,7 @@ namespace System.Linq
 		internal POrderedEnumerable(IParallelEnumerable<T> source, Comparison<T> comparison): base(source.Dop())
 		{
 			this.source = source;
-			source.IsNotLast();
+			//source.IsNotLast();
 
 			this.comparison = comparison;
 			// OrderBy explicitely turn on ordering
@@ -84,13 +84,13 @@ namespace System.Linq
 			}
 		}
 		
-		public override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)
 		{
 			if (doSort) {
 				IParallelEnumerable<T> enumerable = SortSource();
-				return enumerable.GetParallelEnumerator();
+				return enumerable.GetParallelEnumerator(isLast);
 			} else {
-				return source.GetParallelEnumerator();
+				return source.GetParallelEnumerator(isLast);
 			}
 		}
 		

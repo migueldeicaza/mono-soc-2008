@@ -26,7 +26,7 @@ using System;
 
 namespace System.Threading
 {
-	internal struct AtomicBoolean
+	public struct AtomicBoolean
 	{
 		int flag;
 		const int UnSet = 0;
