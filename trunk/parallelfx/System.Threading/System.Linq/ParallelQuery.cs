@@ -33,7 +33,7 @@ namespace System.Linq
 	{
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source)
 		{
-			return source.AsParallel(ParallelEnumerable.DefaultDop);
+			return source.AsParallel(ParallelEnumerableHelper.DefaultDop);
 		}
 		
 		public static IParallelEnumerable<T> AsParallel<T>(this IEnumerable<T> source, int dop)
@@ -63,7 +63,6 @@ namespace System.Linq
 		
 		public static IEnumerable<T> AsSequential<T>(this IParallelEnumerable<T> source)
 		{
-			source.IsLast();
 			return (IEnumerable<T>)source;
 		}
 	}

@@ -29,7 +29,9 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
-	// Used by Concat and consort
+	// Used by Concat
+	// TODO: take care of isLast argument, do something similar to
+	// BlockingCollectionEnumerator (maybe wrap the result with that)
 	internal class PEConcat<T>: ParallelEnumerableBase<T>
 	{
 		IParallelEnumerable<T>[] enumerables;
@@ -59,7 +61,7 @@ namespace System.Linq
 			{
 				this.enumerables = enumerables;
 				currIndex = 0;
-				currentEnumerator = enumerables[currIndex].GetParallelEnumerator();
+				currentEnumerator = enumerables[currIndex].GetParallelEnumerator(false);
 			}
 			
 			T IEnumerator<T>.Current {
@@ -96,7 +98,7 @@ namespace System.Linq
 						if (index >= enumerables.Length) {
 							finished = true;
 						} else {
-							currentEnumerator = enumerables[index].GetParallelEnumerator();
+							currentEnumerator = enumerables[index].GetParallelEnumerator(false);
 						}
 						flag = 0;
 					}
@@ -123,7 +125,7 @@ namespace System.Linq
 			}
 		}
 		
-		public override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)
 		{
 			return new PEIConcatEnumerator(enumerables);
 		}

@@ -399,14 +399,18 @@ namespace System.Threading
 					tasks[j].ContinueWith(delegate {
 						for (int i = 0; i < num; i++) {
 							if (i == j) continue;
-							tasks[i].Wait();
+							// Dont call callback if we aren't
+							// the last task
+							if (!tasks[i].IsCompleted)
+								return;
 						}
 						callback();
 					});
 				}
 			}
 
-			// If explicitely told, wait for all workers to complete and thus let main thread participate in the processing
+			// If explicitely told, wait for all workers to complete 
+			// and thus let main thread participate in the processing
 			if (wait)
 				Task.WaitAll(tasks);
 			

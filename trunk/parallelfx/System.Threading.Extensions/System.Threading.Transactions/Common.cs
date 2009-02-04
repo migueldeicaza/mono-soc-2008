@@ -1,4 +1,4 @@
-// Transaction.cs
+// Common.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -26,32 +26,17 @@ using System;
 
 namespace System.Threading.Transactions
 {
-	/* Todo : register all access/modification 
-	 *
-	 */
-	/* Probably better to use a interface here */
-	public class Transaction: IDisposable
+	
+	public enum TransactionOpeningMode
 	{
-		// Register a list of ITrObject and uses MCas to try update each
-		// ITrObject
-		
-		public Transaction()
-		{
-			
-		}
-		
-		public void Commit()
-		{
-			
-		}
-		
-		#region IDisposable implementation 
-		
-		public void Dispose ()
-		{
-			Commit();
-		}
-		
-		#endregion 
+		Read,
+		Write
+	}
+
+	public enum ConflictResolution
+	{
+		Abort,
+		Spin,
+		Stop
 	}
 }

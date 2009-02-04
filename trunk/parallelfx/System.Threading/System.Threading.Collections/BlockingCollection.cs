@@ -37,10 +37,10 @@ namespace System.Threading.Collections
 		readonly int upperBound;
 		readonly Func<bool> isFull;
 		
-		//const int blockingTime = 100;
 		readonly SpinWait sw = new SpinWait();
 		
 		volatile bool isComplete;
+		readonly SpinLock addLock = new SpinLock(false);
 		
 		#region ctors
 		public BlockingCollection():
@@ -62,31 +62,56 @@ namespace System.Threading.Collections
 		{
 			this.underlyingColl = underlyingColl;
 			this.upperBound     = upperBound;
+			
 			if (upperBound == -1)
-				isFull = delegate { return false; };
+				isFull = FalseIsFull;
 			else
-				isFull = delegate { return underlyingColl.Count >= upperBound; };
+				isFull = CountBasedIsFull;
+			//isFull = (upperBound == -1) ? FalseIsFull : CountBasedIsFull;
 		}
 		
 		~BlockingCollection()
 		{
 			Dispose(false);
 		}
+		
+		static bool FalseIsFull()
+		{
+			return false;
+		}
+		
+		bool CountBasedIsFull()
+		{
+			return underlyingColl.Count >= upperBound;	
+		}
 		#endregion
 		
 		#region Add & Remove (+ Try)
 		public void Add(T item)
 		{
-			while (isFull()) {
+			while (true) {
+				while (isFull()) {
+					if (isComplete)
+						throw new InvalidOperationException("The BlockingCollection<T>"
+						                                    + " has been marked as complete with regards to additions.");
+					Block();
+				}
+				// Extra check. The status might have changed after Block() or if isFull() is always false
 				if (isComplete)
-					throw new InvalidOperationException("The BlockingCollection<T> has been marked as complete with regards to additions.");
-				Block();
+					throw new InvalidOperationException("The BlockingCollection<T> has"
+					                                    + " been marked as complete with regards to additions.");
+				
+				try {
+					addLock.Enter();
+					// Go back in main waiting loop
+					if (isFull())
+						continue;
+					underlyingColl.Add(item);
+					return;
+				} finally {
+					addLock.Exit(true);
+				}
 			}
-			// Extra check. The status might have changed after Block() or if isFull() is always false
-			if (isComplete)
-				throw new InvalidOperationException("The BlockingCollection<T> has been marked as complete with regards to additions.");
-
-			underlyingColl.Add(item);
 		}
 		
 		public T Remove()
@@ -106,9 +131,17 @@ namespace System.Threading.Collections
 		public bool TryAdd(T item)
 		{
 			if (isComplete || isFull()) {
-				return false;
+					return false;
 			}
-			return underlyingColl.Add(item);
+			try {
+				addLock.Enter();
+				if (isFull()) {
+					return false;
+				}
+				return underlyingColl.Add(item);
+			} finally {
+				addLock.Exit(true);
+			}
 		}
 		
 		public bool TryAdd(T item, TimeSpan ts)
@@ -327,7 +360,6 @@ namespace System.Threading.Collections
 		// Method used to stall the thread for a limited period of time before retrying an operation
 		void Block()
 		{
-			//Thread.Sleep(blockingTime);
 			sw.SpinOnce();
 		}
 		

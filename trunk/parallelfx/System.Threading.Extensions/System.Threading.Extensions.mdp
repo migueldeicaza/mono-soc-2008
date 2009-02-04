@@ -1,0 +1,39 @@
+<Project name="System.Threading.Extensions" fileversion="2.0" language="C#" targetFramework="3.5" ctype="DotNetProject">
+  <Configurations active="Debug">
+    <Configuration name="Debug" ctype="DotNetProjectConfiguration">
+      <Output directory="bin/Debug" assembly="System.Threading.Extensions" />
+      <Build debugmode="True" target="Library" />
+      <Execution runwithwarnings="True" consolepause="False" runtime="MsNet" />
+      <EnvironmentVariables />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="False" unsafecodeallowed="False" generateoverflowchecks="False" definesymbols="DEBUG" generatexmldocumentation="False" ctype="CSharpCompilerParameters" />
+    </Configuration>
+    <Configuration name="Release" ctype="DotNetProjectConfiguration">
+      <Output directory="bin/Release" assembly="System.Threading.Extensions" />
+      <Build debugmode="False" target="Library" />
+      <Execution runwithwarnings="True" consolepause="False" runtime="MsNet" />
+      <CodeGeneration compiler="Mcs" warninglevel="4" optimize="False" unsafecodeallowed="False" generateoverflowchecks="False" generatexmldocumentation="False" ctype="CSharpCompilerParameters" />
+    </Configuration>
+  </Configurations>
+  <Contents>
+    <File name="AssemblyInfo.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/Common.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/IConflictManager.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/ITrObject.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/SimpleConflictManager.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/TrObject.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/Transaction.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/TransactionalMemory.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Actors/ActorMessage.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Actors/BufferedActor.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Actors/Combinators.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Actors/IActor.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Actors/MessageArgs.cs" subtype="Code" buildaction="Compile" />
+    <File name="InterlockedExtension.cs" subtype="Code" buildaction="Compile" />
+    <File name="AtomicBoolean.cs" subtype="Code" buildaction="Compile" />
+  </Contents>
+  <References>
+    <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+    <ProjectReference type="Project" localcopy="True" refto="System.Threading" />
+    <ProjectReference type="Gac" localcopy="True" refto="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  </References>
+</Project>

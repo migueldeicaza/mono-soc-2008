@@ -91,7 +91,7 @@ namespace System.Linq
 			}
 		}
 		
-		public override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)
 		{
 			return new PERepeatEnumerator(element, count);
 		}

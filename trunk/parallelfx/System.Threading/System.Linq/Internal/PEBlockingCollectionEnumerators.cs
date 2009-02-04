@@ -64,24 +64,10 @@ namespace System.Linq
 	#region BlockingCollectionOrderedEnumerator
 	internal class BlockingCollectionOrderedEnumerator<TSource, T>: BlockingCollectionEnumeratorBase<T>
 	{
-		/*struct Tuple<U, V>
-		{
-			public readonly U First;
-			public readonly V Second;
-			
-			public Tuple(U first, V second)
-			{
-				First = first;
-				Second = second;
-			}
-		}*/
-		
 		SpinLock sl = new SpinLock(false);
 		readonly SpinWait sw = new SpinWait();
 		readonly Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		readonly IParallelEnumerator<TSource> enumerator;
-		// first element of the tuple is the index and the second is the element of the IEnumerator
-		//readonly BlockingCollection<Tuple<int, T>> buffer = new BlockingCollection<Tuple<int, T>>();
 
 		int  currIndex = -1;
 		

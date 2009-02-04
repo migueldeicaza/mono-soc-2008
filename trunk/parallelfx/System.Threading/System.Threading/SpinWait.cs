@@ -52,7 +52,7 @@ namespace System.Threading
 		
 		void Yield()
 		{
-			// Replace by Thread.Sleep(0) which does almost the same thing
+			// Replace sched_yield by Thread.Sleep(0) which does almost the same thing
 			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
 			Thread.Sleep(0);
 		}

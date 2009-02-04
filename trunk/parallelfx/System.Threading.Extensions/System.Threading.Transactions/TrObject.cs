@@ -1,4 +1,4 @@
-// TransactionnalMemory.cs
+// TrObject.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -26,16 +26,61 @@ using System;
 
 namespace System.Threading.Transactions
 {
-	public static class TransactionalMemory
+	internal class TransactionContainer
 	{
-		public static Transaction StartNewTransaction()
-		{
-			return null;
+		ITrObject transactionObject;
+		ICloneable currentInstance;
+		ICloneable baseInstance;
+		
+		public ITrObject TransactionObject {
+			get {
+				return transactionObject;
+			}
+		}
+		
+		public ICloneable CurrentInstance {
+			get {
+				return currentInstance;
+			}
 		}
 
-		public static ITrObject<T> GetTransactionObjectFor<T>(T obj) where T : ICloneable
+		public ICloneable BaseInstance {
+			get {
+				return baseInstance;
+			}
+		}
+
+		public TransactionContainer(ITrObject transactionObject, ICloneable currentInstance)
 		{
-			return null;
+			this.transactionObject = transactionObject;
+			this.currentInstance = currentInstance;
+			this.baseInstance = (ICloneable)currentInstance.Clone();
 		}
 	}
+	
+	internal class TrObject<T> : ITrObject, ITrObject<T> where T : class, ICloneable
+	{	
+		public TrObject(T obj)
+		{
+			this.Object = new Swappable<ICloneable>(obj);
+		}
+
+		public T OpenRead(Transaction tr)
+		{
+			return Open(tr, TransactionOpeningMode.Read);
+		}
+		
+		public T OpenWrite(Transaction tr)
+		{
+			return Open(tr, TransactionOpeningMode.Read);
+		}
+
+		public T Open(Transaction tr, TransactionOpeningMode mode)
+		{
+			ICloneable copy = (ICloneable)Object.Value.Clone();
+			tr.Register(new TransactionContainer(this, copy));
+			return (T)Object.Value.Clone();
+		}
+	}
+	
 }

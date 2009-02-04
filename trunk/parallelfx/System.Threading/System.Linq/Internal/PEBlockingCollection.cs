@@ -64,6 +64,8 @@ namespace System.Linq
 			SpinWait sw = new SpinWait();
 			int indexToBeAdded = -1;
 				
+			// TODO: false now that SpinLock is back to a struct
+			// variable capture will break the lock
 			Parallel.SpawnBestNumber(delegate {
 				while (!bColl.IsAddingCompleted) {
 					ResultReturn<T> result = action(enumerator);
@@ -96,9 +98,9 @@ namespace System.Linq
 			}, dop, () => bColl.CompleteAdding());
 		}
 		
-		public override IParallelEnumerator<T> GetParallelEnumerator()
+		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)
 		{
-			IParallelEnumerator<TSource> enumerator = source.GetParallelEnumerator();
+			IParallelEnumerator<TSource> enumerator = source.GetParallelEnumerator(false);
 			
 			if (isLast) {
 				if (isOrdered)

@@ -1,4 +1,4 @@
-<Project name="System.Threading" fileversion="2.0" language="C#" clr-version="Net_2_0" ctype="DotNetProject">
+<Project name="System.Threading" fileversion="2.0" language="C#" clr-version="Net_2_0" targetFramework="3.5" ctype="DotNetProject">
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="DotNetProjectConfiguration">
       <Output directory="bin/Debug" assembly="System.Threading" />
@@ -64,28 +64,15 @@
     <File name="System.Linq/Internal/PEBlockingCollectionEnumerators.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Linq/Internal/POrderedEnumerable.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/SemaphoreSlim.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Actors" subtype="Directory" buildaction="Compile" />
-    <File name="System.Threading.Actors/IActor.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/AtomicBoolean.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Actors/ActorMessage.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Actors/BufferedActor.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Actors/Combinators.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Actors/MessageArgs.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/ThreadPoolScheduler.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Collections/ConcurrentSkipList.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading/InterlockedExtension.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions" subtype="Directory" buildaction="Compile" />
-    <File name="System.Threading.Transactions/TransactionalMemory.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions/Transaction.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions/IConflictManager.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions/ITrObject.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions/Common.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/ParallelLogger.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Linq/Internal/ResultReturn.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Linq/ParallelEnumerableHelper.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
     <ProjectReference type="Gac" localcopy="True" refto="System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   </References>
-  <GtkDesignInfo />
 </Project>

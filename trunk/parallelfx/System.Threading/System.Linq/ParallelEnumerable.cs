@@ -28,196 +28,12 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Threading.Collections;
 
+using PEHelper = System.Linq.ParallelEnumerableHelper;
+
 namespace System.Linq
 {
 	public static class ParallelEnumerable
 	{
-		public const int DefaultDop = -1;
-		
-		#region Internally used operators
-		internal static int Dop<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			return temp == null ? DefaultDop : temp.Dop;
-		}
-		
-		internal static void IsNotLast<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			if (temp == null)
-				return;
-			temp.IsLast = false;
-		}
-		
-		internal static void IsLast<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			if (temp == null)
-				return;
-			temp.IsLast = true;
-		}
-		
-		internal static bool IsOrdered<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			if (temp == null)
-				return false;
-			return temp.IsOrdered;
-		}
-		
-		internal static void SetUnordered<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			if (temp == null)
-				return;
-			temp.IsOrdered = false;
-		}
-		
-		internal static void SetOrdered<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			if (temp == null)
-				return;
-			temp.IsOrdered = true;
-		}
-		
-		internal static IParallelEnumerator<T> GetParallelEnumerator<T>(this IParallelEnumerable<T> source)
-		{
-			ParallelEnumerableBase<T> temp = source as ParallelEnumerableBase<T>;
-			return temp.GetParallelEnumerator();
-		}
-		
-		internal static IList<T> AsIList<T>(this IParallelEnumerable<T> source)
-		{
-			return AsInterface<T, IList<T>>(source);
-		}
-		
-		internal static ICollection<T> AsICollection<T>(this IParallelEnumerable<T> source)
-		{
-			return AsInterface<T, ICollection<T>>(source);
-		}
-		
-		static U AsInterface<T, U>(IParallelEnumerable<T> source) where U : class
-		{
-			// For PERange and PERepeat
-			var coll = source as U;
-			if (coll != null)
-				return coll;
-			
-			var peEnumerable = source as PEIEnumerable<T>;
-			if (peEnumerable != null)
-				coll = peEnumerable.Enumerable as U;
-			
-			return coll;
-		}
-		#endregion
-		
-		
-		// ------------------------------------------------------------------------------------
-		
-		
-		#region Internal link to SpawnBestNumber
-		
-		static void Process<TSource>(IParallelEnumerable<TSource> source, Action<int, TSource> action, bool block)
-		{
-			Process(source, (i, s) => { action(i, s); return true; }, block);
-		}
-		
-		static void Process<TSource>(IParallelEnumerable<TSource> source, Func<int, TSource, bool> action, bool block)
-		{
-			//source.IsNotLast();
-			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
-			
-			Parallel.SpawnBestNumber(delegate {
-				TSource item;
-				int i;
-				while (feedEnum.MoveNext(out item, out i)) {
-					if (!action(i, item))
-						break;
-				}
-			}, source.Dop(), block, null);
-		}
-		
-		static IParallelEnumerable<TResult> Process<TSource, TResult>(IParallelEnumerable<TSource> source,
-		                                                    Func<int, TSource, ResultReturn<TResult>> action)
-		{
-			//source.IsNotLast();
-			
-			Func<IParallelEnumerator<TSource>, ResultReturn<TResult>> a 
-			                  = delegate(IParallelEnumerator<TSource> feedEnum) {
-				TSource item;
-				int i;
-				if (feedEnum.MoveNext (out item, out i)) {
-					return action (i, item);
-				} else {
-					return ResultReturn<TResult>.False;
-				}
-			};
-			
-			ParallelEnumerableBase<TResult> result = ParallelEnumerableFactory.GetFromBlockingCollection<TSource, TResult>(a, source);
-			if (source.IsOrdered())
-				result.IsOrdered = true;
-			
-			return result;
-		}
-		#endregion
-		
-		
-		// ------------------------------------------------------------------------------------
-		
-		
-		#region Exception handling
-		static void AssertSourceNotNull<T>(IParallelEnumerable<T> source)
-		{
-			AssertNotNull(source, "source");
-		}
-		
-		static void AssertNotNull<T>(T obj, string paramName) where T : class
-		{
-			if (obj == null)
-				throw new ArgumentNullException(paramName);
-		}
-		
-		static void AssertInRange<T>(T e, Func<T, bool> rangePredicate, string paramName)
-		{
-			if (rangePredicate(e))
-				throw new ArgumentOutOfRangeException(paramName);
-		}
-		
-		static void Assert<T, TException>(T obj, Func<T, bool> predicate, Func<TException> exFactory) where TException : Exception
-		{
-			if (predicate(obj))
-				throw exFactory();
-		}
-		#endregion
-		
-		#region Helper function / predicate
-		static bool NullableExistencePredicate<T>(T? nullable) where T : struct
-		{
-			return nullable.HasValue;
-		}
-
-		static T NullableExtractor<T>(T? nullable) where T : struct
-		{
-			return nullable.Value;
-		}
-
-		// For bestSelector, if first arg is better than second returns true
-		static T BestOrder<T>(IParallelEnumerable<T> source, Func<T, T, bool> bestSelector, T seed)
-		{
-			T best = seed;
-			
-			best = source.Aggregate(() => seed,
-			                        (first, second) => (bestSelector(first, second)) ? first : second,
-			                        (first, second) => (bestSelector(first, second)) ? first : second,
-			                        (e) => e);
-			return best;
-		}
-		#endregion
-		
-		// ------------------------------------------------------------------------------------
-		
-		
 		
 		#region Select
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
@@ -229,7 +45,7 @@ namespace System.Linq
 		public static IParallelEnumerable<TResult> Select<TSource, TResult>(this IParallelEnumerable<TSource> source,
 		                                                                    Func<TSource, int, TResult> selector)
 		{
-			return Process<TSource, TResult> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TResult> (source, delegate (int i, TSource e) {
 				return new ResultReturn<TResult>(true, true, selector(e, i), i);
 			});
 		}
@@ -245,7 +61,7 @@ namespace System.Linq
 		public static IParallelEnumerable<TSource> Where<TSource>(this IParallelEnumerable<TSource> source,
 		                                                          Func<TSource, int, bool> predicate)
 		{
-			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (predicate(e, i))
 					// TODO: Make the given back index correct 
 					return new ResultReturn<TSource>(true, true, e, i);
@@ -258,12 +74,13 @@ namespace System.Linq
 		#region Count
 		public static int Count<TSource>(this IParallelEnumerable<TSource> source)
 		{
+			var coll = source.AsICollection();
+			if (coll != null) return coll.Count;
+			
 			return source.Aggregate<TSource, int, int>(() => 0,
 			                                           (acc, e) => acc + 1,
 			                                           (acc1, acc2) => acc1 + acc2,
 			                                           (result) => result);
-			                                           
-			//return Count(source, _ => true);
 		}
 		
 		public static int Count<TSource>(this IParallelEnumerable<TSource> source, Func<TSource, bool> predicate)
@@ -273,7 +90,7 @@ namespace System.Linq
 			var coll = source.AsICollection();
 			if (coll != null) return coll.Count;
 			
-			Process(source, delegate (int i, TSource element) {
+			PEHelper.Process(source, delegate (int i, TSource element) {
 				if (predicate(element))
 					Interlocked.Increment(ref count);
 				return true;
@@ -290,9 +107,7 @@ namespace System.Linq
 			var coll = source.AsICollection();
 			if (coll != null) return coll.Count > 0;
 			
-			source.IsNotLast();
-			bool result = source.GetParallelEnumerator().MoveNext();
-			source.IsLast();
+			bool result = source.GetParallelEnumerator(false).MoveNext();
 			
 			return result;
 		}
@@ -301,7 +116,7 @@ namespace System.Linq
 		#region ForAll
 		public static void ForAll<T>(this IParallelEnumerable<T> source, Action<T> action)
 		{
-			Process(source, (i, e) => { action(e); }, true);
+			PEHelper.Process(source, (i, e) => { action(e); }, true);
 		}
 		#endregion
 		
@@ -448,111 +263,111 @@ namespace System.Linq
 		#endregion
 
 		#region Sum (nullable)
-		public static int Sum(IParallelEnumerable<int?> source)
+		/*public static int Sum(IParallelEnumerable<int?> source)
 		{
-			return source.Where(NullableExistencePredicate<int>).Select<int?, int>(NullableExtractor<int>).Sum();
+			return source.Where(PEHelper.NullableExistencePredicate<int>).Select<int?, int>(NullableExtractor<int>).Sum();
 		}
 		
 		public static byte Sum(IParallelEnumerable<byte?> source)
 		{
-			return Sum(source.Where(NullableExistencePredicate<byte>).Select<byte?, byte>(NullableExtractor<byte>));
-		}
+			return Sum(source.Where(PEHelper.NullableExistencePredicate<byte>).Select<byte?, byte>(NullableExtractor<byte>));
+		}*/
 		
 		/*public static short Sum(IParallelEnumerable<short?> source)
 		{
 			return source.Where(NullableExistencePredicate<short>).Select<int?, int>(NullableExtractor<short>).Sum();
 		}*/
 		
-		public static long Sum(IParallelEnumerable<long?> source)
+		/*public static long Sum(IParallelEnumerable<long?> source)
 		{
-			return source.Where(NullableExistencePredicate<long>).Select<long?, long>(NullableExtractor<long>).Sum();
+			return source.Where(PEHelper.NullableExistencePredicate<long>).Select<long?, long>(NullableExtractor<long>).Sum();
 		}
 		
 		public static float Sum(IParallelEnumerable<float?> source)
 		{
-			return source.Where(NullableExistencePredicate<float>).Select<float?, float>(NullableExtractor<float>).Sum();
+			return source.Where(PEHelper.NullableExistencePredicate<float>).Select<float?, float>(NullableExtractor<float>).Sum();
 		}
 		
 		public static double Sum(IParallelEnumerable<double?> source)
 		{
-			return source.Where(NullableExistencePredicate<double>).Select<double?, double>(NullableExtractor<double>).Sum();
+			return source.Where(PEHelper.NullableExistencePredicate<double>).Select<double?, double>(NullableExtractor<double>).Sum();
 		}
 		
 		public static decimal Sum(IParallelEnumerable<decimal?> source)
 		{
-			return source.Where(NullableExistencePredicate<decimal>).Select<decimal?, decimal>(NullableExtractor<decimal>).Sum();
-		}
+			return source.Where(PEHelper.NullableExistencePredicate<decimal>).Select<decimal?, decimal>(NullableExtractor<decimal>).Sum();
+		}*/
 		#endregion
 		
 		#region Min - Max
 		public static int Min(this IParallelEnumerable<int> source)
 		{
-			return BestOrder(source, (first, second) => first < second, int.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, int.MaxValue);
 		}
 		
 		public static byte Min(this IParallelEnumerable<byte> source)
 		{
-			return BestOrder(source, (first, second) => first < second, byte.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, byte.MaxValue);
 		}
 		
 		public static short Min(this IParallelEnumerable<short> source)
 		{
-			return BestOrder(source, (first, second) => first < second, short.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, short.MaxValue);
 		}
 		
 		public static long Min(this IParallelEnumerable<long> source)
 		{
-			return BestOrder(source, (first, second) => first < second, long.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, long.MaxValue);
 		}
 		
 		public static float Min(this IParallelEnumerable<float> source)
 		{
-			return BestOrder(source, (first, second) => first < second, float.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, float.MaxValue);
 		}
 		
 		public static double Min(this IParallelEnumerable<double> source)
 		{
-			return BestOrder(source, (first, second) => first < second, double.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, double.MaxValue);
 		}
 		
 		public static decimal Min(this IParallelEnumerable<decimal> source)
 		{
-			return BestOrder(source, (first, second) => first < second, decimal.MaxValue);
+			return PEHelper.BestOrder(source, (first, second) => first < second, decimal.MaxValue);
 		}
 		
 		public static int Max(this IParallelEnumerable<int> source)
 		{
-			return BestOrder(source, (first, second) => first > second, int.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, int.MinValue);
 		}
 		
 		public static byte Max(this IParallelEnumerable<byte> source)
 		{
-			return BestOrder(source, (first, second) => first > second, byte.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, byte.MinValue);
 		}
 		
 		public static short Max(this IParallelEnumerable<short> source)
 		{
-			return BestOrder(source, (first, second) => first > second, short.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, short.MinValue);
 		}
 		
 		public static long Max(this IParallelEnumerable<long> source)
 		{
-			return BestOrder(source, (first, second) => first > second, long.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, long.MinValue);
 		}
 		
 		public static float Max(this IParallelEnumerable<float> source)
 		{
-			return BestOrder(source, (first, second) => first > second, float.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, float.MinValue);
 		}
 		
 		public static double Max(this IParallelEnumerable<double> source)
 		{
-			return BestOrder(source, (first, second) => first > second, double.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, double.MinValue);
 		}
 		
 		public static decimal Max(this IParallelEnumerable<decimal> source)
 		{
-			return BestOrder(source, (first, second) => first > second, decimal.MinValue);
+			return PEHelper.BestOrder(source, (first, second) => first > second, decimal.MinValue);
 		}
 		#endregion
 
@@ -654,7 +469,7 @@ namespace System.Linq
 				accumulators[i] = seedFactory();
 			}
 
-			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator();
+			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator(false);
 
 			// Process to intermediate result into distinct domain
 			// Still hackish in the sense that it's not wrapped, hovewer remove the overhead of Interlocked
@@ -685,14 +500,11 @@ namespace System.Linq
 		#region Concat
 		public static IParallelEnumerable<TSource> Concat<TSource>(this IParallelEnumerable<TSource> source,
 		                                                           IParallelEnumerable<TSource> second)
-		{
-			source.IsNotLast();
-			second.IsNotLast();
-			
+		{	
 			IParallelEnumerable<TSource> temp = 
 				ParallelEnumerableFactory.GetFromIParallelEnumerable(source.Dop(), source, second);
 			
-			return Process<TSource, TSource>(temp, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource>(temp, delegate (int i, TSource e) {
 				return new ResultReturn<TSource>(true, true, e, i);
 			});
 			
@@ -704,7 +516,7 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (Interlocked.Increment(ref counter) <= count) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
@@ -724,7 +536,7 @@ namespace System.Linq
 		{
 			bool stopFlag = true;
 			
-			return Process<TSource, TSource> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (stopFlag && (stopFlag = predicate(e, i))) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
@@ -775,7 +587,7 @@ namespace System.Linq
 			TSource result = default(TSource);
 			int currIndex = -1;
 			
-			Process(source, delegate (int j, TSource element) {
+			PEHelper.Process(source, delegate (int j, TSource element) {
 				int myIndex = Interlocked.Increment(ref currIndex);
 				if (myIndex == index) {
 					result = element;
@@ -791,7 +603,7 @@ namespace System.Linq
 		#region First
 		public static TSource First<TSource>(this IParallelEnumerable<TSource> source)
 		{
-			AssertSourceNotNull(source);
+			PEHelper.AssertSourceNotNull(source);
 			
 			// Little short-circuit taken from Enumerable.cs
 			var list = source.AsIList();
@@ -805,9 +617,7 @@ namespace System.Linq
 			TSource first;
 			int index;
 			
-			source.IsNotLast();
-			bool result = source.GetParallelEnumerator().MoveNext(out first, out index);
-			source.IsLast();
+			bool result = source.GetParallelEnumerator(false).MoveNext(out first, out index);
 			
 			if (!result)
 				throw new InvalidOperationException("source is empty");
@@ -818,13 +628,13 @@ namespace System.Linq
 		public static TSource First<TSource>(this IParallelEnumerable<TSource> source,
 		                                     Func<TSource, bool> predicate)
 		{
-			AssertSourceNotNull(source);
+			PEHelper.AssertSourceNotNull(source);
 			
 			TSource element = default(TSource);
 			
 			bool result = false;
 			
-			Process<TSource>(source, delegate (int i, TSource e) {
+			PEHelper.Process<TSource>(source, delegate (int i, TSource e) {
 				if (predicate(e)) {
 					element = e;
 					result = true;
@@ -834,14 +644,14 @@ namespace System.Linq
 				}
 			}, true);
 			
-			Assert(result, (r) => !r, () => new Exception("No element found"));
+			PEHelper.Assert(result, (r) => !r, () => new Exception("No element found"));
 			
 			return element;
 		}
 		
 		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source)
 		{
-			AssertSourceNotNull(source);
+			PEHelper.AssertSourceNotNull(source);
 			
 			// Little short-circuit taken from Enumerable.cs
 			var list = source.AsIList();
@@ -851,9 +661,7 @@ namespace System.Linq
 			TSource first;
 			int index;
 			
-			source.IsNotLast();
-			bool result = source.GetParallelEnumerator().MoveNext(out first, out index);
-			source.IsLast();
+			bool result = source.GetParallelEnumerator(false).MoveNext(out first, out index);
 			
 			return result ? first : default(TSource);
 		}
@@ -861,11 +669,11 @@ namespace System.Linq
 		public static TSource FirstOrDefault<TSource>(this IParallelEnumerable<TSource> source,
 		                                              Func<TSource, bool> predicate)
 		{
-			AssertSourceNotNull(source);
+			PEHelper.AssertSourceNotNull(source);
 			
 			TSource element = default(TSource);
 			
-			Process<TSource>(source, delegate (int i, TSource e) {
+			PEHelper.Process<TSource>(source, delegate (int i, TSource e) {
 				if (predicate(e)) {
 					element = e;
 					return false;
@@ -916,9 +724,9 @@ namespace System.Linq
 		{			
 			IParallelEnumerable<TSecond> pEnumerable = 
 				second as IParallelEnumerable<TSecond> ?? ParallelEnumerableFactory.GetFromIEnumerable(second, first.Dop());
-			IParallelEnumerator<TSecond> pEnum = pEnumerable.GetParallelEnumerator();
+			IParallelEnumerator<TSecond> pEnum = pEnumerable.GetParallelEnumerator(false);
 
-			return Process(first, (index, element) => {
+			return PEHelper.Process(first, (index, element) => {
 				TSecond element2;
 				int i;
 				
@@ -933,12 +741,12 @@ namespace System.Linq
 		#region Range & Repeat
 		public static IParallelEnumerable<int> Range(int start, int count)
 		{
-			return ParallelEnumerableFactory.GetFromRange (start, count, DefaultDop);
+			return ParallelEnumerableFactory.GetFromRange (start, count, PEHelper.DefaultDop);
 		}
 		
 		public static IParallelEnumerable<TResult> Repeat<TResult>(TResult element, int count)
 		{
-			return ParallelEnumerableFactory.GetFromRepeat<TResult>(element, count, DefaultDop);
+			return ParallelEnumerableFactory.GetFromRepeat<TResult>(element, count, PEHelper.DefaultDop);
 		}
 		#endregion
 	}

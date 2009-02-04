@@ -1,4 +1,4 @@
-// ParallelEnumerableBase.cs
+// TransactionnalMemory.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,64 +23,19 @@
 //
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
-namespace System.Linq
+namespace System.Threading.Transactions
 {
-	internal abstract class ParallelEnumerableBase<T>: IParallelEnumerable<T>
+	public static class TransactionalMemory
 	{
-		protected bool isOrdered = false;
-		protected int  dop;
-		
-		protected ParallelEnumerableBase(int dop)
+		public static Transaction StartNewTransaction()
 		{
-			this.dop = dop;
-		}
-		
-		public IEnumerator<T> GetEnumerator(bool enablePipelining)
-		{
-			// Don't care about Pipelining for the moment
-			// Just a matter of calling Task.WaitAll in the correct place
-			return GetParallelEnumerator(true);
-		}
-		
-		public abstract IParallelEnumerator<T> GetParallelEnumerator(bool isLast);
-		
-		
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
-		{
-			return (IEnumerator<T>)GetParallelEnumerator(true);
-		}
-		
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return (IEnumerator)GetParallelEnumerator(true);
-		}
-		
-		/*public bool IsLast {
-			get {
-				return isLast;
-			}
-			set {
-				isLast = value;
-			}
-		}*/
-		
-		public bool IsOrdered {
-			get {
-				return isOrdered;
-			}
-			set {
-				isOrdered = value;
-			}
+			return null;
 		}
 
-		public int Dop {
-			get {
-				return dop;
-			}
+		public static ITrObject<T> GetTransactionObjectFor<T>(T obj) where T : class, ICloneable
+		{
+			return null;
 		}
-		
 	}
 }

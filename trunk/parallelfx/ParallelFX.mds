@@ -1,20 +1,25 @@
 <Combine name="ParallelFX" fileversion="2.0">
+  <Policies />
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="CombineConfiguration">
       <Entry build="True" name="System.Threading" configuration="Debug" />
       <Entry build="True" name="ParallelFxTests" configuration="Debug" />
+      <Entry build="True" name="System.Threading.Extensions" configuration="Debug" />
     </Configuration>
     <Configuration name="Release" ctype="CombineConfiguration">
       <Entry build="True" name="System.Threading" configuration="Release" />
       <Entry build="True" name="ParallelFxTests" configuration="Release" />
+      <Entry build="True" name="System.Threading.Extensions" configuration="Release" />
     </Configuration>
   </Configurations>
   <StartMode startupentry="System.Threading" single="True">
     <Execute type="None" entry="System.Threading" />
     <Execute type="None" entry="ParallelFxTests" />
+    <Execute type="None" entry="System.Threading.Extensions" />
   </StartMode>
   <Entries>
     <Entry filename="System.Threading/System.mdp" />
     <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+    <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
   </Entries>
 </Combine>
