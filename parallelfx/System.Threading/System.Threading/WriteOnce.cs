@@ -31,23 +31,31 @@ namespace System.Threading
 	{
 		T value;
 		AtomicBoolean setFlag;
+		bool hasValue;
 		
 		public WriteOnce(T value)
 		{
 			this.value = value;
 			this.setFlag = true;
+			this.hasValue = true;
 		}
 		
 		public bool HasValue {
 			get {
-				return setFlag.Value;
+				return hasValue;
 			}
 		}
 		
 		public T Value {
 			get {
-				if (!HasValue)
-					throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set.");
+				if (!HasValue) {
+					if (setFlag.Value) {
+						SpinWait wait = new SpinWait();
+						while (!HasValue) wait.SpinOnce();
+					} else {
+						throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set.");
+					}
+				}
 				return value;
 			}
 			set {
@@ -55,6 +63,7 @@ namespace System.Threading
 				if (result)
 					throw new InvalidOperationException("An attempt was made to set the value when the value was already set.");
 				this.value = value;
+				hasValue = true;
 			}
 		}
 		
@@ -71,6 +80,7 @@ namespace System.Threading
 			if (result)
 				return false;
 			value = val;
+			hasValue = true;
 			return true;
 		}
 		
@@ -86,12 +96,12 @@ namespace System.Threading
 		
 		public override int GetHashCode()
 		{
-			return (setFlag.Value) ? value.GetHashCode() : base.GetHashCode();
+			return (HasValue) ? value.GetHashCode() : base.GetHashCode();
 		}
 		
 		public override string ToString()
 		{
-			return (setFlag.Value) ? value.ToString() : base.ToString();
+			return (HasValue) ? value.ToString() : base.ToString();
 		}
 	}
 }

@@ -31,16 +31,19 @@ namespace System.Threading
 	{
 		int count;
 		readonly int initial;
+		bool isCanceled;
 		
 		public CountdownEvent(int count)
 		{
+			if (count < 0)
+				throw new ArgumentOutOfRangeException("count is negative");
 			this.initial = this.count = count;
 		}
 		
-		~CountdownEvent()
+		/*~CountdownEvent()
 		{
 			Dispose(false);
-		}
+		}*/
 		
 		public void Decrement()
 		{
@@ -83,6 +86,9 @@ namespace System.Threading
 				throw new ArgumentOutOfRangeException("num");
 			if (num > int.MaxValue - count)
 				throw new InvalidOperationException();
+			
+			if (IsSet)
+				return false;
 			
 			Interlocked.Add(ref count, num);
 			return true;
@@ -145,7 +151,7 @@ namespace System.Threading
 			
 		public bool IsSet {
 			get {
-				return count == 0;
+				return count <= 0;
 			}
 		}
 		
@@ -159,13 +165,13 @@ namespace System.Threading
 		
 		public void Dispose ()
 		{
-			Dispose(true);
+			//Dispose(true);
 		}
 		
-		protected virtual void Dispose(bool managedRes)
+		/*protected virtual void Dispose(bool managedRes)
 		{
 			
-		}
+		}*/
 		#endregion 
 		
 		
@@ -173,12 +179,13 @@ namespace System.Threading
 		
 		public void Cancel()
 		{
-			
+			Thread.VolatileWrite(ref count, 0);
+			isCanceled = true;
 		}
 		
 		public bool IsCanceled {
 			get {
-				return false;
+				return isCanceled;
 			}
 		}
 		

@@ -37,7 +37,7 @@ namespace System.Threading
 
 		int state;
 		
-		bool isDisposed;
+		//bool isDisposed;
 		
 		public ManualResetEventSlim(): this(false, 20)
 		{
@@ -53,10 +53,10 @@ namespace System.Threading
 			this.spinCount = spinCount;
 		}
 		
-		~ManualResetEventSlim()
+		/*~ManualResetEventSlim()
 		{
 			Dispose(false);
-		}
+		}*/
 		
 		public bool IsSet {
 			get {
@@ -140,13 +140,13 @@ namespace System.Threading
 		
 		public void Dispose ()
 		{
-			Dispose(true);
+			//Dispose(true);
 		}
 		
-		protected virtual void Dispose(bool managedRes)
+		/*protected virtual void Dispose(bool managedRes)
 		{
 			
-		}
+		}*/
 		#endregion 
 		
 	}

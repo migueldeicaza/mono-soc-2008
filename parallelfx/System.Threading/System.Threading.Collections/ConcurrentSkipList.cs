@@ -47,20 +47,21 @@ namespace System.Threading.Collections
 		class Node
 		{
 			public readonly int      Key;
-			public T        Value;
+			public T                 Value;
 			public readonly int      TopLayer;
 			public readonly Node[]   Nexts;
-			public bool     Marked;
-			public bool     FullyLinked;
+			public volatile bool     Marked;
+			public volatile bool     FullyLinked;
 			public readonly SpinLock SpinLock;
 
 			public Node(int key, T value, int heightValue)
 			{
 				Key = key;
 				Value = value;
-				TopLayer = heightValue - 1;
+				TopLayer = heightValue;
 				Nexts = new Node[heightValue + 1];
 				SpinLock = new SpinLock(false);
+				Marked = FullyLinked = false;
 			}
 		}
 
@@ -68,19 +69,22 @@ namespace System.Threading.Collections
 		Node rightSentinel;
 
 		const int MaxHeight = 200;
-		int randomSeed;
+		uint randomSeed;
 
 		Func<T, int> GetKey;
 
-		public ConcurrentSkipList()
+		public ConcurrentSkipList(): this((value) => value.GetHashCode())
 		{
-			GetKey = delegate (T value) { return value.GetHashCode(); };
-			Init();
 		}
 
 		public ConcurrentSkipList(IEqualityComparer<T> comparer)
+			: this((value) => comparer.GetHashCode(value))
 		{
-			GetKey = delegate (T value) { return comparer.GetHashCode(value); };
+		}
+		
+		public ConcurrentSkipList(Func<T, int> hasher)
+		{
+			GetKey = hasher;
 			Init();
 		}
 
@@ -98,7 +102,7 @@ namespace System.Threading.Collections
 				leftSentinel.Nexts[i] = rightSentinel;
 			}
 			// The or ensures that randomSeed != 0
-			randomSeed = r.Next() | 0x0100;
+			randomSeed = ((uint)Math.Abs(r.Next())) | 0x0100;
 		}
 
 		public bool Add(T value)
@@ -108,6 +112,7 @@ namespace System.Threading.Collections
 			
 			CleanArrays();
 			int topLayer = GetRandomLevel();
+			Console.WriteLine(topLayer);
 			int v = GetKey(value);
 
 			while (true) {
@@ -203,6 +208,7 @@ namespace System.Threading.Collections
 
 			while (true) {
 				int found = FindNode(v, preds, succs);
+				
 				if (isMarked || (found != -1 && OkToDelete(succs[found], found))) {
 					// If not marked then logically delete the node
 					if (!isMarked) {
@@ -211,7 +217,7 @@ namespace System.Threading.Collections
 						toDelete.SpinLock.Enter();
 						// Now that we have the lock, check if the node hasn't already been marked
 						if (toDelete.Marked) {
-							toDelete.SpinLock.Exit();
+							toDelete.SpinLock.Exit(true);
 							return false;
 						}
 						toDelete.Marked = true;
@@ -227,13 +233,15 @@ namespace System.Threading.Collections
 						for (int layer = topLayer; layer >= 0; layer--) {
 							preds[layer].Nexts[layer] = toDelete.Nexts[layer];
 						}
-						toDelete.SpinLock.Exit();
+						toDelete.SpinLock.Exit(true);
 					} finally {
 						Unlock(preds, highestLocked);
 					}
 					Interlocked.Decrement(ref count);
 					return true;
 				} else {
+					if (found != -1)
+						Console.WriteLine("Foo " + succs[found].TopLayer);
 					return false;
 				}
 			}
@@ -247,6 +255,30 @@ namespace System.Threading.Collections
 			CleanArrays();
 			int found = FindNode(GetKey(value), preds, succs);
 			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
+		}
+		
+		internal bool GetFromHash(int hash, out T value)
+		{
+			value = default(T);
+			CleanArrays();
+			// We are blindly supposing that the hash is correct
+			// i.e. I trust myself :-)
+			int found = FindNode(hash, preds, succs);
+			if (found == -1)
+				return false;
+			
+			try {
+				succs[found].SpinLock.Enter();
+				Node node = succs[found];
+				if (node.FullyLinked && !node.Marked) {
+					value = node.Value;
+					return true;
+				}
+			} finally {
+				succs[found].SpinLock.Exit(true);
+			}
+			
+			return false;
 		}
 
 		public int Count {
@@ -282,7 +314,7 @@ namespace System.Threading.Collections
 		void Unlock(Node[] preds, int highestLocked)
 		{
 			for (int i = 0; i <= highestLocked; i++) {
-				preds[i].SpinLock.Exit();
+				preds[i].SpinLock.Exit(true);
 			}
 		}
 
@@ -301,7 +333,6 @@ namespace System.Threading.Collections
 					prevPred = pred;
 				}
 				valid = validityTest(layer, pred, succ);
-				valid = !pred.Marked && !succ.Marked && pred.Nexts[layer] == succ;
 			}
 
 			return valid;
@@ -342,11 +373,12 @@ namespace System.Threading.Collections
 		// Taken from Doug Lea's code released in the public domain
 		int GetRandomLevel()
 		{
-			int x = randomSeed;
+			uint x = randomSeed;
 			x ^= x << 13;
 			x ^= x >> 17;
-			randomSeed = x ^= x << 5;
-			if ((x & 0x8001) != 0) // test highest and lowest bits
+			x ^= x << 5;
+			randomSeed = x;
+			if ((x & 0x80000001) != 0) // test highest and lowest bits
 				return 0;
 			int level = 1;
 			while (((x >>= 1) & 1) != 0) ++level;
