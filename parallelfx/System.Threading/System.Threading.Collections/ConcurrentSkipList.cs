@@ -253,7 +253,7 @@ namespace System.Threading.Collections
 			if (value == null)
 				throw new ArgumentNullException ("value");
 			
-			ContainsFromHash (GetKey (value));
+			return ContainsFromHash (GetKey (value));
 		}
 		
 		internal bool ContainsFromHash (int hash)
