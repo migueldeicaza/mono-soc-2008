@@ -124,7 +124,7 @@ namespace System.Linq
 		public static IParallelEnumerable<T> Reverse<T>(this IParallelEnumerable<T> source)
 		{
 			// HACK
-			List<T> temp = source.ToList();
+			List<T> temp = source.AsOrdered().ToList();
 			temp.Reverse();
 			return ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
 		}
@@ -715,11 +715,8 @@ namespace System.Linq
 		public static List<T> ToList<T>(this IParallelOrderedEnumerable<T> source)
 		{
 			List<T> temp = new List<T>();
-			source.ForAll (delegate (T e) {
-				lock (temp) {
-					temp.Add (e);
-				}
-			});
+			foreach (T e in source)
+				temp.Add (e);
 			
 			return temp;
 		}
