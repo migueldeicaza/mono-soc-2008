@@ -240,8 +240,6 @@ namespace System.Threading.Collections
 					Interlocked.Decrement(ref count);
 					return true;
 				} else {
-					if (found != -1)
-						Console.WriteLine("Foo " + succs[found].TopLayer);
 					return false;
 				}
 			}
@@ -254,6 +252,13 @@ namespace System.Threading.Collections
 			
 			CleanArrays();
 			int found = FindNode(GetKey(value), preds, succs);
+			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
+		}
+		
+		internal bool ContainsFromHash(int hash)
+		{
+			CleanArrays();
+			int found = FindNode(hash, preds, succs);
 			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
 		}
 		

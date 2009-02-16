@@ -24,11 +24,12 @@
 
 using System;
 using System.Threading;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace System.Threading.Collections
 {
-	public class ConcurrentDictionary<TKey, TValue>
+	public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>
 	{
 		class Pair
 		{
@@ -61,6 +62,7 @@ namespace System.Threading.Collections
 		ConcurrentSkipList<Basket> container
 			= new ConcurrentSkipList<Basket>((value) => value[0].GetHashCode());
 		int count;
+		int stamp = int.MinValue;
 		
 		public ConcurrentDictionary()
 		{
@@ -86,6 +88,12 @@ namespace System.Threading.Collections
 				container.Add(basket);
 			}
 			Interlocked.Increment(ref count);
+			Interlocked.Increment(ref stamp);
+		}
+		
+		void ICollection<KeyValuePair<TKey,TValue>>.Add(KeyValuePair<TKey, TValue> pair)
+		{
+			Add(pair.Key, pair.Value);
 		}
 		
 		public TValue GetValue(TKey key)
@@ -130,8 +138,42 @@ namespace System.Threading.Collections
 					if (pair == null)
 						throw new InvalidOperationException("pair is null, shouldn't be");
 					pair.Value = value;
+					Interlocked.Increment(ref stamp);
 				}
 			}
+		}
+		
+		public bool Remove(TKey key)
+		{
+			Basket b;
+			if (!TryGetBasket(key, out b))
+				return false;
+			
+			lock (b) {
+				// Should always be == 1 but who know
+				return b.RemoveAll((p) => p.Key.Equals(key)) >= 1;
+			}
+		}
+		
+		bool ICollection<KeyValuePair<TKey,TValue>>.Remove(KeyValuePair<TKey,TValue> pair)
+		{
+			return Remove(pair.Key);
+		}
+		
+		public bool ContainsKey(TKey key)
+		{
+			return container.ContainsFromHash(key.GetHashCode());
+		}
+		
+		bool ICollection<KeyValuePair<TKey,TValue>>.Contains(KeyValuePair<TKey, TValue> pair)
+		{
+			return ContainsKey(pair.Key);
+		}
+	
+		public void Clear()
+		{
+			// Pronk
+			container = new ConcurrentSkipList<Basket>((value) => value[0].GetHashCode());
 		}
 		
 		public int Count {
@@ -139,6 +181,60 @@ namespace System.Threading.Collections
 				return count;
 			}
 		}
+		
+		public bool IsReadOnly {
+			get {
+				return false;
+			}
+		}
+		
+		public ICollection<TKey> Keys {
+			get {
+				return null;
+			}
+		}
+		
+		public ICollection<TValue> Values {
+			get {
+				return null;
+			}
+		}
+		
+		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+		{
+			return GetEnumeratorInternal();
+		}
+		
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return (IEnumerator)GetEnumeratorInternal();
+		}
+		
+		IEnumerator<KeyValuePair<TKey, TValue>> GetEnumeratorInternal()
+		{	
+			foreach (Basket b in container) {
+				lock (b) {
+					foreach (Pair p in b)
+						yield return new KeyValuePair<TKey, TValue>(p.Key, p.Value);
+				}
+			}
+		}
+		
+		public void CopyTo(KeyValuePair<TKey,TValue>[] array, int startIndex)
+		{
+			
+		}
+		
+		/*void UpdateKeysValuesColl()
+		{
+			foreach (Pair p in this) {
+				// Read from time to time to see if we became useless
+				if (currStamp != tempStamp)
+					break;
+				keys.Add(p.Key);
+				values.Add(p.Value);
+			}
+		}*/
 		
 		bool TryGetBasket(TKey key, out Basket basket)
 		{
