@@ -38,27 +38,26 @@ namespace System.Linq
 		internal POrderedEnumerable(IParallelEnumerable<T> source, Comparison<T> comparison): base(source.Dop())
 		{
 			this.source = source;
-			//source.IsNotLast();
 
 			this.comparison = comparison;
 			// OrderBy explicitely turn on ordering
 			this.SetOrdered();
 		}
 		
-		public IParallelOrderedEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
-		                                                           IComparer<TKey> comparer,
-		                                                           bool descending)
+		public IParallelOrderedEnumerable<T> CreateParallelOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
+		                                                                           IComparer<TKey> comparer,
+		                                                                           bool descending)
 		{
 			this.doSort = false;
 			
 			return new POrderedEnumerable<T> (this, FromComparer(comparison, keySelector, comparer, descending));
 		}
 		
-		IOrderedEnumerable<T> IOrderedEnumerable<T>.CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
+		public IOrderedEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
 		                                                           IComparer<TKey> comparer,
 		                                                           bool descending)
 		{
-			return CreateOrderedEnumerable(keySelector, comparer, descending);
+			return CreateParallelOrderedEnumerable(keySelector, comparer, descending);
 		}
 		
 		static Comparison<T> FromComparer<TKey>(Comparison<T> parent, Func<T, TKey> ks, IComparer<TKey> comparer, bool descending)
@@ -98,9 +97,6 @@ namespace System.Linq
 		{
 			List<T> temp = source.ToList();
 			temp.Sort(comparison);
-			/*foreach (var b in temp)
-				Console.Write(b.ToString());
-			Console.WriteLine("\nEnd list listing");*/
 			return ParallelEnumerableFactory.GetFromIEnumerable(temp, source.Dop());
 		}
 	}
