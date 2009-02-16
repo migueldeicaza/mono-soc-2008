@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskCreationOptions.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -36,3 +37,4 @@ namespace System.Threading.Tasks
 		Detached,
 	}
 }
+#endif

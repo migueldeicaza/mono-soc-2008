@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskCanceledException.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -31,19 +32,19 @@ namespace System.Threading.Tasks
 	{
 		Task task;
 		
-		public TaskCanceledException(): base()
+		public TaskCanceledException (): base ()
 		{
 		}
 		
-		public TaskCanceledException(string message): base(message)
+		public TaskCanceledException (string message): base (message)
 		{
 		}
 		
-		public TaskCanceledException(string message, Exception inner): base(message, inner)
+		public TaskCanceledException (string message, Exception inner): base (message, inner)
 		{
 		}
 		
-		public TaskCanceledException(Task task): base ("The Task was canceled")
+		public TaskCanceledException (Task task): base ("The Task was canceled")
 		{
 			this.task = task;
 		}
@@ -55,3 +56,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
+#endif

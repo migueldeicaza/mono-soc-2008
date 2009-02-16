@@ -1,3 +1,4 @@
+#if NET_4_0
 // ConcurrentVector.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -44,11 +45,11 @@ namespace System.Threading.Tasks
 			public Node Previous;
 			public Node Next;
 			
-			public Node(): this(false)
+			public Node () : this (false)
 			{
 			}
 			
-			public Node(bool isBase)
+			public Node (bool isBase)
 			{
 				Data = isBase ? new T[BaseArraySize] : new T[ArraySize];
 			}
@@ -73,23 +74,23 @@ namespace System.Threading.Tasks
 		//int  isBaseNodeFreed;
 		Node baseNode;
 		
-		public DynamicDeque()
+		public DynamicDeque ()
 		{
-			baseNode = new Node(true);
-			Node tempB = new Node();
+			baseNode = new Node (true);
+			Node tempB = new Node ();
 			baseNode.Next = tempB;
 			tempB.Previous = baseNode;
-			bottom = EncodeBottom(baseNode, BaseArraySize - 1);
-			top = EncodeTop(baseNode, BaseArraySize - 1, int.MinValue);
+			bottom = EncodeBottom (baseNode, BaseArraySize - 1);
+			top = EncodeTop (baseNode, BaseArraySize - 1, int.MinValue);
 		}
 		
-		public void PushBottom(T item)
+		public void PushBottom (T item)
 		{
 			Node currNode;
 			int currIndex;
-			DecodeBottom(bottom, out currNode, out currIndex);
+			DecodeBottom (bottom, out currNode, out currIndex);
 			//Console.WriteLine("Pushing Bottom at " + currIndex + " from " + Thread.CurrentThread.ManagedThreadId);
-			currNode.Data[currIndex] = item;
+			currNode.Data [currIndex] = item;
 			
 			Node newNode;
 			int newIndex;
@@ -101,15 +102,15 @@ namespace System.Threading.Tasks
 				// so that call to new Node() would be minimized (and we can take advantage of .NET garbage collection)
 				//int result = Interlocked.Exchange(ref isBaseNodeFreed, 0);
 				//newNode = result == 0 ? new Node() : baseNode;
-				newNode = new Node();
+				newNode = new Node ();
 				newNode.Next = currNode;
 				currNode.Previous = newNode;
 				newIndex = newNode.Data.Length - 1;
 			}
-			bottom = EncodeBottom(newNode, newIndex);
+			bottom = EncodeBottom (newNode, newIndex);
 		}
 		
-		public PopResult PopTop(out T result)
+		public PopResult PopTop (out T result)
 		{
 			TopInfo    currTop = top;
 			BottomInfo currBottom =  bottom;
@@ -118,9 +119,9 @@ namespace System.Threading.Tasks
 			int currTopIndex, newTopIndex;
 			int currTopTag, newTopTag;
 			
-			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
+			DecodeTop (currTop, out currTopNode, out currTopIndex, out currTopTag);
 			
-			if (EmptinessTest(currTop, currBottom)) {
+			if (EmptinessTest (currTop, currBottom)) {
 				result = null;
 				if (currTop == top) 
 					return PopResult.Empty;
@@ -136,13 +137,11 @@ namespace System.Threading.Tasks
 				newTopTag = currTopTag + 1;
 				newTopNode = currTopNode.Previous;
 				newTopIndex = newTopNode.Data.Length - 1;
-				//if (currTopNode == baseNode) isBaseNodeFreed = 1;
-				//newTopIndex = ArraySize - 1;
 			}
 			
-			TopInfo newTop = EncodeTop(newTopNode, newTopIndex, newTopTag);
-			T retVal = currTopNode.Data[currTopIndex];
-			if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
+			TopInfo newTop = EncodeTop (newTopNode, newTopIndex, newTopTag);
+			T retVal = currTopNode.Data [currTopIndex];
+			if (Interlocked.CompareExchange (ref top, newTop, currTop) == currTop) {
 				result = retVal;
 				return PopResult.Succeed;
 			}
@@ -150,15 +149,13 @@ namespace System.Threading.Tasks
 			return PopResult.Abort;
 		}
 		
-		public PopResult PopBottom(out T result)
+		public PopResult PopBottom (out T result)
 		{
 			Node oldBotNode, newBotNode;
 			int oldBotIndex, newBotIndex;
-			DecodeBottom(bottom, out oldBotNode, out oldBotIndex);
-			//Console.WriteLine("Poping Bottom at " + oldBotIndex + " from " + Thread.CurrentThread.ManagedThreadId);
+			DecodeBottom (bottom, out oldBotNode, out oldBotIndex);
 			
 			if (oldBotIndex != oldBotNode.Data.Length - 1) {
-			//if (oldBotIndex != ArraySize - 1) {
 				newBotNode = oldBotNode;
 				newBotIndex = oldBotIndex + 1;
 			} else {
@@ -166,30 +163,31 @@ namespace System.Threading.Tasks
 				newBotIndex = 0;
 			}
 			// It's ok to touch Bottom like this since only the thread owning DynamicDeque will touch bottom
-			bottom = EncodeBottom(newBotNode, newBotIndex);
+			bottom = EncodeBottom (newBotNode, newBotIndex);
 			
 			TopInfo currTop = top;
 			Node currTopNode;
 			int currTopIndex;
 			int currTopTag;
-			DecodeTop(currTop, out currTopNode, out currTopIndex, out currTopTag);
+			DecodeTop (currTop, out currTopNode, out currTopIndex, out currTopTag);
 			T retVal = newBotNode.Data[newBotIndex];
+			
 			// We are attempting to make Bottom cross over Top. Bad. Revert the last EncodeBottom
-			if (object.ReferenceEquals(oldBotNode, currTopNode) && oldBotIndex == currTopIndex) {
-				bottom = EncodeBottom(oldBotNode, oldBotIndex);
+			if (object.ReferenceEquals (oldBotNode, currTopNode) && oldBotIndex == currTopIndex) {
+				bottom = EncodeBottom (oldBotNode, oldBotIndex);
 				result = null;
 				return PopResult.Empty;
 			// Same as before but in the case of the updated bottom info
-			} else if (object.ReferenceEquals(newBotNode, currTopNode) && newBotIndex == currTopIndex) {
+			} else if (object.ReferenceEquals (newBotNode, currTopNode) && newBotIndex == currTopIndex) {
 				// We update top's tag to prevent a concurrent PopTop crossing over
-				TopInfo newTop = EncodeTop(currTopNode, currTopIndex, currTopTag + 1);
+				TopInfo newTop = EncodeTop (currTopNode, currTopIndex, currTopTag + 1);
 				// If the CAS fails then it's already to late and we revert back the Bottom position like before to prevent
 				// the cross-over
-				if (Interlocked.CompareExchange(ref top, newTop, currTop) == currTop) {
+				if (Interlocked.CompareExchange (ref top, newTop, currTop) == currTop) {
 					result = retVal;
 					return PopResult.Succeed;
 				} else {
-					bottom = EncodeBottom(oldBotNode, oldBotIndex);
+					bottom = EncodeBottom (oldBotNode, oldBotIndex);
 					result = null;
 					return PopResult.Empty;
 				}
@@ -199,30 +197,30 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		void DecodeBottom(BottomInfo info, out Node node, out int index)
+		void DecodeBottom (BottomInfo info, out Node node, out int index)
 		{
 			node = info.Bottom;
 			index = info.BottomIndex;
 		}
 		
-		BottomInfo EncodeBottom(Node node, int index)
+		BottomInfo EncodeBottom (Node node, int index)
 		{
-			BottomInfo temp = new BottomInfo();
+			BottomInfo temp = new BottomInfo ();
 			temp.Bottom = node;
 			temp.BottomIndex = index;
 			return temp;
 		}
 		
-		void DecodeTop(TopInfo info, out Node node, out int index, out int tag)
+		void DecodeTop (TopInfo info, out Node node, out int index, out int tag)
 		{
 			node  = info.Top;
 			index = info.TopIndex;
 			tag = info.TopTag;
 		}
 		
-		TopInfo EncodeTop(Node node, int index, int tag)
+		TopInfo EncodeTop (Node node, int index, int tag)
 		{
-			TopInfo temp = new TopInfo();
+			TopInfo temp = new TopInfo ();
 			temp.Top = node;
 			temp.TopIndex = index;
 			temp.TopTag = tag;
@@ -230,12 +228,12 @@ namespace System.Threading.Tasks
 		}
 		
 		// Take care both of emptiness and cross-over
-		bool EmptinessTest(TopInfo topInfo, BottomInfo bottomInfo)
+		bool EmptinessTest (TopInfo topInfo, BottomInfo bottomInfo)
 		{
 			Node bot, top;
 			int bInd, tInd, tTag;
-			DecodeBottom(bottomInfo, out bot, out bInd);
-			DecodeTop(topInfo, out top, out tInd, out tTag);
+			DecodeBottom (bottomInfo, out bot, out bInd);
+			DecodeTop (topInfo, out top, out tInd, out tTag);
 			
 			// Empty case is we are on the same node
 			if (top == bot && (tInd == bInd || tInd + 1 == bInd))
@@ -247,3 +245,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET_4_0
 // ISupportsCancellation.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -29,7 +30,8 @@ namespace System.Threading
 
 	public interface ISupportsCancellation
 	{
-		void Cancel();
+		void Cancel ();
 		bool IsCanceled { get; }
 	}
 }
+#endif

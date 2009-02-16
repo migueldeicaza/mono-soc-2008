@@ -1,3 +1,4 @@
+#if NET_4_0
 // ManuelResetEventSlim.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,27 +28,27 @@ using System.Diagnostics;
 
 namespace System.Threading
 {	
-	public class ManualResetEventSlim: IDisposable
+	public class ManualResetEventSlim : IDisposable
 	{
 		const int defaultSpinCount = 20;
 		const int isSet    = 1;
 		const int isNotSet = 0;
 		readonly int spinCount;
-		readonly SpinWait sw = new SpinWait();
+		readonly SpinWait sw = new SpinWait ();
 
 		int state;
 		
 		//bool isDisposed;
 		
-		public ManualResetEventSlim(): this(false, 20)
+		public ManualResetEventSlim () : this(false, 20)
 		{
 		}
 		
-		public ManualResetEventSlim(bool initState): this(initState, 20)
+		public ManualResetEventSlim (bool initState) : this (initState, 20)
 		{
 		}
 		
-		public ManualResetEventSlim(bool initState, int spinCount)
+		public ManualResetEventSlim (bool initState, int spinCount)
 		{
 			this.state = initState ? isSet : isNotSet;
 			this.spinCount = spinCount;
@@ -70,47 +71,47 @@ namespace System.Threading
 			}
 		}
 		
-		public void Reset()
+		public void Reset ()
 		{
-			Thread.VolatileWrite(ref state, isNotSet);
+			Thread.VolatileWrite (ref state, isNotSet);
 		}
 		
-		public void Set()
+		public void Set ()
 		{
 			// Make sure that even is state was cached by a CPU the new value is correctly propagated
-			Thread.VolatileWrite(ref state, isSet);
+			Thread.VolatileWrite (ref state, isSet);
 		}
 		
-		public void Wait()
+		public void Wait ()
 		{
 			// First spin
 			for (int i = 0; i < spinCount && state == isNotSet; i++)
-				sw.SpinOnce();
+				sw.SpinOnce ();
 			
 			// Then, fallback to classic Sleep's yielding
 			while (state == isNotSet)
-				Thread.Sleep(0);
+				Thread.Sleep (0);
 		}
 		
-		public bool Wait(int millisecondsTimeout)
+		public bool Wait (int millisecondsTimeout)
 		{
 			if (millisecondsTimeout < -1)
-				throw new ArgumentOutOfRangeException("millisecondsTimeout",
-				                                      "millisecondsTimeout is a negative number other than -1");
+				throw new ArgumentOutOfRangeException ("millisecondsTimeout",
+				                                       "millisecondsTimeout is a negative number other than -1");
 			
 			if (millisecondsTimeout == -1) {
-				Wait();
+				Wait ();
 				return true;
 			}
 			
-			Stopwatch s = Stopwatch.StartNew();
+			Stopwatch s = Stopwatch.StartNew ();
 			
 			// First spin
 			for (int i = 0; i < spinCount && state == isNotSet; i++) {
 				if (s.ElapsedMilliseconds >= millisecondsTimeout)
 					return false;
 				
-				sw.SpinOnce();
+				sw.SpinOnce ();
 			}
 			
 			// Then, fallback to classic Sleep's yielding
@@ -118,15 +119,15 @@ namespace System.Threading
 				if (s.ElapsedMilliseconds >= millisecondsTimeout)
 					return false;
 				
-				Thread.Sleep(0);
+				Thread.Sleep (0);
 			}
 			
 			return true;
 		}
 		
-		public bool Wait(TimeSpan ts)
+		public bool Wait (TimeSpan ts)
 		{
-			return Wait((int)ts.TotalMilliseconds);
+			return Wait ((int)ts.TotalMilliseconds);
 		}
 		
 		public WaitHandle WaitHandle {
@@ -151,3 +152,4 @@ namespace System.Threading
 		
 	}
 }
+#endif

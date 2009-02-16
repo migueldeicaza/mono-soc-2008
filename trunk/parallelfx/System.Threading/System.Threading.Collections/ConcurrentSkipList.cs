@@ -1,3 +1,4 @@
+#if NET_4_0
 // ConcurrentSkipList.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -30,10 +31,10 @@ using System.Collections.Generic;
 namespace System.Threading.Collections
 {
 	
-	public class ConcurrentSkipList<T>: IConcurrentCollection<T>
+	internal class ConcurrentSkipList<T> : IConcurrentCollection<T>
 	{
 		// Used for randomSeed
-		static readonly Random r = new Random();
+		static readonly Random r = new Random ();
 		// Used in FindNodes and thus most others methods
 		// avoid heavy local array creation at each method call and use 
 		// for thread locallity ThreadStatic attribute
@@ -54,13 +55,13 @@ namespace System.Threading.Collections
 			public volatile bool     FullyLinked;
 			public readonly SpinLock SpinLock;
 
-			public Node(int key, T value, int heightValue)
+			public Node (int key, T value, int heightValue)
 			{
 				Key = key;
 				Value = value;
 				TopLayer = heightValue;
-				Nexts = new Node[heightValue + 1];
-				SpinLock = new SpinLock(false);
+				Nexts = new Node [heightValue + 1];
+				SpinLock = new SpinLock (false);
 				Marked = FullyLinked = false;
 			}
 		}
@@ -73,114 +74,116 @@ namespace System.Threading.Collections
 
 		Func<T, int> GetKey;
 
-		public ConcurrentSkipList(): this((value) => value.GetHashCode())
+		public ConcurrentSkipList () : this ((value) => value.GetHashCode ())
 		{
 		}
 
-		public ConcurrentSkipList(IEqualityComparer<T> comparer)
-			: this((value) => comparer.GetHashCode(value))
+		public ConcurrentSkipList (IEqualityComparer<T> comparer)
+			: this ((value) => comparer.GetHashCode (value))
 		{
 		}
 		
 		public ConcurrentSkipList(Func<T, int> hasher)
 		{
 			GetKey = hasher;
-			Init();
+			Init ();
 		}
 
-		void Init()
+		void Init ()
 		{
 			if (succs == null)
-				succs = new Node[MaxHeight];
+				succs = new Node [MaxHeight];
 			if (preds == null)
-				preds = new Node[MaxHeight];
+				preds = new Node [MaxHeight];
 			
-			leftSentinel = new Node(int.MinValue, default(T), MaxHeight);
-			rightSentinel = new Node(int.MaxValue, default(T), MaxHeight);
+			leftSentinel = new Node (int.MinValue, default (T), MaxHeight);
+			rightSentinel = new Node (int.MaxValue, default (T), MaxHeight);
 
 			for (int i = 0; i < MaxHeight; i++) {
-				leftSentinel.Nexts[i] = rightSentinel;
+				leftSentinel.Nexts [i] = rightSentinel;
 			}
 			// The or ensures that randomSeed != 0
-			randomSeed = ((uint)Math.Abs(r.Next())) | 0x0100;
+			randomSeed = ((uint)Math.Abs (r.Next())) | 0x0100;
 		}
 
-		public bool Add(T value)
+		public bool Add (T value)
 		{
 			if (value == null)
-				throw new ArgumentNullException("value");
+				throw new ArgumentNullException ("value");
 			
-			CleanArrays();
-			int topLayer = GetRandomLevel();
-			Console.WriteLine(topLayer);
-			int v = GetKey(value);
+			CleanArrays ();
+			int topLayer = GetRandomLevel ();
+			Console.WriteLine (topLayer);
+			int v = GetKey (value);
 
 			while (true) {
-				int found = FindNode(v, preds, succs);
+				int found = FindNode (v, preds, succs);
 				if (found != -1) {
 					// A node with the same key already exists
-					Node nodeFound = succs[found];
+					Node nodeFound = succs [found];
 					if (!nodeFound.Marked) {
-						SpinWait sw = new SpinWait();
-						while (!nodeFound.FullyLinked) { sw.SpinOnce(); }
+						SpinWait sw = new SpinWait ();
+						while (!nodeFound.FullyLinked) {
+							sw.SpinOnce ();
+						}
 						return false;
 					}
 					continue;
 				}
 				int highestLocked = -1;
 				try {
-					bool valid = LockNodes(topLayer, ref highestLocked,
-					                       (layer, pred, succ) => !pred.Marked && !succ.Marked && pred.Nexts[layer] == succ);
+					bool valid = LockNodes (topLayer, ref highestLocked,
+					                        (layer, pred, succ) => !pred.Marked && !succ.Marked && pred.Nexts [layer] == succ);
 					if (!valid)
 						continue;
 						
-					Node newNode = new Node(v, value, topLayer);
+					Node newNode = new Node (v, value, topLayer);
 					for (int layer = 0; layer <= topLayer; layer++) {
-						newNode.Nexts[layer] = succs[layer];
-						preds[layer].Nexts[layer] = newNode;
+						newNode.Nexts [layer] = succs [layer];
+						preds [layer].Nexts [layer] = newNode;
 					}
 					newNode.FullyLinked = true;
 				} finally {
-					Unlock(preds, highestLocked);
+					Unlock (preds, highestLocked);
 				}
-				Interlocked.Increment(ref count);
+				Interlocked.Increment (ref count);
 				return true;
 			}
 		}
 
-		bool IConcurrentCollection<T>.Remove(out T value)
+		bool IConcurrentCollection<T>.Remove (out T value)
 		{
-			throw new NotSupportedException();
+			throw new NotSupportedException ();
 		}
 
-		public T[] ToArray()
+		public T[] ToArray ()
 		{
 			int countSnapshot = count;
-			T[] temp = new T[countSnapshot];
+			T[] temp = new T [countSnapshot];
 			
 			CopyTo(temp, 0);
 
 			return temp;
 		}
 
-		public void CopyTo(T[] array, int startIndex)
+		public void CopyTo (T[] array, int startIndex)
 		{
-			IEnumerator<T> e = GetInternalEnumerator();
+			IEnumerator<T> e = GetInternalEnumerator ();
 			for (int i = startIndex; i < array.Length; i++) {
-				if (!e.MoveNext())
+				if (!e.MoveNext ())
 					return;
-				array[i] = e.Current;
+				array [i] = e.Current;
 			}
-			e.Dispose();
+			e.Dispose ();
 		}
 
-		void ICollection.CopyTo(Array array, int startIndex)
+		void ICollection.CopyTo (Array array, int startIndex)
 		{
 			T[] temp = array as T[];
 			if (temp == null)
 				return;
 
-			CopyTo(temp, startIndex);
+			CopyTo (temp, startIndex);
 		}
 
 		object ICollection.SyncRoot {
@@ -195,29 +198,29 @@ namespace System.Threading.Collections
 			}
 		}
 
-		public bool Remove(T value)
+		public bool Remove (T value)
 		{
 			if (value == null)
-				throw new ArgumentNullException("value");
+				throw new ArgumentNullException ("value");
 			
 			CleanArrays();
 			Node toDelete = null;
 			bool isMarked = false;
 			int topLayer = -1;
-			int v = GetKey(value);
+			int v = GetKey (value);
 
 			while (true) {
-				int found = FindNode(v, preds, succs);
+				int found = FindNode (v, preds, succs);
 				
-				if (isMarked || (found != -1 && OkToDelete(succs[found], found))) {
+				if (isMarked || (found != -1 && OkToDelete (succs [found], found))) {
 					// If not marked then logically delete the node
 					if (!isMarked) {
-						toDelete = succs[found];
+						toDelete = succs [found];
 						topLayer = toDelete.TopLayer;
-						toDelete.SpinLock.Enter();
+						toDelete.SpinLock.Enter ();
 						// Now that we have the lock, check if the node hasn't already been marked
 						if (toDelete.Marked) {
-							toDelete.SpinLock.Exit(true);
+							toDelete.SpinLock.Exit (true);
 							return false;
 						}
 						toDelete.Marked = true;
@@ -225,19 +228,19 @@ namespace System.Threading.Collections
 					}
 					int highestLocked = -1;
 					try {
-						bool valid = LockNodes(topLayer, ref highestLocked,
-						                       (layer, pred, succ) => !pred.Marked && pred.Nexts[layer] == succ);
+						bool valid = LockNodes (topLayer, ref highestLocked,
+						                        (layer, pred, succ) => !pred.Marked && pred.Nexts [layer] == succ);
 						if (!valid)
 							continue;
 
 						for (int layer = topLayer; layer >= 0; layer--) {
-							preds[layer].Nexts[layer] = toDelete.Nexts[layer];
+							preds [layer].Nexts [layer] = toDelete.Nexts [layer];
 						}
-						toDelete.SpinLock.Exit(true);
+						toDelete.SpinLock.Exit (true);
 					} finally {
-						Unlock(preds, highestLocked);
+						Unlock (preds, highestLocked);
 					}
-					Interlocked.Decrement(ref count);
+					Interlocked.Decrement (ref count);
 					return true;
 				} else {
 					return false;
@@ -245,42 +248,40 @@ namespace System.Threading.Collections
 			}
 		}
 
-		public bool Contains(T value)
+		public bool Contains (T value)
 		{
 			if (value == null)
-				throw new ArgumentNullException("value");
+				throw new ArgumentNullException ("value");
 			
-			CleanArrays();
-			int found = FindNode(GetKey(value), preds, succs);
-			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
+			ContainsFromHash (GetKey (value));
 		}
 		
-		internal bool ContainsFromHash(int hash)
+		internal bool ContainsFromHash (int hash)
 		{
-			CleanArrays();
-			int found = FindNode(hash, preds, succs);
-			return found != -1 && succs[found].FullyLinked && !succs[found].Marked;
+			CleanArrays ();
+			int found = FindNode (hash, preds, succs);
+			return found != -1 && succs [found].FullyLinked && !succs [found].Marked;
 		}
 		
-		internal bool GetFromHash(int hash, out T value)
+		internal bool GetFromHash (int hash, out T value)
 		{
-			value = default(T);
-			CleanArrays();
+			value = default (T);
+			CleanArrays ();
 			// We are blindly supposing that the hash is correct
 			// i.e. I trust myself :-)
-			int found = FindNode(hash, preds, succs);
+			int found = FindNode (hash, preds, succs);
 			if (found == -1)
 				return false;
 			
 			try {
-				succs[found].SpinLock.Enter();
-				Node node = succs[found];
+				succs [found].SpinLock.Enter ();
+				Node node = succs [found];
 				if (node.FullyLinked && !node.Marked) {
 					value = node.Value;
 					return true;
 				}
 			} finally {
-				succs[found].SpinLock.Exit(true);
+				succs [found].SpinLock.Exit (true);
 			}
 			
 			return false;
@@ -292,25 +293,25 @@ namespace System.Threading.Collections
 			}
 		}
 
-		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
 		{
-			return GetInternalEnumerator();
+			return GetInternalEnumerator ();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator ()
 		{
-			return GetInternalEnumerator();
+			return GetInternalEnumerator ();
 		}
 		
-		IEnumerator<T> GetInternalEnumerator()
+		IEnumerator<T> GetInternalEnumerator ()
 		{
 			Node curr = leftSentinel;
-			while ((curr = curr.Nexts[0]) != rightSentinel) {
+			while ((curr = curr.Nexts [0]) != rightSentinel) {
 				// If there is an Add operation ongoing we wait a little
 				// Possible optimization : use a helping scheme
-				SpinWait sw = new SpinWait();
+				SpinWait sw = new SpinWait ();
 				while (!curr.FullyLinked) {
-					sw.SpinOnce();
+					sw.SpinOnce ();
 				}
 				yield return curr.Value;
 			}
@@ -319,64 +320,64 @@ namespace System.Threading.Collections
 		void Unlock(Node[] preds, int highestLocked)
 		{
 			for (int i = 0; i <= highestLocked; i++) {
-				preds[i].SpinLock.Exit(true);
+				preds [i].SpinLock.Exit (true);
 			}
 		}
 
-		bool LockNodes(int topLayer, ref int highestLocked, Func<int, Node, Node, bool> validityTest)
+		bool LockNodes (int topLayer, ref int highestLocked, Func<int, Node, Node, bool> validityTest)
 		{
 			Node pred, succ, prevPred = null;
 			bool valid = true;
 			
 			for (int layer = 0; valid && (layer <= topLayer); layer++) {
-						pred = preds[layer];
-				succ = succs[layer];
+				pred = preds [layer];
+				succ = succs [layer];
 				if (pred != prevPred) {
 					// Possible optimization : limit topLayer to the first refused lock
-					pred.SpinLock.Enter();
+					pred.SpinLock.Enter ();
 					highestLocked = layer;
 					prevPred = pred;
 				}
-				valid = validityTest(layer, pred, succ);
+				valid = validityTest (layer, pred, succ);
 			}
 
 			return valid;
 		}
 
-		int FindNode(int v, Node[] preds, Node[] succs)
+		int FindNode (int v, Node[] preds, Node[] succs)
 		{
 			// With preds and succs we record the path we use for searching v
 			if (preds.Length != MaxHeight || succs.Length != MaxHeight)
-				throw new Exception("precs or succs don't have the  good length");
+				throw new Exception ("precs or succs don't have the  good length");
 
 			int found = -1;
 			Node pred = leftSentinel;
 
 			// We start at the higher layer
 			for (int layer = MaxHeight - 1; layer >= 0; layer--) {
-				Node curr = pred.Nexts[layer];
+				Node curr = pred.Nexts [layer];
 				// In the current layer we find the best position, then the operation will continue on the
 				// layer just beneath
 				while (v > curr.Key) {
 					pred = curr;
-					curr = curr.Nexts[layer];
+					curr = curr.Nexts [layer];
 				}
 				if (found == -1 && v == curr.Key)
 					found = layer;
-				preds[layer] = pred;
-				succs[layer] = curr;
+				preds [layer] = pred;
+				succs [layer] = curr;
 			}
 			
 			return found;
 		}
 
-		bool OkToDelete(Node candidate, int found)
+		bool OkToDelete (Node candidate, int found)
 		{
 			return candidate.FullyLinked && candidate.TopLayer == found && !candidate.Marked;
 		}
 
 		// Taken from Doug Lea's code released in the public domain
-		int GetRandomLevel()
+		int GetRandomLevel ()
 		{
 			uint x = randomSeed;
 			x ^= x << 13;
@@ -390,12 +391,13 @@ namespace System.Threading.Collections
 			return level;
 		}
 		
-		void CleanArrays()
+		void CleanArrays ()
 		{
 			// Hopefully these are more optimized than a bare for loop
 			// (I suppose it uses memset internally)
-			Array.Clear(preds, 0, preds.Length);
-			Array.Clear(succs, 0, succs.Length);
+			Array.Clear (preds, 0, preds.Length);
+			Array.Clear (succs, 0, succs.Length);
 		}
 	}
 }
+#endif

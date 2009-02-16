@@ -1,3 +1,4 @@
+#if NET_4_0
 // WriteOnce.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,13 +28,13 @@ using System;
 namespace System.Threading
 {
 	[SerializableAttribute]
-	public struct WriteOnce<T>: IEquatable<WriteOnce<T>>
+	public struct WriteOnce<T> : IEquatable<WriteOnce<T>>
 	{
 		T value;
 		AtomicBoolean setFlag;
 		bool hasValue;
 		
-		public WriteOnce(T value)
+		public WriteOnce (T value)
 		{
 			this.value = value;
 			this.setFlag = true;
@@ -50,33 +51,34 @@ namespace System.Threading
 			get {
 				if (!HasValue) {
 					if (setFlag.Value) {
-						SpinWait wait = new SpinWait();
-						while (!HasValue) wait.SpinOnce();
+						SpinWait wait = new SpinWait ();
+						while (!HasValue)
+							wait.SpinOnce ();
 					} else {
-						throw new InvalidOperationException("An attempt was made to retrieve the value, but no value had been set.");
+						throw new InvalidOperationException ("An attempt was made to retrieve the value, but no value had been set.");
 					}
 				}
 				return value;
 			}
 			set {
-				bool result = setFlag.Exchange(true);
+				bool result = setFlag.Exchange (true);
 				if (result)
-					throw new InvalidOperationException("An attempt was made to set the value when the value was already set.");
+					throw new InvalidOperationException ("An attempt was made to set the value when the value was already set.");
 				this.value = value;
 				hasValue = true;
 			}
 		}
 		
-		public bool TryGetValue(out T val)
+		public bool TryGetValue (out T val)
 		{
 			bool result = HasValue;
-			val = result ? value : default(T);
+			val = result ? value : default (T);
 			return result;
 		}
 		
-		public bool TrySetValue(T val)
+		public bool TrySetValue (T val)
 		{
-			bool result = setFlag.Exchange(true);
+			bool result = setFlag.Exchange (true);
 			if (result)
 				return false;
 			value = val;
@@ -84,24 +86,25 @@ namespace System.Threading
 			return true;
 		}
 		
-		public bool Equals(WriteOnce<T> other)
+		public bool Equals (WriteOnce<T> other)
 		{
-			return value == null ? other.value == null : value.Equals(other.value);
+			return value == null ? other.value == null : value.Equals (other.value);
 		}
 		
-		public override bool Equals(object other)
+		public override bool Equals (object other)
 		{
-			return (other is WriteOnce<T>) ? Equals((WriteOnce<T>)other) : false;
+			return (other is WriteOnce<T>) ? Equals ((WriteOnce<T>)other) : false;
 		}
 		
 		public override int GetHashCode()
 		{
-			return (HasValue) ? value.GetHashCode() : base.GetHashCode();
+			return (HasValue) ? value.GetHashCode () : base.GetHashCode ();
 		}
 		
 		public override string ToString()
 		{
-			return (HasValue) ? value.ToString() : base.ToString();
+			return (HasValue) ? value.ToString () : base.ToString ();
 		}
 	}
 }
+#endif

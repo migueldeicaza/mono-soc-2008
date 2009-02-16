@@ -1,3 +1,4 @@
+#if NET_4_0
 // LazyInitMode.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -33,3 +34,4 @@ namespace System.Threading
 		ThreadLocal
 	}
 }
+#endif

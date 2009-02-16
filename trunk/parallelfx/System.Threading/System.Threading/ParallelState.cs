@@ -1,3 +1,4 @@
+#if NET_4_0
 // ParallelState.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -32,7 +33,7 @@ namespace System.Threading
 		int isStopped = 0;
 		Task[] tasks;
 		
-		internal ParallelState(Task[] tasks)
+		internal ParallelState (Task[] tasks)
 		{
 			this.tasks = tasks;
 		}
@@ -43,14 +44,14 @@ namespace System.Threading
 			}
 		}
 		
-		public void Stop()
+		public void Stop ()
 		{
-			int result = Interlocked.Exchange(ref isStopped, 1);
+			int result = Interlocked.Exchange (ref isStopped, 1);
 			if (result == 0) {
 				foreach (var t in tasks) {
 					if (t == null)
 						continue;
-					t.Cancel();
+					t.Cancel ();
 				}
 			}
 		}
@@ -60,7 +61,7 @@ namespace System.Threading
 	{
 		LazyInit<TLocal> val;
 		
-		internal ParallelState(Task[] tasks, Func<TLocal> localDataCreator): base(tasks)
+		internal ParallelState (Task[] tasks, Func<TLocal> localDataCreator): base (tasks)
 		{
 			val = new LazyInit<TLocal>(localDataCreator, LazyInitMode.ThreadLocal);
 		}
@@ -71,7 +72,9 @@ namespace System.Threading
 			}
 			set {
 				// FIXME
+				throw new NotImplementedException ();
 			}
 		}
 	}
 }
+#endif

@@ -1,3 +1,4 @@
+#if NET_4_0
 // RayTracerHelper.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -430,3 +431,4 @@ namespace ParallelFxTests.RayTracer
         }*/
 	}						
 }
+#endif

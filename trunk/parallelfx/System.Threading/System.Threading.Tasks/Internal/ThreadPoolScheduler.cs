@@ -29,7 +29,7 @@ namespace System.Threading.Tasks
 {
 	internal class ThreadPoolScheduler: IScheduler
 	{
-		SpinWait sw = new SpinWait();
+		SpinWait sw = new SpinWait ();
 		
 		#region IDisposable implementation 
 		public void Dispose ()
@@ -41,7 +41,9 @@ namespace System.Threading.Tasks
 		
 		public void AddWork (Task t)
 		{
-			ThreadPool.QueueUserWorkItem(delegate { t.Execute(AddWork); });
+			ThreadPool.QueueUserWorkItem (delegate {
+				t.Execute (AddWork);
+			});
 		}
 		
 		public void Participate ()

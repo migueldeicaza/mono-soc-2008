@@ -1,3 +1,4 @@
+#if NET_4_0
 // CountdownEvent.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,16 +28,16 @@ using System.Diagnostics;
 
 namespace System.Threading
 {	
-	public class CountdownEvent: ISupportsCancellation, IDisposable
+	public class CountdownEvent : ISupportsCancellation, IDisposable
 	{
 		int count;
 		readonly int initial;
 		bool isCanceled;
 		
-		public CountdownEvent(int count)
+		public CountdownEvent (int count)
 		{
 			if (count < 0)
-				throw new ArgumentOutOfRangeException("count is negative");
+				throw new ArgumentOutOfRangeException ("count is negative");
 			this.initial = this.count = count;
 		}
 		
@@ -45,96 +46,96 @@ namespace System.Threading
 			Dispose(false);
 		}*/
 		
-		public void Decrement()
+		public void Decrement ()
 		{
 			Decrement(1);
 		}
 		
-		public void Decrement(int num)
+		public void Decrement (int num)
 		{
 			if (num < 0)
-				throw new ArgumentOutOfRangeException("num");
+				throw new ArgumentOutOfRangeException ("num");
 			if (IsSet || num > count)
-				throw new InvalidOperationException();
-			Interlocked.Add(ref count, -num);
+				throw new InvalidOperationException ();
+			Interlocked.Add (ref count, -num);
 		}
 		
-		public void Increment()
+		public void Increment ()
 		{
-			Increment(1);
+			Increment (1);
 		}
 		
-		public void Increment(int num)
+		public void Increment (int num)
 		{
 			if (num < 0)
-				throw new ArgumentOutOfRangeException("num");
+				throw new ArgumentOutOfRangeException ("num");
 			if (IsSet || num > int.MaxValue - count)
-				throw new InvalidOperationException();
-			Interlocked.Add(ref count, num);
+				throw new InvalidOperationException ();
+			Interlocked.Add (ref count, num);
 		}
 		
-		public bool TryIncrement()
+		public bool TryIncrement ()
 		{
-			return TryIncrement(1);
+			return TryIncrement (1);
 		}
 		
-		public bool TryIncrement(int num)
+		public bool TryIncrement (int num)
 		{
 			if (IsSet)
 				return false;
 			if (num < 0)
-				throw new ArgumentOutOfRangeException("num");
+				throw new ArgumentOutOfRangeException ("num");
 			if (num > int.MaxValue - count)
-				throw new InvalidOperationException();
+				throw new InvalidOperationException ();
 			
 			if (IsSet)
 				return false;
 			
-			Interlocked.Add(ref count, num);
+			Interlocked.Add (ref count, num);
 			return true;
 		}
 		
-		public void Wait()
+		public void Wait ()
 		{
-			SpinWait wait = new SpinWait();
+			SpinWait wait = new SpinWait ();
 			while (!IsSet) {
-				wait.SpinOnce();
+				wait.SpinOnce ();
 			}
 		}
 		
-		public bool Wait(int timeoutMilli)
+		public bool Wait (int timeoutMilli)
 		{
 			if (timeoutMilli == -1) {
-				Wait();
+				Wait ();
 				return true;
 			}
 			
-			SpinWait wait = new SpinWait();
-			Stopwatch sw = Stopwatch.StartNew();
+			SpinWait wait = new SpinWait ();
+			Stopwatch sw = Stopwatch.StartNew ();
 			
 			while (!IsSet) {
 				if (sw.ElapsedMilliseconds > (long)timeoutMilli) {
-					sw.Stop();
+					sw.Stop ();
 					return false;
 				}
-				wait.SpinOnce();
+				wait.SpinOnce ();
 			}
 			return true;
 		}
 		
 		public bool Wait(TimeSpan span)
 		{
-			return Wait((int)span.TotalMilliseconds);
+			return Wait ((int)span.TotalMilliseconds);
 		}
 		
-		public void Reset()
+		public void Reset ()
 		{
-			Reset(initial);
+			Reset (initial);
 		}
 		
-		public void Reset(int value)
+		public void Reset (int value)
 		{
-			Thread.VolatileWrite(ref count, value);
+			Thread.VolatileWrite (ref count, value);
 		}
 		
 		public int CurrentCount {
@@ -177,9 +178,9 @@ namespace System.Threading
 		
 		#region ISupportsCancellation implementation 
 		
-		public void Cancel()
+		public void Cancel ()
 		{
-			Thread.VolatileWrite(ref count, 0);
+			Thread.VolatileWrite (ref count, 0);
 			isCanceled = true;
 		}
 		
@@ -193,3 +194,4 @@ namespace System.Threading
 		
 	}
 }
+#endif

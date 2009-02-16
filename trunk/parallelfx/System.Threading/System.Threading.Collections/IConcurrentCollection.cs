@@ -1,3 +1,4 @@
+#if NET_4_0
 // IConcurrentCollection.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -28,10 +29,11 @@ using System.Collections.Generic;
 
 namespace System.Threading.Collections
 {
-	public interface IConcurrentCollection<T>: IEnumerable<T>, ICollection, IEnumerable
+	public interface IConcurrentCollection<T> : IEnumerable<T>, ICollection, IEnumerable
 	{
-		bool Add(T item);
-		bool Remove(out T item);
-		T[] ToArray();
+		bool Add (T item);
+		bool Remove (out T item);
+		T[] ToArray ();
 	}
 }
+#endif

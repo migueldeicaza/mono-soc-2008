@@ -1,3 +1,4 @@
+#if NET_4_0
 // SpinWait.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -35,29 +36,29 @@ namespace System.Threading
 		
 		int ntime;
 		
-		public void SpinOnce() 
+		public void SpinOnce () 
 		{
 			// On a single-CPU system, spinning does no good
 			if (isSingleCpu) {
-				Yield();
+				Yield ();
 			} else {
-				if (Interlocked.Increment(ref ntime) % step == 0) {
-					Yield();
+				if (Interlocked.Increment (ref ntime) % step == 0) {
+					Yield ();
 				} else {
 					// Multi-CPU system might be hyper-threaded, let other thread run
-					Thread.SpinWait(10);
+					Thread.SpinWait (10);
 				}
 			}
 		}
 		
-		void Yield()
+		void Yield ()
 		{
 			// Replace sched_yield by Thread.Sleep(0) which does almost the same thing
 			// (going back in kernel mode and yielding) but avoid the branching and unmanaged bridge
-			Thread.Sleep(0);
+			Thread.Sleep (0);
 		}
 		
-		public void Reset()
+		public void Reset ()
 		{
 			ntime = 0;
 		}
@@ -75,3 +76,4 @@ namespace System.Threading
 		}
 	}
 }
+#endif

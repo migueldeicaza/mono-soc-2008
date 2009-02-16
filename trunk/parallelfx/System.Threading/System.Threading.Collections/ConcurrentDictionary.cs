@@ -1,3 +1,4 @@
+#if NET_4_0
 // ConcurrentSkipList.cs
 //
 // Copyright (c) 2009 Jérémie "Garuma" Laval
@@ -36,7 +37,7 @@ namespace System.Threading.Collections
 			public readonly TKey Key;
 			public TValue Value;
 			
-			public Pair(TKey key, TValue value)
+			public Pair (TKey key, TValue value)
 			{
 				Key = key;
 				Value = value;
@@ -45,12 +46,12 @@ namespace System.Threading.Collections
 			public override bool Equals (object obj)
 			{
 				Pair rhs = obj as Pair;
-				return rhs == null ? false : Key.Equals(rhs.Key) && Value.Equals(rhs.Value);
+				return rhs == null ? false : Key.Equals (rhs.Key) && Value.Equals (rhs.Value);
 			}
 			
 			public override int GetHashCode ()
 			{
-				return Key.GetHashCode();
+				return Key.GetHashCode ();
 			}
 		}
 		
@@ -60,61 +61,61 @@ namespace System.Threading.Collections
 		
 		// Assumption: a List<T> is never empty
 		ConcurrentSkipList<Basket> container
-			= new ConcurrentSkipList<Basket>((value) => value[0].GetHashCode());
+			= new ConcurrentSkipList<Basket> ((value) => value [0].GetHashCode ());
 		int count;
 		int stamp = int.MinValue;
 		
-		public ConcurrentDictionary()
+		public ConcurrentDictionary ()
 		{
 		}
 		
-		public void Add(TKey key, TValue value)
+		public void Add (TKey key, TValue value)
 		{
 			Basket basket;
 			// Add a value to an existing basket
-			if (TryGetBasket(key, out basket)) {
+			if (TryGetBasket (key, out basket)) {
 				// Find a maybe more sexy locking scheme later
 				lock (basket) {
 					foreach (var p in basket) {
-						if (p.Key.Equals(key))
-							throw new ArgumentException("An element with the same key already exists");
+						if (p.Key.Equals (key))
+							throw new ArgumentException ("An element with the same key already exists");
 					}
-					basket.Add(new Pair(key, value));
+					basket.Add (new Pair (key, value));
 				}
 			} else {
 				// Add a new basket
-				basket = new Basket();
-				basket.Add(new Pair(key, value));
-				container.Add(basket);
+				basket = new Basket ();
+				basket.Add (new Pair (key, value));
+				container.Add (basket);
 			}
-			Interlocked.Increment(ref count);
-			Interlocked.Increment(ref stamp);
+			Interlocked.Increment (ref count);
+			Interlocked.Increment (ref stamp);
 		}
 		
-		void ICollection<KeyValuePair<TKey,TValue>>.Add(KeyValuePair<TKey, TValue> pair)
+		void ICollection<KeyValuePair<TKey,TValue>>.Add (KeyValuePair<TKey, TValue> pair)
 		{
-			Add(pair.Key, pair.Value);
+			Add (pair.Key, pair.Value);
 		}
 		
-		public TValue GetValue(TKey key)
+		public TValue GetValue (TKey key)
 		{
 			TValue temp;
-			if (!TryGetValue(key, out temp))
+			if (!TryGetValue (key, out temp))
 				// TODO: find a correct Exception
-				throw new ArgumentOutOfRangeException("key");
+				throw new ArgumentOutOfRangeException ("key");
 			return temp;
 		}
 		
-		public bool TryGetValue(TKey key, out TValue value)
+		public bool TryGetValue (TKey key, out TValue value)
 		{
 			Basket basket;
-			value = default(TValue);
+			value = default (TValue);
 			
-			if (!TryGetBasket(key, out basket))
+			if (!TryGetBasket (key, out basket))
 				return false;
 			
 			lock (basket) {
-				Pair pair = basket.Find((p) => p.Key.Equals(key));
+				Pair pair = basket.Find ((p) => p.Key.Equals (key));
 				if (pair == null)
 					return false;
 				value = pair.Value;
@@ -125,20 +126,20 @@ namespace System.Threading.Collections
 		
 		public TValue this[TKey key] {
 			get {
-				return GetValue(key);
+				return GetValue (key);
 			}
 			set {
 				Basket basket;
-				if (!TryGetBasket(key, out basket)) {
-					Add(key, value);
+				if (!TryGetBasket (key, out basket)) {
+					Add (key, value);
 					return;
 				}
 				lock (basket) {
-					Pair pair = basket.Find((p) => p.Key.Equals(key));
+					Pair pair = basket.Find ((p) => p.Key.Equals (key));
 					if (pair == null)
-						throw new InvalidOperationException("pair is null, shouldn't be");
+						throw new InvalidOperationException ("pair is null, shouldn't be");
 					pair.Value = value;
-					Interlocked.Increment(ref stamp);
+					Interlocked.Increment (ref stamp);
 				}
 			}
 		}
@@ -146,34 +147,34 @@ namespace System.Threading.Collections
 		public bool Remove(TKey key)
 		{
 			Basket b;
-			if (!TryGetBasket(key, out b))
+			if (!TryGetBasket (key, out b))
 				return false;
 			
 			lock (b) {
 				// Should always be == 1 but who know
-				return b.RemoveAll((p) => p.Key.Equals(key)) >= 1;
+				return b.RemoveAll ((p) => p.Key.Equals (key)) >= 1;
 			}
 		}
 		
-		bool ICollection<KeyValuePair<TKey,TValue>>.Remove(KeyValuePair<TKey,TValue> pair)
+		bool ICollection<KeyValuePair<TKey,TValue>>.Remove (KeyValuePair<TKey,TValue> pair)
 		{
-			return Remove(pair.Key);
+			return Remove (pair.Key);
 		}
 		
-		public bool ContainsKey(TKey key)
+		public bool ContainsKey (TKey key)
 		{
-			return container.ContainsFromHash(key.GetHashCode());
+			return container.ContainsFromHash (key.GetHashCode ());
 		}
 		
-		bool ICollection<KeyValuePair<TKey,TValue>>.Contains(KeyValuePair<TKey, TValue> pair)
+		bool ICollection<KeyValuePair<TKey,TValue>>.Contains (KeyValuePair<TKey, TValue> pair)
 		{
-			return ContainsKey(pair.Key);
+			return ContainsKey (pair.Key);
 		}
 	
 		public void Clear()
 		{
 			// Pronk
-			container = new ConcurrentSkipList<Basket>((value) => value[0].GetHashCode());
+			container = new ConcurrentSkipList<Basket> ((value) => value [0].GetHashCode ());
 		}
 		
 		public int Count {
@@ -200,49 +201,39 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator ()
 		{
-			return GetEnumeratorInternal();
+			return GetEnumeratorInternal ();
 		}
 		
-		IEnumerator IEnumerable.GetEnumerator()
+		IEnumerator IEnumerable.GetEnumerator ()
 		{
-			return (IEnumerator)GetEnumeratorInternal();
+			return (IEnumerator)GetEnumeratorInternal ();
 		}
 		
-		IEnumerator<KeyValuePair<TKey, TValue>> GetEnumeratorInternal()
+		IEnumerator<KeyValuePair<TKey, TValue>> GetEnumeratorInternal ()
 		{	
 			foreach (Basket b in container) {
 				lock (b) {
 					foreach (Pair p in b)
-						yield return new KeyValuePair<TKey, TValue>(p.Key, p.Value);
+						yield return new KeyValuePair<TKey, TValue> (p.Key, p.Value);
 				}
 			}
 		}
 		
-		public void CopyTo(KeyValuePair<TKey,TValue>[] array, int startIndex)
+		public void CopyTo (KeyValuePair<TKey,TValue>[] array, int startIndex)
 		{
-			
+			throw new NotImplementedException ();
 		}
 		
-		/*void UpdateKeysValuesColl()
-		{
-			foreach (Pair p in this) {
-				// Read from time to time to see if we became useless
-				if (currStamp != tempStamp)
-					break;
-				keys.Add(p.Key);
-				values.Add(p.Value);
-			}
-		}*/
-		
-		bool TryGetBasket(TKey key, out Basket basket)
+		bool TryGetBasket (TKey key, out Basket basket)
 		{
 			basket = null;
-			if (!container.GetFromHash(key.GetHashCode(), out basket))
+			if (!container.GetFromHash (key.GetHashCode (), out basket))
 				return false;
 			
 			return true;
 		}
 	}
 }
+#endif

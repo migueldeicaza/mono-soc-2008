@@ -1,3 +1,4 @@
+#if NET_4_0
 // ParallelLogger.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -30,9 +31,10 @@ namespace System.Threading
 	
 	internal static class ParallelLogger
 	{
-		public static void WriteLine(string str)
+		public static void WriteLine (string str)
 		{
-			Console.WriteLine(Thread.CurrentThread.ManagedThreadId.ToString() + " : " + str);
+			Console.WriteLine (Thread.CurrentThread.ManagedThreadId.ToString () + " : " + str);
 		}
 	}
 }
+#endif

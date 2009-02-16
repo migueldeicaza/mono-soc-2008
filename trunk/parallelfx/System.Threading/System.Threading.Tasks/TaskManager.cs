@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskManager.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,65 +28,65 @@ using System.Collections.Generic;
 
 namespace System.Threading.Tasks
 {
-	public class TaskManager: IDisposable
+	public class TaskManager : IDisposable
 	{
-		static TaskManager tdefault = new TaskManager();
+		static TaskManager tdefault = new TaskManager ();
 		static TaskManager tcurrent = tdefault;
 		
 		TaskManagerPolicy policy;
 		
 		IScheduler        sched;
 		
-		public TaskManager(): this(new TaskManagerPolicy())
+		public TaskManager (): this (new TaskManagerPolicy ())
 		{
 		}
 		
-		public TaskManager(TaskManagerPolicy policy): 
-			this(policy, new Scheduler(policy.IdealProcessors * policy.IdealThreadsPerProcessor,
-			                           policy.MaxStackSize, policy.ThreadPriority))
+		public TaskManager (TaskManagerPolicy policy)
+			: this (policy, new Scheduler (Parallel.GetBestWorkerNumber (policy),
+			                               policy.MaxStackSize, policy.ThreadPriority))
 		{
 		}
 		
-		internal TaskManager(TaskManagerPolicy policy, IScheduler sched)
+		internal TaskManager (TaskManagerPolicy policy, IScheduler sched)
 		{
 			this.policy = policy;
 			this.sched = sched;
 		}
 		
-		~TaskManager()
+		/*~TaskManager ()
 		{
 			Dispose(false);
-		}
+		}*/
 		
-		public void Dispose()
+		public void Dispose ()
 		{
-			Dispose(true);
+			Dispose (true);
 		}
 		
-		protected virtual void Dispose(bool managedRes)
+		protected virtual void Dispose (bool managedRes)
 		{
 			if (managedRes)
 				sched.Dispose();
 		}
 		
-		internal void AddWork(Task t)
+		internal void AddWork (Task t)
 		{
 			sched.AddWork(t);
 		}
 		
-		internal void WaitForTask(Task task)
+		internal void WaitForTask (Task task)
 		{
-			sched.ParticipateUntil(task);
+			sched.ParticipateUntil (task);
 		}
 		
-		internal bool WaitForTaskWithPredicate(Task task, Func<bool> predicate)
+		internal bool WaitForTaskWithPredicate (Task task, Func<bool> predicate)
 		{
-			return sched.ParticipateUntil(task, predicate);
+			return sched.ParticipateUntil (task, predicate);
 		}
 		
-		internal void WaitForTasksUntil(Func<bool> predicate)
+		internal void WaitForTasksUntil (Func<bool> predicate)
 		{
-			sched.ParticipateUntil(predicate);
+			sched.ParticipateUntil (predicate);
 		}
 		
 		public TaskManagerPolicy Policy {
@@ -123,3 +124,4 @@ namespace System.Threading.Tasks
 		}*/
 	}
 }
+#endif

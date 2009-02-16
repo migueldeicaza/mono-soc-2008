@@ -1,3 +1,4 @@
+#if NET_4_0
 // Task.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -28,7 +29,7 @@ using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
-	public class Task: TaskBase, IDisposable, IAsyncResult
+	public class Task : TaskBase, IDisposable, IAsyncResult
 	{
 		// With this attribute each thread has its own value so that it's correct for our Schedule code
 		// and for Parent and Creator properties. Though it may not be the value that Current should yield.
@@ -38,7 +39,7 @@ namespace System.Threading.Tasks
 		static Action<Task> childWorkAdder;
 		static int          id = 0;
 		
-		CountdownEvent childTasks = new CountdownEvent(1);
+		CountdownEvent childTasks = new CountdownEvent (1);
 		Task parent  = current;
 		Task creator = current;
 		
@@ -56,205 +57,210 @@ namespace System.Threading.Tasks
 		Action<object> action;
 		EventHandler   completed;
 			
-		internal Task(TaskManager tm, Action<object> action, object state, TaskCreationOptions taskCreationOptions)
+		internal Task (TaskManager tm, Action<object> action, object state,
+		               TaskCreationOptions taskCreationOptions)
 		{
 			this.taskCreationOptions = taskCreationOptions;
 			this.m_taskManager = TaskManager.Current = tm;
 			this.action = action == null ? EmptyFunc : action;
 			this.m_stateObject = state;
-			this.taskId = Interlocked.Increment(ref id);
+			this.taskId = Interlocked.Increment (ref id);
 
 			// Process taskCreationOptions
-			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached))
+			if (CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached))
 				parent = null;
 			else if (parent != null)
-				parent.AddChild();
+				parent.AddChild ();
 
-			respectParentCancellation = CheckTaskOptions(taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
+			respectParentCancellation
+				= CheckTaskOptions (taskCreationOptions, TaskCreationOptions.RespectCreatorCancellation);
 			
-			if (CheckTaskOptions(taskCreationOptions, TaskCreationOptions.SelfReplicating))
-			  ContinueWith(_ => action(state), TaskContinuationKind.OnAny, taskCreationOptions);
+			if (CheckTaskOptions (taskCreationOptions, TaskCreationOptions.SelfReplicating))
+				ContinueWith(_ => action(state), TaskContinuationKind.OnAny, taskCreationOptions);
 		}
 
-		bool CheckTaskOptions(TaskCreationOptions opt, TaskCreationOptions member)
+		bool CheckTaskOptions (TaskCreationOptions opt, TaskCreationOptions member)
 		{
 			return (opt & member) == member;
 		}
 		
-		~Task() {
+		// TODO: Not useful in our implementation of Task
+		// but may break other's API
+		/*~Task() {
 			Dispose(false);
-		}
+		}*/
 
-		static void EmptyFunc(object o)
+		static void EmptyFunc (object o)
 		{
-
 		}
 		
 		#region Create and ContinueWith
-		public static Task StartNew(Action<object> action)
+		public static Task StartNew (Action<object> action)
 		{
-			return StartNew(action, null, TaskManager.Default, TaskCreationOptions.None);
+			return StartNew (action, null, TaskManager.Default, TaskCreationOptions.None);
 		}
 		
-		public static Task StartNew(Action<object> action, object state)
+		public static Task StartNew (Action<object> action, object state)
 		{
-			return StartNew(action, state, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew (action, state, TaskManager.Current, TaskCreationOptions.None);
 		}
 		
-		public static Task StartNew(Action<object> action, TaskManager tm)
+		public static Task StartNew (Action<object> action, TaskManager tm)
 		{
-			return StartNew(action, null, tm, TaskCreationOptions.None);
+			return StartNew (action, null, tm, TaskCreationOptions.None);
 		}
 		
-		public static Task StartNew(Action<object> action, TaskCreationOptions options)
+		public static Task StartNew (Action<object> action, TaskCreationOptions options)
 		{
-			return StartNew(action, null, TaskManager.Current, options);
+			return StartNew (action, null, TaskManager.Current, options);
 		}
 		
 		
-		public static Task StartNew(Action<object> action, TaskManager tm, TaskCreationOptions options)
+		public static Task StartNew (Action<object> action, TaskManager tm, TaskCreationOptions options)
 		{
-			return StartNew(action, null, tm, options);
+			return StartNew (action, null, tm, options);
 		}
 		
-		public static Task StartNew(Action<object> action, object state, TaskManager tm, TaskCreationOptions options)
+		public static Task StartNew (Action<object> action, object state, TaskManager tm,
+		                             TaskCreationOptions options)
 		{
-			Task result = new Task(tm, action, state, options);
-			result.Schedule();
+			Task result = new Task (tm, action, state, options);
+			result.Schedule ();
 			return result;
 		}
 		
-		public Task ContinueWith(Action<Task> a)
+		public Task ContinueWith (Action<Task> a)
 		{
-			return ContinueWith(a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+			return ContinueWith (a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
 		}
 		
-		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind)
+		public Task ContinueWith (Action<Task> a, TaskContinuationKind kind)
 		{
-			return ContinueWith(a, kind, TaskCreationOptions.None);
+			return ContinueWith (a, kind, TaskCreationOptions.None);
 		}
 		
-		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
+		public Task ContinueWith (Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option)
 		{
-			return ContinueWith(a, kind, option, false);
+			return ContinueWith (a, kind, option, false);
 		}
 		
-		public Task ContinueWith(Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option, bool executeSync)
+		public Task ContinueWith (Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option, bool executeSync)
 		{
-			Task continuation = new Task(TaskManager.Current, delegate { a(this); }, null, option);
-			ContinueWithCore(continuation, kind, false);
+			Task continuation = new Task (TaskManager.Current, delegate { a (this); }, null, option);
+			ContinueWithCore (continuation, kind, false);
 			return continuation;
 		}
 		
-		protected void ContinueWithCore(Task continuation, TaskContinuationKind kind, bool executeSync)
+		protected void ContinueWithCore (Task continuation, TaskContinuationKind kind, bool executeSync)
 		{
 			if (IsCompleted) {
-				CheckAndSchedule(executeSync, continuation);
+				CheckAndSchedule (executeSync, continuation);
 				return;
 			}
 				
 			completed += delegate {
 				switch (kind) {
-					case TaskContinuationKind.OnAny:
-						CheckAndSchedule(executeSync, continuation);
-						break;
-					case TaskContinuationKind.OnAborted:
-						if (isCanceled.Value)
-							CheckAndSchedule(executeSync, continuation);
-						break;
-					case TaskContinuationKind.OnFailed:
-						if (exception != null)
-							CheckAndSchedule(executeSync, continuation);
-						break;
-					case TaskContinuationKind.OnCompletedSuccessfully:
-						if (exception == null && !isCanceled.Value)
-							CheckAndSchedule(executeSync, continuation);
-						break;
+				case TaskContinuationKind.OnAny:
+					CheckAndSchedule (executeSync, continuation);
+					break;
+				case TaskContinuationKind.OnAborted:
+					if (isCanceled.Value)
+						CheckAndSchedule (executeSync, continuation);
+					break;
+				case TaskContinuationKind.OnFailed:
+					if (exception != null)
+						CheckAndSchedule (executeSync, continuation);
+					break;
+				case TaskContinuationKind.OnCompletedSuccessfully:
+					if (exception == null && !isCanceled.Value)
+						CheckAndSchedule (executeSync, continuation);
+					break;
 				}
 			};
 		}
 		
-		void CheckAndSchedule(bool executeSync, Task continuation)
+		void CheckAndSchedule (bool executeSync, Task continuation)
 		{
 			if (executeSync)
-				continuation.ThreadStart();
+				continuation.ThreadStart ();
 			else
-				continuation.Schedule();
+				continuation.Schedule ();
 		}
 		#endregion
 		
 		#region Internal and protected thingies
-		internal protected void Schedule()
+		internal protected void Schedule ()
 		{			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null) {
-				m_taskManager.AddWork(this);
+				m_taskManager.AddWork (this);
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
 				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
 				 * the correct Thread during the creation
 				 */
-				childWorkAdder(this);
+				childWorkAdder (this);
 			}
 		}
 		
-		void ThreadStart()
+		void ThreadStart ()
 		{
 			if (!isCanceled.Value
 			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 				current = this;
 				try {
-					InnerInvoke();
+					InnerInvoke ();
 				} catch (Exception e) {
 					exception = e;
 				} finally {
 					current = null;
 				}
 			} else {
-				this.exception = new TaskCanceledException(this);
+				this.exception = new TaskCanceledException (this);
 			}
 			
 			isCompleted = true;
 			
 			// Call the event in the correct style
 			EventHandler tempCompleted = completed;
-			if (tempCompleted != null) tempCompleted(this, EventArgs.Empty);
+			if (tempCompleted != null) 
+				tempCompleted (this, EventArgs.Empty);
 			
-			Finish();
+			Finish ();
 		}
 		
-		internal void Execute(Action<Task> childAdder)
+		internal void Execute (Action<Task> childAdder)
 		{
 			childWorkAdder = childAdder;
-			ThreadStart();
+			ThreadStart ();
 		}
 		
-		internal void AddChild()
+		internal void AddChild ()
 		{
-			childTasks.Increment();
+			childTasks.Increment ();
 		}
 
-		internal void ChildCompleted()
+		internal void ChildCompleted ()
 		{
-			childTasks.Decrement();
+			childTasks.Decrement ();
 		}
 
-		protected virtual void InnerInvoke()
+		protected virtual void InnerInvoke ()
 		{
-			action(m_stateObject);
+			action (m_stateObject);
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in an anonymous method
 			action = null;
 		}
 		
-		protected void Finish()
+		protected void Finish ()
 		{
 			// If there wasn't any child created in the task we set the CountdownEvent
-			childTasks.Decrement();
+			childTasks.Decrement ();
 			// Tell parent that we are finished
-			if (!CheckTaskOptions(taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
-				parent.ChildCompleted();
-			Dispose();
+			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
+				parent.ChildCompleted ();
+			Dispose ();
 		}
 		
 		internal bool ChildTasks {
@@ -265,92 +271,94 @@ namespace System.Threading.Tasks
 		#endregion
 		
 		#region Cancel and Wait related methods
-		public void Cancel()
+		public void Cancel ()
 		{
 			// Mark the Task as canceled so that the worker function will return immediately
 			isCanceled.Value = true;
 		}
 		
-		public void CancelAndWait()
+		public void CancelAndWait ()
 		{
-			Cancel();
-			Wait();
+			Cancel ();
+			Wait ();
 		}
 		
-		public bool CancelAndWait(TimeSpan ts)
+		public bool CancelAndWait (TimeSpan ts)
 		{
-			Cancel();
-			return Wait(ts);
+			Cancel ();
+			return Wait (ts);
 		}
 		
-		public bool CancelAndWait(int millisecondsTimeout)
+		public bool CancelAndWait (int millisecondsTimeout)
 		{
-			Cancel();
-			return Wait(millisecondsTimeout);
+			Cancel ();
+			return Wait (millisecondsTimeout);
 		}
 		
-		public void Wait()
+		public void Wait ()
 		{
-			m_taskManager.WaitForTask(this);
+			m_taskManager.WaitForTask (this);
 		}
 		
-		public bool Wait(TimeSpan ts)
+		public bool Wait (TimeSpan ts)
 		{
-			return Wait((int)ts.TotalMilliseconds);
+			return Wait ((int)ts.TotalMilliseconds);
 		}
 		
-		public bool Wait(int millisecondsTimeout)
+		public bool Wait (int millisecondsTimeout)
 		{
-			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-			bool result = m_taskManager.WaitForTaskWithPredicate(this, delegate { return sw.ElapsedMilliseconds >= millisecondsTimeout; });
-			sw.Stop();
+			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew ();
+			bool result = m_taskManager.WaitForTaskWithPredicate (this, delegate { 
+				return sw.ElapsedMilliseconds >= millisecondsTimeout;
+			});
+			sw.Stop ();
 			return !result;
 		}
 		
-		public static void WaitAll(params Task[] tasks)
+		public static void WaitAll (params Task[] tasks)
 		{
 			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+				throw new ArgumentNullException ("tasks");
 			if (tasks.Length == 0)
-				throw new ArgumentException("tasks is empty", "tasks");
+				throw new ArgumentException ("tasks is empty", "tasks");
 			
 			foreach (var t in tasks)
-				t.Wait();
+				t.Wait ();
 		}
 		
-		public static bool WaitAll(Task[] tasks, TimeSpan ts)
+		public static bool WaitAll (Task[] tasks, TimeSpan ts)
 		{
 			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+				throw new ArgumentNullException ("tasks");
 			if (tasks.Length == 0)
-				throw new ArgumentException("tasks is empty", "tasks");
+				throw new ArgumentException ("tasks is empty", "tasks");
 			
 			bool result = true;
 			foreach (var t in tasks)
-				result &= t.Wait(ts);
+				result &= t.Wait (ts);
 			return result;
 		}
 		
-		public static bool WaitAll(Task[] tasks, int millisecondsTimeout)
+		public static bool WaitAll (Task[] tasks, int millisecondsTimeout)
 		{
 			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+				throw new ArgumentNullException ("tasks");
 			if (tasks.Length == 0)
-				throw new ArgumentException("tasks is empty", "tasks");
+				throw new ArgumentException ("tasks is empty", "tasks");
 			
 			bool result = true;
 			foreach (var t in tasks)
-				result &= t.Wait(millisecondsTimeout);
+				result &= t.Wait (millisecondsTimeout);
 			return result;
 		}
 		
 		// predicate for WaitAny would be numFinished == 1 and for WaitAll numFinished == count
-		public static int WaitAny(params Task[] tasks)
+		public static int WaitAny (params Task[] tasks)
 		{
 			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+				throw new ArgumentNullException ("tasks");
 			if (tasks.Length == 0)
-				throw new ArgumentException("tasks is empty", "tasks");
+				throw new ArgumentException ("tasks is empty", "tasks");
 			
 			int numFinished = 0;
 			int indexFirstFinished = -1;
@@ -361,71 +369,71 @@ namespace System.Threading.Tasks
 					return index;
 				}
 				t.completed += delegate (object sender, EventArgs e) {
-					int result = Interlocked.Increment(ref numFinished);
+					int result = Interlocked.Increment (ref numFinished);
 					// Check if we are the first to have finished
 					if (result == 1) {
 						Task target = (Task)sender;
-						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+						indexFirstFinished = Array.FindIndex (tasks, (elem) => elem == target);
 					}
 				};	
 				index++;
 			}
 			
 			// All tasks are supposed to use the same TaskManager
-			tasks[0].m_taskManager.WaitForTasksUntil(delegate {
+			tasks[0].m_taskManager.WaitForTasksUntil (delegate {
 				return numFinished >= 1;
 			});
 			
 			return indexFirstFinished;
 		}
 		
-		public static int WaitAny(Task[] tasks, TimeSpan ts)
+		public static int WaitAny (Task[] tasks, TimeSpan ts)
 		{
-			return WaitAny(tasks, (int)ts.TotalMilliseconds);
+			return WaitAny (tasks, (int)ts.TotalMilliseconds);
 		}
 		
-		public static int WaitAny(Task[] tasks, int millisecondsTimeout)
+		public static int WaitAny (Task[] tasks, int millisecondsTimeout)
 		{
 			if (millisecondsTimeout < -1)
-				throw new ArgumentOutOfRangeException("millisecondsTimeout");
+				throw new ArgumentOutOfRangeException ("millisecondsTimeout");
 			if (tasks == null)
-				throw new ArgumentNullException("tasks");
+				throw new ArgumentNullException ("tasks");
 			
 			if (millisecondsTimeout == -1)
-				return WaitAny(tasks);
+				return WaitAny (tasks);
 			
 			int numFinished = 0;
 			int indexFirstFinished = -1;
 			
 			foreach (Task t in tasks) {
 				t.completed += delegate (object sender, EventArgs e) { 
-					int result = Interlocked.Increment(ref numFinished);
+					int result = Interlocked.Increment (ref numFinished);
 					if (result == 1) {
 						Task target = (Task)sender;
-						indexFirstFinished = Array.FindIndex(tasks, (elem) => elem == target);
+						indexFirstFinished = Array.FindIndex (tasks, (elem) => elem == target);
 					}
 				};	
 			}
 			
-			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew();
-			tasks[0].m_taskManager.WaitForTasksUntil(delegate {
+			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew ();
+			tasks[0].m_taskManager.WaitForTasksUntil (delegate {
 				if (sw.ElapsedMilliseconds > millisecondsTimeout)
 					return true;
 				return numFinished >= 1;
 			});
-			sw.Stop();
+			sw.Stop ();
 			
 			return indexFirstFinished;
 		}
 		#endregion
 		
 		#region Dispose
-		public void Dispose()
+		public void Dispose ()
 		{
-			Dispose(true);
+			Dispose (true);
 		}
 		
-		protected virtual void Dispose(bool disposeManagedRes)
+		protected virtual void Dispose (bool disposeManagedRes)
 		{
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in a anonymous method
@@ -511,8 +519,9 @@ namespace System.Threading.Tasks
 		
 		public override string ToString ()
 		{
-			return Id.ToString();
+			return Id.ToString ();
 		}
 		#endregion
 	}
 }
+#endif
