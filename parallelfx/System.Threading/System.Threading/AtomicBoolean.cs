@@ -1,3 +1,4 @@
+#if NET_4_0
 // AtomicBoolean.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -32,26 +33,26 @@ namespace System.Threading
 		const int UnSet = 0;
 		const int Set = 1;
 		
-		public bool CompareAndExchange(bool expected, bool newVal)
+		public bool CompareAndExchange (bool expected, bool newVal)
 		{
 			int newTemp = newVal ? Set : UnSet;
 			int expectedTemp = expected ? Set : UnSet;
 			
-			return Interlocked.CompareExchange(ref flag, newTemp, expectedTemp) == expectedTemp;
+			return Interlocked.CompareExchange (ref flag, newTemp, expectedTemp) == expectedTemp;
 		}
 		
-		public static AtomicBoolean FromValue(bool value)
+		public static AtomicBoolean FromValue (bool value)
 		{
-			AtomicBoolean temp = new AtomicBoolean();
+			AtomicBoolean temp = new AtomicBoolean ();
 			temp.Value = value;
 			
 			return temp;
 		}
 		
-		public bool Exchange(bool newVal)
+		public bool Exchange (bool newVal)
 		{
 			int newTemp = newVal ? Set : UnSet;
-			return Interlocked.Exchange(ref flag, newTemp) == Set;
+			return Interlocked.Exchange (ref flag, newTemp) == Set;
 		}
 		
 		public bool Value {
@@ -59,33 +60,34 @@ namespace System.Threading
 				return flag == Set;
 			} 
 			set {
-				Thread.VolatileWrite(ref flag, value ? Set : UnSet);
+				Thread.VolatileWrite (ref flag, value ? Set : UnSet);
 			}
 		}
 		
-		public bool Equals(AtomicBoolean rhs)
+		public bool Equals (AtomicBoolean rhs)
 		{
 			return this.flag == rhs.flag;
 		}
 		
-		public override bool Equals(object rhs)
+		public override bool Equals (object rhs)
 		{
-			return rhs is AtomicBoolean ? Equals((AtomicBoolean)rhs) : false;
+			return rhs is AtomicBoolean ? Equals ((AtomicBoolean)rhs) : false;
 		}
 		
-		public override int GetHashCode()
+		public override int GetHashCode ()
 		{
-			return flag.GetHashCode();
+			return flag.GetHashCode ();
 		}
 		
-		public static explicit operator bool(AtomicBoolean rhs)
+		public static explicit operator bool (AtomicBoolean rhs)
 		{
 			return rhs.Value;
 		}
 		
-		public static implicit operator AtomicBoolean(bool rhs)
+		public static implicit operator AtomicBoolean (bool rhs)
 		{
-			return AtomicBoolean.FromValue(rhs);
+			return AtomicBoolean.FromValue (rhs);
 		}
 	}
 }
+#endif

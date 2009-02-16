@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskManagerPolicy.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -115,3 +116,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
+#endif

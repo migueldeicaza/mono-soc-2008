@@ -1,3 +1,4 @@
+#if NET_4_0
 // FutureTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -87,3 +88,4 @@ namespace ParallelFxTests
 		}
 	}
 }
+#endif

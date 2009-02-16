@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskBase.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -26,13 +27,12 @@ using System;
 
 namespace System.Threading.Tasks
 {
-	
-	
 	public class TaskBase
 	{
 		
-		public TaskBase()
+		public TaskBase ()
 		{
 		}
 	}
 }
+#endif

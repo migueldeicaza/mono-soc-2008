@@ -1,3 +1,4 @@
+#if NET_4_0
 // LazyInit.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -31,7 +32,7 @@ namespace System.Threading
 {
 	//FIXME: This should be a struct. In a perfect world made this a intern class and construct the corresponding struct as a wrapper
 	[SerializableAttribute]
-	public class LazyInit<T>: IEquatable<LazyInit<T>>, ISerializable
+	public class LazyInit<T> : IEquatable<LazyInit<T>>, ISerializable
 	{
 		LazyInitMode mode;
 		Func<T>      valueSelector;
@@ -42,17 +43,17 @@ namespace System.Threading
 		readonly SpinLock spinLock;
 		LocalDataStoreSlot localStore;
 		
-		static bool StartIsInitialized()
+		static bool StartIsInitialized ()
 		{
 			return false;
 		}
 		
-		static bool FinalIsInitialized()
+		static bool FinalIsInitialized ()
 		{
 			return true;
 		}
 		
-		T DefaultFinalValue()
+		T DefaultFinalValue ()
 		{
 			return value;
 		}
@@ -63,106 +64,108 @@ namespace System.Threading
 			public Func<T> Getter;
 		}
 		
-		public LazyInit(Func<T> valueSelector): this(valueSelector, LazyInitMode.AllowMultipleExecution)
+		public LazyInit (Func<T> valueSelector) : this (valueSelector, LazyInitMode.AllowMultipleExecution)
 		{
 		}
 		
-		public LazyInit(Func<T> valueSelector, LazyInitMode mode)
+		public LazyInit (Func<T> valueSelector, LazyInitMode mode)
 		{
 			// Common initialization
 			this.valueSelector = valueSelector;
 			this.mode = mode;
 			specializedValue = null;
-			value = default(T);
-			spinLock = new SpinLock(false);
+			value = default (T);
+			spinLock = new SpinLock (false);
 			localStore = null;
 			isInitialized = StartIsInitialized;
 			
 			// Depending on mode, do specific initialization
 			switch (mode) {
-				case LazyInitMode.AllowMultipleExecution:
-					InitAllowMultipleExecution();
-					break;
-				case LazyInitMode.EnsureSingleExecution:
-					InitEnsureSingleExecution();
-					break;
-				case LazyInitMode.ThreadLocal:
-					InitThreadLocal();					
-					break;
+			case LazyInitMode.AllowMultipleExecution:
+				InitAllowMultipleExecution ();
+				break;
+			case LazyInitMode.EnsureSingleExecution:
+				InitEnsureSingleExecution ();
+				break;
+			case LazyInitMode.ThreadLocal:
+				InitThreadLocal ();					
+				break;
 			}
 		}
 		
-		void InitAllowMultipleExecution()
+		void InitAllowMultipleExecution ()
 		{
 			specializedValue = GetValueMultipleExecution;
 		}
 		
-		void InitEnsureSingleExecution()
+		void InitEnsureSingleExecution ()
 		{
 			specializedValue = GetValueSingleExecution;
 		}
 		
-		void InitThreadLocal()
+		void InitThreadLocal ()
 		{
-			localStore = Thread.AllocateDataSlot();
+			localStore = Thread.AllocateDataSlot ();
 			
 			specializedValue = GetValueThreadLocal;
 			
 			isInitialized = IsInitializedThreadLocal;
 		}
 		
-		T GetValueMultipleExecution()
+		T GetValueMultipleExecution ()
 		{
-			value = valueSelector();
+			value = valueSelector ();
 			isInitialized = FinalIsInitialized;
 			specializedValue = DefaultFinalValue;
 			return value;
 		}
 		
-		T GetValueSingleExecution()
+		T GetValueSingleExecution ()
 		{
 			try {
-				spinLock.Enter();
-				if (!isInitialized()) {
+				spinLock.Enter ();
+				if (!isInitialized ()) {
 					isInitialized = FinalIsInitialized;
-					value = valueSelector();
+					value = valueSelector ();
 					specializedValue = DefaultFinalValue;
 				}
-			} finally { spinLock.Exit(); }
+			} finally { 
+				spinLock.Exit ();
+			}
 			
 			return value;
 		}
 		
-		T GetValueThreadLocal()
+		T GetValueThreadLocal ()
 		{
-			DataSlotWrapper myWrapper = Thread.GetData(localStore) as DataSlotWrapper;
+			DataSlotWrapper myWrapper = Thread.GetData (localStore) as DataSlotWrapper;
 			// In case it's the first time the Thread access its data
 			if (myWrapper == null) {
-				myWrapper = DataSlotCreator();
-				Thread.SetData(localStore, myWrapper);
+				myWrapper = DataSlotCreator ();
+				Thread.SetData (localStore, myWrapper);
 			}
 				
 			return myWrapper.Getter();
 		}
 		
-		bool IsInitializedThreadLocal()
+		bool IsInitializedThreadLocal ()
 		{
-			DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData(localStore);
+			DataSlotWrapper myWrapper = (DataSlotWrapper)Thread.GetData (localStore);
 			if (myWrapper == null) {
-				myWrapper = DataSlotCreator();
-				Thread.SetData(localStore, myWrapper);
+				myWrapper = DataSlotCreator ();
+				Thread.SetData (localStore, myWrapper);
 			}
 			
 			return myWrapper.Init;
 		}
 
-		DataSlotWrapper DataSlotCreator()
+		DataSlotWrapper DataSlotCreator ()
 		{
-			DataSlotWrapper wrapper = new DataSlotWrapper();
+			DataSlotWrapper wrapper = new DataSlotWrapper ();
 			Func<T> valSelector = valueSelector;
 	
 			wrapper.Getter = delegate {
-				T val = valSelector();
+				T val = valSelector ();
 				wrapper.Init = true;
 				wrapper.Getter = delegate { return val; };
 				return val;
@@ -188,23 +191,23 @@ namespace System.Threading
 				return false;
 			
 			LazyInit<T> temp = (LazyInit<T>)other;
-			return Equals(temp);
+			return Equals (temp);
 		}
 		
-		public override int GetHashCode()
+		public override int GetHashCode ()
 		{
-			return Value.GetHashCode();
+			return Value.GetHashCode ();
 		}
 		
-		public override string ToString()
+		public override string ToString ()
 		{
-			return Value.ToString();
+			return Value.ToString ();
 		}
 		
 		public T Value {
 			get {
 				Func<T> temp = specializedValue;
-				return temp();
+				return temp ();
 			}
 		}
 		
@@ -217,8 +220,9 @@ namespace System.Threading
 		public bool IsInitialized {
 			get {
 				Func<bool> temp = isInitialized;
-				return temp();
+				return temp ();
 			}
 		}
 	}
 }
+#endif

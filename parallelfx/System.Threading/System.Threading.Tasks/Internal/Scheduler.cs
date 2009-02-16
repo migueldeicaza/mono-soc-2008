@@ -1,3 +1,4 @@
+#if NET_4_0
 // Scheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -32,53 +33,50 @@ namespace System.Threading.Tasks
 	internal class Scheduler: IScheduler
 	{
 		ConcurrentStack<Task> workQueue;
-		//ConcurrentStack<Task>[] workBuffers;
 		ThreadWorker[]        workers;
-		//ThreadWorker          participant;
 		bool                  isPulsable = true;
 		
-		public Scheduler(int maxWorker, int maxStackSize, ThreadPriority priority)
+		public Scheduler (int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
-			//workQueue = new OptimizedStack<Task>(maxWorker);
-			workQueue = new ConcurrentStack<Task>();
-			workers = new ThreadWorker[maxWorker];
+			workQueue = new ConcurrentStack<Task> ();
+			workers = new ThreadWorker [maxWorker];
 			
 			for (int i = 0; i < maxWorker; i++) {
-				workers[i] = new ThreadWorker(this, workers, workQueue, maxStackSize, priority);
+				workers [i] = new ThreadWorker (this, workers, workQueue, maxStackSize, priority);
 			}
 		}
 		
-		public void AddWork(Task t)
+		public void AddWork (Task t)
 		{
 			// Add to the shared work pool
-			workQueue.Push(t);
+			workQueue.Push (t);
 			// Wake up some worker if they were asleep
-			PulseAll();
+			PulseAll ();
 		}
 		
-		public void ParticipateUntil(Task task)
+		public void ParticipateUntil (Task task)
 		{
-			if (AreTasksFinished(task))
+			if (AreTasksFinished (task))
 				return;
 			
-			ParticipateUntil(delegate {
-				return AreTasksFinished(task);
+			ParticipateUntil (delegate {
+				return AreTasksFinished (task);
 			});
 		}
 		
-		public bool ParticipateUntil(Task task, Func<bool> predicate)
+		public bool ParticipateUntil (Task task, Func<bool> predicate)
 		{
-			if (AreTasksFinished(task))
+			if (AreTasksFinished (task))
 				return false;
 			
 			bool isFromPredicate = false;
 			
-			ParticipateUntil(delegate {
-				if (predicate()) {
+			ParticipateUntil (delegate {
+				if (predicate ()) {
 					isFromPredicate = true;
 					return true;
 				}
-				return AreTasksFinished(task);	
+				return AreTasksFinished (task);	
 			});
 				
 			return isFromPredicate;
@@ -86,39 +84,39 @@ namespace System.Threading.Tasks
 		
 		// Called with Task.WaitAll(someTasks) or Task.WaitAny(someTasks) so that we can remove ourselves
 		// also when our wait condition is ok
-		public void ParticipateUntil(Func<bool> predicate)
+		public void ParticipateUntil (Func<bool> predicate)
 		{	
-			ThreadWorker.WorkerMethod(predicate, workQueue, workers);
+			ThreadWorker.WorkerMethod (predicate, workQueue, workers);
 		}
 		
-		public void PulseAll()
+		public void PulseAll ()
 		{
 			if (isPulsable) {
 				foreach (ThreadWorker worker in workers) {
 					if (worker != null)
-						worker.Pulse();	
+						worker.Pulse ();	
 				}
 			}
 		}
 		
-		public void InhibitPulse()
+		public void InhibitPulse ()
 		{
 			isPulsable = false;
 		}
 		
-		public void UnInhibitPulse() 
+		public void UnInhibitPulse () 
 		{
 			isPulsable = true;
 		}
 
-		public void Dispose()
+		public void Dispose ()
 		{
 			foreach (ThreadWorker w in workers) {
-				w.Dispose();
+				w.Dispose ();
 			}
 		}
 		
-		bool AreTasksFinished(Task parent)
+		bool AreTasksFinished (Task parent)
 		{
 			if (!parent.IsCompleted)
 				return false;
@@ -127,3 +125,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
+#endif

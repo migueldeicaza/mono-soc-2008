@@ -1,3 +1,4 @@
+#if NET_4_0
 // TaskContinuationKind.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -35,3 +36,4 @@ namespace System.Threading.Tasks
 		OnAny
 	}
 }
+#endif

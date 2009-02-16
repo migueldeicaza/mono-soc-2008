@@ -1,3 +1,4 @@
+#if NET_4_0
 // SpinLock.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -52,7 +53,7 @@ namespace System.Threading
 			}
 		}
 
-		public SpinLock(bool trackId)
+		public SpinLock (bool trackId)
 		{
 			this.isThreadOwnerTrackingEnabled = trackId;
 			this.threadWhoTookLock = 0;
@@ -60,19 +61,19 @@ namespace System.Threading
 			this.sw = new SpinWait();
 		}
 		
-		void CheckAndSetThreadId()
+		void CheckAndSetThreadId ()
 		{
 			// FIXME: LockRecursionException is not implement atm, swap line when it is
 			if (threadWhoTookLock == Thread.CurrentThread.ManagedThreadId)
 				//throw new LockRecursionException("The current thread has already acquired this lock.");
-				throw new Exception("The current thread has already acquired this lock.");
+				throw new Exception ("The current thread has already acquired this lock.");
 			threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
 		}
 		
-		public void ReliableEnter(ref bool lockTaken)
+		public void ReliableEnter (ref bool lockTaken)
 		{
 			try {
-				Enter();
+				Enter ();
 				lockTaken = lockState == isOwned && Thread.CurrentThread.ManagedThreadId == threadWhoTookLock;
 			} catch {
 				lockTaken = false;
@@ -81,14 +82,14 @@ namespace System.Threading
 		
 		// FIXME
 		//[ReliabilityContractAttribute]
-		public void Enter() 
+		public void Enter () 
 		{
-			int result = Interlocked.Exchange(ref lockState, isOwned);
+			int result = Interlocked.Exchange (ref lockState, isOwned);
 			
 			//Thread.BeginCriticalRegion();
 			while (result == isOwned) {
 				// If resource available, set it to in-use and return
-				result = Interlocked.Exchange(ref lockState, isOwned);
+				result = Interlocked.Exchange (ref lockState, isOwned);
 				if (result == isFree)
 					break;
 				
@@ -96,82 +97,82 @@ namespace System.Threading
 				// be free. NOTE: Just reading here (as compared to repeatedly 
 				// calling Exchange) improves performance because writing 
 				// forces all CPUs to update this value
-				while (Thread.VolatileRead(ref lockState) == isOwned) {
-					sw.SpinOnce();
+				while (Thread.VolatileRead (ref lockState) == isOwned) {
+					sw.SpinOnce ();
 				}
 			}
 			
-			CheckAndSetThreadId();
+			CheckAndSetThreadId ();
 		}
 		
-		public bool TryEnter()
+		public bool TryEnter ()
 		{
 			//Thread.BeginCriticalRegion();
 
 			// If resource available, set it to in-use and return
-			if (Interlocked.Exchange(ref lockState, isOwned) == isFree) {
-				CheckAndSetThreadId();
+			if (Interlocked.Exchange (ref lockState, isOwned) == isFree) {
+				CheckAndSetThreadId ();
 				return true;
 			}
 			return false;
 		}
 		
-		public bool TryEnter(TimeSpan timeout)
+		public bool TryEnter (TimeSpan timeout)
 		{
-			return TryEnter((int)timeout.TotalMilliseconds);
+			return TryEnter ((int)timeout.TotalMilliseconds);
 		}
 		
-		public bool TryEnter(int milliSeconds)
+		public bool TryEnter (int milliSeconds)
 		{
 			//Thread.BeginCriticalRegion();
 			
-			Stopwatch sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew ();
 			bool result = false;
 			
 			while (sw.ElapsedMilliseconds < milliSeconds) {
-				if (Interlocked.Exchange(ref lockState, isOwned) == isFree) {
+				if (Interlocked.Exchange (ref lockState, isOwned) == isFree) {
 					threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
 					result = true;
 				}
 			}
-			sw.Stop();
+			sw.Stop ();
 			return result;
 		}
 		
-		public void TryReliableEnter(ref bool lockTaken)
+		public void TryReliableEnter (ref bool lockTaken)
 		{
 			try {
-				lockTaken = TryEnter();
+				lockTaken = TryEnter ();
 			} catch {
 				lockTaken = false;
 			}
 		}
 		
-		public void TryReliableEnter(TimeSpan timeout, ref bool lockTaken)
+		public void TryReliableEnter (TimeSpan timeout, ref bool lockTaken)
 		{
-			TryReliableEnter((int)timeout.TotalMilliseconds, ref lockTaken);
+			TryReliableEnter ((int)timeout.TotalMilliseconds, ref lockTaken);
 		}
 		
-		public void TryReliableEnter(int milliSeconds, ref bool lockTaken)
+		public void TryReliableEnter (int milliSeconds, ref bool lockTaken)
 		{
 			//Thread.BeginCriticalRegion();
 			
-			Stopwatch sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew ();
 			
 			while (sw.ElapsedMilliseconds < milliSeconds) {
-				TryReliableEnter(ref lockTaken);
+				TryReliableEnter (ref lockTaken);
 			}
-			sw.Stop();
+			sw.Stop ();
 		}
 
 		//FIXME
 		//[ReliabilityContractAttribute]
-		public void Exit() 
+		public void Exit () 
 		{ 
-			Exit(false);
+			Exit (false);
 		}
 
-		public void Exit(bool flushReleaseWrites) 
+		public void Exit (bool flushReleaseWrites) 
 		{ 
 			threadWhoTookLock = int.MinValue;
 			
@@ -179,9 +180,17 @@ namespace System.Threading
 			if (!flushReleaseWrites) {
 				lockState = isFree;
 			} else {
-				Thread.VolatileWrite(ref lockState, isFree);
+				Thread.VolatileWrite (ref lockState, isFree);
 			}
 			//Thread.EndCriticalRegion();
 		}
 	}
+	
+	// Wraps a SpinLock in a reference when we need to pass
+	// around the lock
+	internal class SpinLockWrapper
+	{
+		public readonly SpinLock Lock = new SpinLock (false);
+	}
 }
+#endif

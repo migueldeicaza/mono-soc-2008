@@ -1,3 +1,4 @@
+#if NET_4_0
 // BlockingCollection.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -31,34 +32,34 @@ using System.Diagnostics;
 
 namespace System.Threading.Collections
 {
-	public class BlockingCollection<T>: IEnumerable<T>, ICollection, IEnumerable, IDisposable
+	public class BlockingCollection<T> : IEnumerable<T>, ICollection, IEnumerable, IDisposable
 	{
 		readonly IConcurrentCollection<T> underlyingColl;
 		readonly int upperBound;
 		readonly Func<bool> isFull;
 		
-		readonly SpinWait sw = new SpinWait();
+		readonly SpinWait sw = new SpinWait ();
 		
 		volatile bool isComplete;
-		readonly SpinLock addLock = new SpinLock(false);
+		readonly SpinLock addLock = new SpinLock (false);
 		
 		#region ctors
-		public BlockingCollection():
-			this(new ConcurrentQueue<T>(), -1)
+		public BlockingCollection ()
+			: this (new ConcurrentQueue<T> (), -1)
 		{
 		}
 		
-		public BlockingCollection(int upperBound):
-			this(new ConcurrentQueue<T>(), upperBound)
+		public BlockingCollection (int upperBound)
+			: this (new ConcurrentQueue<T> (), upperBound)
 		{
 		}
 		
-		public BlockingCollection(IConcurrentCollection<T> underlyingColl):
-			this(underlyingColl, -1)
+		public BlockingCollection (IConcurrentCollection<T> underlyingColl)
+			: this (underlyingColl, -1)
 		{
 		}
 		
-		public BlockingCollection(IConcurrentCollection<T> underlyingColl, int upperBound)
+		public BlockingCollection (IConcurrentCollection<T> underlyingColl, int upperBound)
 		{
 			this.underlyingColl = underlyingColl;
 			this.upperBound     = upperBound;
@@ -67,142 +68,149 @@ namespace System.Threading.Collections
 				isFull = FalseIsFull;
 			else
 				isFull = CountBasedIsFull;
-			//isFull = (upperBound == -1) ? FalseIsFull : CountBasedIsFull;
 		}
 		
-		~BlockingCollection()
+		/*~BlockingCollection()
 		{
 			Dispose(false);
-		}
+		}*/
 		
-		static bool FalseIsFull()
+		static bool FalseIsFull ()
 		{
 			return false;
 		}
 		
-		bool CountBasedIsFull()
+		bool CountBasedIsFull ()
 		{
 			return underlyingColl.Count >= upperBound;	
 		}
 		#endregion
 		
 		#region Add & Remove (+ Try)
-		public void Add(T item)
+		public void Add (T item)
 		{
 			while (true) {
-				while (isFull()) {
+				while (isFull ()) {
 					if (isComplete)
-						throw new InvalidOperationException("The BlockingCollection<T>"
-						                                    + " has been marked as complete with regards to additions.");
-					Block();
+						throw new InvalidOperationException ("The BlockingCollection<T>"
+						                                     + " has been marked as complete with regards to additions.");
+					Block ();
 				}
 				// Extra check. The status might have changed after Block() or if isFull() is always false
 				if (isComplete)
-					throw new InvalidOperationException("The BlockingCollection<T> has"
-					                                    + " been marked as complete with regards to additions.");
+					throw new InvalidOperationException ("The BlockingCollection<T> has"
+					                                     + " been marked as complete with regards to additions.");
 				
 				try {
-					addLock.Enter();
+					addLock.Enter ();
 					// Go back in main waiting loop
-					if (isFull())
+					if (isFull ())
 						continue;
-					underlyingColl.Add(item);
+					underlyingColl.Add (item);
 					return;
 				} finally {
-					addLock.Exit(true);
+					addLock.Exit (true);
 				}
 			}
 		}
 		
-		public T Remove()
+		public T Remove ()
 		{
 			while (underlyingColl.Count == 0) {
 				if (isComplete)
-					throw new OperationCanceledException("The BlockingCollection<T> is empty and has been marked as complete with regards to additions.");
-				Block();
+					throw new OperationCanceledException ("The BlockingCollection<T> is empty and has been marked as complete with regards to additions.");
+				Block ();
 			}
 			
 			T item;
-			underlyingColl.Remove(out item);
+			underlyingColl.Remove (out item);
 			
 			return item;
 		}
 		
-		public bool TryAdd(T item)
+		public bool TryAdd (T item)
 		{
-			if (isComplete || isFull()) {
+			if (isComplete || isFull ()) {
 					return false;
 			}
 			try {
-				addLock.Enter();
-				if (isFull()) {
+				addLock.Enter ();
+				if (isFull ()) {
 					return false;
 				}
-				return underlyingColl.Add(item);
+				return underlyingColl.Add (item);
 			} finally {
-				addLock.Exit(true);
+				addLock.Exit (true);
 			}
 		}
 		
-		public bool TryAdd(T item, TimeSpan ts)
+		public bool TryAdd (T item, TimeSpan ts)
 		{
-			return TryAdd(item, (int)ts.TotalMilliseconds);
+			return TryAdd (item, (int)ts.TotalMilliseconds);
 		}
 		
-		public bool TryAdd(T item, int millisecondsTimeout)
+		public bool TryAdd (T item, int millisecondsTimeout)
 		{
-			Stopwatch sw = Stopwatch.StartNew();
-			while (isFull()) {
+			Stopwatch sw = Stopwatch.StartNew ();
+			while (isFull ()) {
 				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
-					sw.Stop();
+					sw.Stop ();
 					return false;
 				}
-				Block();
+				Block ();
 			}
-			return underlyingColl.Add(item);
+			return underlyingColl.Add (item);
 		}
 		
-		public bool TryRemove(out T item)
+		public bool TryRemove (out T item)
 		{
-			return underlyingColl.Remove(out item);
+			return underlyingColl.Remove (out item);
 		}
 		
-		public bool TryRemove(out T item, TimeSpan ts)
+		public bool TryRemove (out T item, TimeSpan ts)
 		{
-			return TryRemove(out item, (int)ts.TotalMilliseconds);
+			return TryRemove (out item, (int)ts.TotalMilliseconds);
 		}
 		
-		public bool TryRemove(out T item, int millisecondsTimeout)
+		public bool TryRemove (out T item, int millisecondsTimeout)
 		{
-			Stopwatch sw = Stopwatch.StartNew();
+			Stopwatch sw = Stopwatch.StartNew ();
 			while (underlyingColl.Count == 0) {
 				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
-					item = default(T);
+					item = default (T);
 					return false;
 				}
 					
-				Block();
+				Block ();
 			}
-			return underlyingColl.Remove(out item);
+			return underlyingColl.Remove (out item);
 		}
 		#endregion
 		
 		#region static methods
-		static void CheckArray(BlockingCollection<T>[] collections)
+		static void CheckArray (BlockingCollection<T>[] collections)
 		{
 			if (collections == null)
-				throw new ArgumentNullException("collections");
-			if (collections.Length == 0 || collections.Where(e => e == null).Any())
-				throw new ArgumentException("The collections argument is a 0-length array or contains a null element.", "collections");
+				throw new ArgumentNullException ("collections");
+			if (collections.Length == 0 || IsThereANullElement (collections))
+				throw new ArgumentException ("The collections argument is a 0-length array or contains a null element.", "collections");
 		}
 		
-		public static int AddAny(BlockingCollection<T>[] collections, T item)
+		static bool IsThereANullElement (BlockingCollection<T>[] collections)
 		{
-			CheckArray(collections);
+			foreach (BlockingCollection<T> e in collections)
+				if (e == null)
+					return true;
+			return false;
+		}
+		
+		public static int AddAny (BlockingCollection<T>[] collections, T item)
+		{
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
 				try {
-					coll.Add(item);
+					coll.Add (item);
 					return index;
 				} catch {}
 				index++;
@@ -210,50 +218,50 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryAddAny(BlockingCollection<T>[] collections, T item)
+		public static int TryAddAny (BlockingCollection<T>[] collections, T item)
 		{
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryAdd(item))
+				if (coll.TryAdd (item))
 					return index;
 				index++;
 			}
 			return -1;
 		}
 		
-		public static int TryAddAny(BlockingCollection<T>[] collections, T item, TimeSpan ts)
+		public static int TryAddAny (BlockingCollection<T>[] collections, T item, TimeSpan ts)
 		{
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryAdd(item, ts))
+				if (coll.TryAdd (item, ts))
 					return index;
 				index++;
 			}
 			return -1;
 		}
 		
-		public static int TryAddAny(BlockingCollection<T>[] collections, T item, int millisecondsTimeout)
+		public static int TryAddAny (BlockingCollection<T>[] collections, T item, int millisecondsTimeout)
 		{
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryAdd(item, millisecondsTimeout))
+				if (coll.TryAdd (item, millisecondsTimeout))
 					return index;
 				index++;
 			}
 			return -1;
 		}
 		
-		public static int RemoveAny(BlockingCollection<T>[] collections, out T item)
+		public static int RemoveAny (BlockingCollection<T>[] collections, out T item)
 		{
-			item = default(T);
-			CheckArray(collections);
+			item = default (T);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
 				try {
-					item = coll.Remove();
+					item = coll.Remove ();
 					return index;
 				} catch {}
 				index++;
@@ -261,42 +269,42 @@ namespace System.Threading.Collections
 			return -1;
 		}
 		
-		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item)
+		public static int TryRemoveAny (BlockingCollection<T>[] collections, out T item)
 		{
-			item = default(T);
+			item = default (T);
 			
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryRemove(out item))
+				if (coll.TryRemove (out item))
 					return index;
 				index++;
 			}
 			return -1;
 		}
 		
-		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, TimeSpan ts)
+		public static int TryRemoveAny (BlockingCollection<T>[] collections, out T item, TimeSpan ts)
 		{
-			item = default(T);
+			item = default (T);
 			
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryRemove(out item, ts))
+				if (coll.TryRemove (out item, ts))
 					return index;
 				index++;
 			}
 			return -1;
 		}
 		
-		public static int TryRemoveAny(BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
+		public static int TryRemoveAny (BlockingCollection<T>[] collections, out T item, int millisecondsTimeout)
 		{
-			item = default(T);
+			item = default (T);
 			
-			CheckArray(collections);
+			CheckArray (collections);
 			int index = 0;
 			foreach (var coll in collections) {
-				if (coll.TryRemove(out item, millisecondsTimeout))
+				if (coll.TryRemove (out item, millisecondsTimeout))
 					return index;
 				index++;
 			}
@@ -304,63 +312,63 @@ namespace System.Threading.Collections
 		}
 		#endregion
 		
-		public void CompleteAdding()
+		public void CompleteAdding ()
 		{
 			isComplete = true;
 		}
 		
-		void ICollection.CopyTo(Array array, int index)
+		void ICollection.CopyTo (Array array, int index)
 		{
-			underlyingColl.CopyTo(array, index);
+			underlyingColl.CopyTo (array, index);
 		}
 		
-		public void CopyTo(T[] array, int index)
+		public void CopyTo (T[] array, int index)
 		{
-			underlyingColl.CopyTo(array, index);
+			underlyingColl.CopyTo (array, index);
 		}
 		
-		public IEnumerable<T> GetConsumingEnumerable()
+		public IEnumerable<T> GetConsumingEnumerable ()
 		{
 			T item;
-			while (underlyingColl.Remove(out item)) {
+			while (underlyingColl.Remove (out item)) {
 				yield return item;
 			}
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator ()
 		{
-			return ((IEnumerable)underlyingColl).GetEnumerator();
+			return ((IEnumerable)underlyingColl).GetEnumerator ();
 		}
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
 		{
-			return ((IEnumerable<T>)underlyingColl).GetEnumerator();
+			return ((IEnumerable<T>)underlyingColl).GetEnumerator ();
 		}
 		
 		public IEnumerator<T> GetEnumerator ()
 		{
-			return ((IEnumerable<T>)underlyingColl).GetEnumerator();
+			return ((IEnumerable<T>)underlyingColl).GetEnumerator ();
 		}
 		
-		public void Dispose()
+		public void Dispose ()
 		{
-			Dispose(true);
+			//Dispose (true);
 		}
 		
-		protected virtual void Dispose(bool managedRes)
+		/*protected virtual void Dispose (bool managedRes)
 		{
 			
-		}
+		}*/
 		
-		public T[] ToArray()
+		public T[] ToArray ()
 		{
-			return underlyingColl.ToArray();
+			return underlyingColl.ToArray ();
 		}
 		
 		// Method used to stall the thread for a limited period of time before retrying an operation
-		void Block()
+		void Block ()
 		{
-			sw.SpinOnce();
+			sw.SpinOnce ();
 		}
 		
 		public int BoundedCapacity {
@@ -400,3 +408,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
+#endif

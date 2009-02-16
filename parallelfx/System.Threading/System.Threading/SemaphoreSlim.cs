@@ -1,3 +1,4 @@
+#if NET_4_0
 // SemaphoreSlim.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,7 +28,7 @@ using System.Diagnostics;
 
 namespace System.Threading
 {
-	public class SemaphoreSlim: IDisposable, ISupportsCancellation
+	public class SemaphoreSlim : IDisposable, ISupportsCancellation
 	{
 		readonly int max;
 		
@@ -36,42 +37,42 @@ namespace System.Threading
 		bool isCanceled;
 		bool isDisposed;
 		
-		SpinWait wait = new SpinWait();
+		SpinWait wait = new SpinWait ();
 		
-		public SemaphoreSlim(int initial): this (initial, int.MaxValue)
+		public SemaphoreSlim (int initial) : this (initial, int.MaxValue)
 		{
 		}
 		
-		public SemaphoreSlim(int initial, int max)
+		public SemaphoreSlim (int initial, int max)
 		{
 			if (initial < 0 || initial > max || max < 0)
-				throw new ArgumentOutOfRangeException("The initial  argument is negative, initial is greater than max, or max is not positive.");
+				throw new ArgumentOutOfRangeException ("The initial  argument is negative, initial is greater than max, or max is not positive.");
 			
 			this.max = max;
 			this.currCount = initial;
 		}
 		
-		~SemaphoreSlim()
+		~SemaphoreSlim ()
 		{
 			Dispose(false);
 		}
 		
-		public void Dispose()
+		public void Dispose ()
 		{
 			Dispose(true);
 		}
 		
-		protected virtual void Dispose(bool managedRes)
+		protected virtual void Dispose (bool managedRes)
 		{
 			isDisposed = true;
 		}
 		
-		void CheckState()
+		void CheckState ()
 		{
 			if (isCanceled)
-				throw new OperationCanceledException("The SemaphoreSlim is canceled.");
+				throw new OperationCanceledException ("The SemaphoreSlim is canceled.");
 			if (isDisposed)
-				throw new ObjectDisposedException("The SemaphoreSlim has been disposed.");
+				throw new ObjectDisposedException ("The SemaphoreSlim has been disposed.");
 		}
 		
 		public int CurrentCount {
@@ -86,21 +87,21 @@ namespace System.Threading
 			}
 		}
 		
-		public void Cancel()
+		public void Cancel ()
 		{
 			isCanceled = true;
 		}
 		
-		public int Release()
+		public int Release ()
 		{
 			return Release(1);
 		}
 		
-		public int Release(int releaseCount)
+		public int Release (int releaseCount)
 		{
-			CheckState();
+			CheckState ();
 			if (releaseCount < 0)
-				throw new ArgumentOutOfRangeException("releaseCount", "	The releaseCount must be positive.");
+				throw new ArgumentOutOfRangeException ("releaseCount", "	The releaseCount must be positive.");
 			
 			// As we have to take care of the max limit we resort to CAS
 			int oldValue, newValue;
@@ -108,60 +109,60 @@ namespace System.Threading
 				oldValue = currCount;
 				newValue = (currCount + releaseCount);
 				newValue = newValue > max ? max : newValue;
-			} while (Interlocked.CompareExchange(ref currCount, newValue, oldValue) != oldValue);
+			} while (Interlocked.CompareExchange (ref currCount, newValue, oldValue) != oldValue);
 			
 			return oldValue;
 		}
 		
-		public void Wait()
+		public void Wait ()
 		{
-			CheckState();
+			CheckState ();
 			do {
-				int result = Interlocked.Decrement(ref currCount);
+				int result = Interlocked.Decrement (ref currCount);
 				if (result >= 0)
 					break;
 				
 				// We revert back the operation
-				Interlocked.Increment(ref currCount);
-				while (Thread.VolatileRead(ref currCount) <= 0) {
-					wait.SpinOnce();
+				Interlocked.Increment (ref currCount);
+				while (Thread.VolatileRead (ref currCount) <= 0) {
+					wait.SpinOnce ();
 				}
-			} while(true);
+			} while (true);
 		}
 		
-		public bool Wait(TimeSpan ts)
+		public bool Wait (TimeSpan ts)
 		{
 			CheckState();
-			return Wait((int)ts.TotalMilliseconds);
+			return Wait ((int)ts.TotalMilliseconds);
 		}
 		
-		public bool Wait(int millisecondsTimeout)
+		public bool Wait (int millisecondsTimeout)
 		{
-			CheckState();
+			CheckState ();
 			if (millisecondsTimeout < -1)
-				throw new ArgumentOutOfRangeException("millisecondsTimeout",
-				                                      "millisecondsTimeout is a negative number other than -1");
+				throw new ArgumentOutOfRangeException ("millisecondsTimeout",
+				                                       "millisecondsTimeout is a negative number other than -1");
 			if (millisecondsTimeout == -1) {
-				Wait();
+				Wait ();
 				return true;
 			}
 			
 			do {
-				int result = Interlocked.Decrement(ref currCount);
+				int result = Interlocked.Decrement (ref currCount);
 				if (result >= 0)
 					break;
 				
 				// We revert back the operation
-				result = Interlocked.Increment(ref currCount);
-				Stopwatch sw = Stopwatch.StartNew();
-				while (Thread.VolatileRead(ref currCount) <= 0) {
+				result = Interlocked.Increment (ref currCount);
+				Stopwatch sw = Stopwatch.StartNew ();
+				while (Thread.VolatileRead (ref currCount) <= 0) {
 					if (sw.ElapsedMilliseconds > millisecondsTimeout) {
-						sw.Stop();
+						sw.Stop ();
 						return false;
 					}
-					wait.SpinOnce();
+					wait.SpinOnce ();
 				}
-			} while(true);
+			} while (true);
 			
 			return true;
 		}
@@ -173,3 +174,4 @@ namespace System.Threading
 		}
 	}
 }
+#endif

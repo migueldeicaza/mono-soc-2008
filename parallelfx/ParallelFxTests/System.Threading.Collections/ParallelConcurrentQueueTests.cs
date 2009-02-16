@@ -1,3 +1,4 @@
+#if NET_4_0
 // ParallelConcurrentQueueTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -57,3 +58,4 @@ namespace ParallelFxTests
 		}
 	}
 }
+#endif

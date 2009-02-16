@@ -1,3 +1,4 @@
+#if NET_4_0
 // ConcurrentQueue.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -31,8 +32,8 @@ namespace System.Threading.Collections
 {
 	
 	
-	public class ConcurrentQueue<T>: IConcurrentCollection<T>, IEnumerable<T>, ICollection
-		, IEnumerable, ISerializable, IDeserializationCallback
+	public class ConcurrentQueue<T> : IConcurrentCollection<T>, IEnumerable<T>, ICollection,
+	                                  IEnumerable, ISerializable, IDeserializationCallback
 	{
 		class Node
 		{
@@ -40,29 +41,26 @@ namespace System.Threading.Collections
 			public Node Next;
 		}
 		
-		Node head = new Node();
+		Node head = new Node ();
 		Node tail;
 		int count;
 		
 		/// <summary>
 		/// </summary>
-		public ConcurrentQueue()
+		public ConcurrentQueue ()
 		{
 			tail = head;
 		}
 		
-		public ConcurrentQueue(IEnumerable<T> enumerable): this()
+		public ConcurrentQueue (IEnumerable<T> enumerable): this()
 		{
 			foreach (T item in enumerable)
-				Enqueue(item);
+				Enqueue (item);
 		}
 		
-		/// <summary>
-		/// </summary>
-		/// <param name="item"></param>
-		public void Enqueue(T item)
+		public void Enqueue (T item)
 		{
-			Node node  = new Node();
+			Node node  = new Node ();
 			node.Value = item;
 			
 			Node oldTail = null;
@@ -77,31 +75,31 @@ namespace System.Threading.Collections
 				if (tail == oldTail) {
 					if (oldNext == null) {
 						// The place is for us
-						update = Interlocked.CompareExchange(ref tail.Next, node, null) == null;
+						update = Interlocked.CompareExchange (ref tail.Next, node, null) == null;
 					} else {
 						// another Thread already used the place so give him a hand by putting tail where it should be
-						Interlocked.CompareExchange(ref tail, oldNext, oldTail);
+						Interlocked.CompareExchange (ref tail, oldNext, oldTail);
 					}
 				}
 			}
 			// At this point we added correctly our node, now we have to update tail. If it fails then it will be done by another thread
-			Interlocked.CompareExchange(ref tail, node, oldTail);
+			Interlocked.CompareExchange (ref tail, node, oldTail);
 			
-			Interlocked.Increment(ref count);
+			Interlocked.Increment (ref count);
 		}
 		
-		bool IConcurrentCollection<T>.Add(T item)
+		bool IConcurrentCollection<T>.Add (T item)
 		{
-			Enqueue(item);
+			Enqueue (item);
 			return true;
 		}
 		
 		/// <summary>
 		/// </summary>
 		/// <returns></returns>
-		public bool TryDequeue(out T value)
+		public bool TryDequeue (out T value)
 		{
-			value = default(T);
+			value = default (T);
 			bool advanced = false;
 			while (!advanced) {
 				Node oldHead = head;
@@ -114,28 +112,28 @@ namespace System.Threading.Collections
 						// This should be false then
 						if (oldNext != null) {
 							// If not then the linked list is mal formed, update tail
-							Interlocked.CompareExchange(ref tail, oldNext, oldTail);
+							Interlocked.CompareExchange (ref tail, oldNext, oldTail);
 						}
-						value = default(T);
+						value = default (T);
 						return false;
 					} else {
 						value = oldNext.Value;
-						advanced = Interlocked.CompareExchange(ref head, oldNext, oldHead) == oldHead;
+						advanced = Interlocked.CompareExchange (ref head, oldNext, oldHead) == oldHead;
 					}
 				}
 			}
 
-			Interlocked.Decrement(ref count);
+			Interlocked.Decrement (ref count);
 			return true;
 		}
 		
 		/// <summary>
 		/// </summary>
 		/// <returns></returns>
-		public bool TryPeek(out T value)
+		public bool TryPeek (out T value)
 		{
 			if (IsEmpty) {
-				value = default(T);
+				value = default (T);
 				return false;
 			}
 			
@@ -144,28 +142,28 @@ namespace System.Threading.Collections
 			return true;
 		}
 		
-		public void Clear()
+		public void Clear ()
 		{
 			count = 0;
-			tail = head = new Node();
+			tail = head = new Node ();
 		}
 		
 		IEnumerator IEnumerable.GetEnumerator ()
 		{
-			return (IEnumerator)InternalGetEnumerator();
+			return (IEnumerator)InternalGetEnumerator ();
 		}
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
 		{
-			return InternalGetEnumerator();
+			return InternalGetEnumerator ();
 		}
 		
 		public IEnumerator<T> GetEnumerator ()
 		{
-			return InternalGetEnumerator();
+			return InternalGetEnumerator ();
 		}
 		
-		IEnumerator<T> InternalGetEnumerator()
+		IEnumerator<T> InternalGetEnumerator ()
 		{
 			Node my_head = head;
 			while ((my_head = my_head.Next) != null) {
@@ -178,22 +176,22 @@ namespace System.Threading.Collections
 			T[] dest = array as T[];
 			if (dest == null)
 				return;
-			CopyTo(dest, index);
+			CopyTo (dest, index);
 		}
 		
-		public void CopyTo(T[] dest, int index)
+		public void CopyTo (T[] dest, int index)
 		{
-			IEnumerator<T> e = InternalGetEnumerator();
+			IEnumerator<T> e = InternalGetEnumerator ();
 			int i = index;
-			while (e.MoveNext()) {
-				dest[i++] = e.Current;
+			while (e.MoveNext ()) {
+				dest [i++] = e.Current;
 			}
 		}
 		
 		public T[] ToArray ()
 		{
-			T[] dest = new T[count];
-			CopyTo(dest, 0);
+			T[] dest = new T [count];
+			CopyTo (dest, 0);
 			return dest;
 		}
 		
@@ -213,7 +211,7 @@ namespace System.Threading.Collections
 
 		bool IConcurrentCollection<T>.Remove (out T item)
 		{
-			return TryDequeue(out item);
+			return TryDequeue (out item);
 		}
 		
 		object syncRoot = new object();
@@ -234,3 +232,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
+#endif
