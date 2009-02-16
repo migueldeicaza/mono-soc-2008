@@ -28,11 +28,13 @@ using System.Collections.Generic;
 
 namespace System.Linq
 {
-	public interface IParallelOrderedEnumerable<T>: IParallelEnumerable<T>,
-	IParallelEnumerable, IOrderedEnumerable<T>, IEnumerable<T>, IEnumerable
+	public interface IParallelOrderedEnumerable<T> : IParallelEnumerable<T>,
+	                                                 IParallelEnumerable,
+	                                                 IOrderedEnumerable<T>, IEnumerable<T>,
+	                                                 IEnumerable
 	{
-		IParallelOrderedEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
-		                                                            IComparer<TKey> comparer,
-		                                                            bool descending);
+		IParallelOrderedEnumerable<T> CreateParallelOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
+		                                                                    IComparer<TKey> comparer,
+		                                                                    bool descending);
 	}
 }

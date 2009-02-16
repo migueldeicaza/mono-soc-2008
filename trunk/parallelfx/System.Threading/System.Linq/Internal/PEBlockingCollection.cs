@@ -60,12 +60,10 @@ namespace System.Linq
 		
 		void LaunchOrderedLast(IParallelEnumerator<TSource> enumerator)
 		{
-			SpinLock sl = new SpinLock(false);
-			SpinWait sw = new SpinWait();
+			SpinLockWrapper sl = new SpinLockWrapper ();
+			SpinWait sw = new SpinWait ();
 			int indexToBeAdded = -1;
 				
-			// TODO: false now that SpinLock is back to a struct
-			// variable capture will break the lock
 			Parallel.SpawnBestNumber(delegate {
 				while (!bColl.IsAddingCompleted) {
 					ResultReturn<T> result = action(enumerator);
@@ -75,7 +73,7 @@ namespace System.Linq
 					bool added = false;
 					while (!added) {
 						try {
-							sl.Enter();
+							sl.Lock.Enter();
 							if (result.Index == indexToBeAdded + 1) {
 								if (!result.IsValid) {
 									// Just increment the index to let the next possible
@@ -88,7 +86,7 @@ namespace System.Linq
 								added = true;
 							}	
 						} finally {
-							sl.Exit();
+							sl.Lock.Exit();
 						}
 						
 						if (!added)

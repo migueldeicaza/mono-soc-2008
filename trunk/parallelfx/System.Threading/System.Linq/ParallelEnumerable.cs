@@ -187,7 +187,7 @@ namespace System.Linq
 			if (comparer == null)
 				throw new ArgumentNullException("comparer");
 			
-			return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, false);
+			return source.CreateParallelOrderedEnumerable<TKey>(keySelector, comparer, false);
 		}
 		
 		public static IParallelOrderedEnumerable<T> ThenByDescending<T, TKey> (this IParallelOrderedEnumerable<T> source,
@@ -203,7 +203,7 @@ namespace System.Linq
 			if (comparer == null)
 				throw new ArgumentNullException("comparer");
 			
-			return source.CreateOrderedEnumerable<TKey>(keySelector, comparer, true);
+			return source.CreateParallelOrderedEnumerable<TKey>(keySelector, comparer, true);
 		}
 		#endregion 
 		
@@ -516,7 +516,7 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource> (source.AsOrdered(), delegate (int i, TSource e) {
 				if (Interlocked.Increment(ref counter) <= count) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
@@ -536,7 +536,7 @@ namespace System.Linq
 		{
 			bool stopFlag = true;
 			
-			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
+			return PEHelper.Process<TSource, TSource> (source.AsOrdered(), delegate (int i, TSource e) {
 				if (stopFlag && (stopFlag = predicate(e, i))) {
 					return new ResultReturn<TSource>(true, true, e, i);
 				} else {
@@ -551,7 +551,7 @@ namespace System.Linq
 		{
 			int counter = 0;
 			
-			return source.Where((element, index) => Interlocked.Increment(ref counter) > count);
+			return source.AsOrdered().Where((element, index) => Interlocked.Increment(ref counter) > count);
 		}
 		
 		public static IParallelEnumerable<TSource> SkipWhile<TSource>(this IParallelEnumerable<TSource> source, 
@@ -565,7 +565,7 @@ namespace System.Linq
 		{
 			bool predicateStatus = true;
 			
-			return source.Where((element, index) => {
+			return source.AsOrdered().Where((element, index) => {
 				if (!predicateStatus)
 					return true;
 				
@@ -587,7 +587,7 @@ namespace System.Linq
 			TSource result = default(TSource);
 			int currIndex = -1;
 			
-			PEHelper.Process(source, delegate (int j, TSource element) {
+			PEHelper.Process(source.AsOrdered(), delegate (int j, TSource element) {
 				int myIndex = Interlocked.Increment(ref currIndex);
 				if (myIndex == index) {
 					result = element;
@@ -702,12 +702,25 @@ namespace System.Linq
 		#endregion
 		
 		#region ToArray - ToList
+		// This ones is the most efficient, however it brokes ordering in all case
 		public static List<T> ToList<T>(this IParallelEnumerable<T> source)
 		{
 			List<T> temp = source.Aggregate(() => new List<T>(),
 			                                (list, e) => { list.Add(e); return list; },
 			                                (list, list2) => { list.AddRange(list2); return list; },
 			                                (list) => list);
+			return temp;
+		}
+	
+		public static List<T> ToList<T>(this IParallelOrderedEnumerable<T> source)
+		{
+			List<T> temp = new List<T>();
+			source.ForAll (delegate (T e) {
+				lock (temp) {
+					temp.Add (e);
+				}
+			});
+			
 			return temp;
 		}
 		
