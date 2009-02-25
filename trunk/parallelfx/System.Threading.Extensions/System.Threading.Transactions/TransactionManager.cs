@@ -23,7 +23,7 @@ namespace System.Threading.Transactions
 			return true;
 		}
 		
-		bool DoRead(Isolated[] isolateds, Action<object[]> tr)
+		bool DoRead(StmObject[] isolateds, Action<object[]> tr)
 		{
 			object[] args = isolateds.Select((i) => i.Object.Value).ToArray();
 			tr(args);
@@ -47,7 +47,7 @@ namespace System.Threading.Transactions
 			return true;
 		}
 		
-		bool DoWrite(Isolated[] isolateds, Action<object[]> tr)
+		bool DoWrite(StmObject[] isolateds, Action<object[]> tr)
 		{
 			CloneContainer[] args = isolateds.Select((iso) => iso.GetClone()).ToArray();
 			object[] clones = new object[args.Length];

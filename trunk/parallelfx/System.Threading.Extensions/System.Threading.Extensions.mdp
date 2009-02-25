@@ -31,7 +31,7 @@
     <File name="InterlockedExtension.cs" subtype="Code" buildaction="Nothing" />
     <File name="AtomicBoolean.cs" subtype="Code" buildaction="Compile" />
     <File name="InterlockedEx.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Transactions/Isolated.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Transactions/StmObject.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Transactions/SlotInfo.cs" subtype="Code" buildaction="Nothing" />
     <File name="System.Threading.Transactions/ITransactionManager.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Transactions/TransactionManager.cs" subtype="Code" buildaction="Compile" />
