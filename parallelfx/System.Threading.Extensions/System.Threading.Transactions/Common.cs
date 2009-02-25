@@ -27,7 +27,7 @@ using System;
 namespace System.Threading.Transactions
 {
 	
-	public enum TransactionOpeningMode
+	public enum OpeningMode
 	{
 		Read,
 		Write
@@ -38,5 +38,16 @@ namespace System.Threading.Transactions
 		Abort,
 		Spin,
 		Stop
+	}
+	
+	public enum ExecutionType {
+		OnlyOnce,
+		UntilSucceed
+	}
+	
+	public enum IsolatedOpenMode {
+		Default,
+		Read,
+		Write
 	}
 }

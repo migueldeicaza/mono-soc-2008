@@ -28,48 +28,58 @@ using System.Collections.Generic;
 
 namespace System.Threading.Transactions
 {
-	/* Todo : register all access/modification 
-	 *
-	 */
-	/* Probably better to use a interface here */
+
 	public class Transaction
-	{
-		// Register a list of ITrObject and uses MCas to try update each
-		// ITrObject
-		IList<TransactionContainer> objects = new List<TransactionContainer>();
-		SpinWait sw = new SpinWait();
+	{	
+		readonly Action<object[]> transaction;
+		readonly Isolated[] isolateds;
+		readonly OpeningMode mode;
 		
-		public Transaction()
-		{
-			
-		}
+		readonly ITransactionManager manager = new TransactionManager();
 
-		internal void Register(TransactionContainer container)
-		{
-			objects.Add(container);
+		internal Isolated[] Isolateds {
+			get {
+				return isolateds;
+			}
 		}
 		
-		public bool Commit()
-		{
-			bool result = false;
-
-			do {
-				result = InterlockedExtension.MultiCompareAndSwap<ICloneable>(objects.Select((o) => o.TransactionObject.Object).ToArray(),
-				                                                              objects.Select((o) => o.CurrentInstance).ToArray(),
-				                                                              objects.Select((o) => o.BaseInstance).ToArray());
-			} while (!result && GetDecision());
-			
-			if (result)
-				objects.Clear();
-			
-			return result;
+		internal Action<object[]> Action {
+			get {
+				return transaction;
+			}
 		}
-
-		// TODO: Get the IConflictManager hooked here
-		bool GetDecision()
+		
+		
+		private Transaction (OpeningMode mode, Isolated[] isolateds, Action<object[]> transaction)
 		{
-			sw.SpinOnce();
-			return true;
+			this.isolateds = isolateds;
+			this.transaction = transaction;
+			this.mode = mode;
+		}
+		
+		public static Transaction Create<T> (OpeningMode mode, Isolated<T> val1, Action<T> tr)
+			where T : class
+		{
+			return new Transaction(mode, new Isolated[] { val1 }, (isolateds) => tr((T)isolateds[0]));
+		}
+		
+		public static Transaction Create<T, U> (OpeningMode mode, Isolated<T> val1,
+		                                        Isolated<U> val2, Action<T, U> tr)
+			where T : class where U : class
+		{
+			return new Transaction(mode, new Isolated[] { val1, val2 },
+			(isolateds) => tr((T)isolateds[0], (U)isolateds[1]));
+		}
+		
+		public bool Execute()
+		{
+			return Execute(ExecutionType.UntilSucceed);
+		}
+		
+		public bool Execute(ExecutionType type)
+		{
+			return mode == OpeningMode.Read ? manager.ExecuteRead(type, this)
+				: manager.ExecuteWrite(type, this);
 		}
 	}
 }
