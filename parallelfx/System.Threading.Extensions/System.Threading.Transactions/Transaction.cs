@@ -32,12 +32,12 @@ namespace System.Threading.Transactions
 	public class Transaction
 	{	
 		readonly Action<object[]> transaction;
-		readonly Isolated[] isolateds;
+		readonly StmObject[] isolateds;
 		readonly OpeningMode mode;
 		
 		readonly ITransactionManager manager = new TransactionManager();
 
-		internal Isolated[] Isolateds {
+		internal StmObject[] Isolateds {
 			get {
 				return isolateds;
 			}
@@ -50,24 +50,24 @@ namespace System.Threading.Transactions
 		}
 		
 		
-		private Transaction (OpeningMode mode, Isolated[] isolateds, Action<object[]> transaction)
+		private Transaction (OpeningMode mode, StmObject[] isolateds, Action<object[]> transaction)
 		{
 			this.isolateds = isolateds;
 			this.transaction = transaction;
 			this.mode = mode;
 		}
 		
-		public static Transaction Create<T> (OpeningMode mode, Isolated<T> val1, Action<T> tr)
+		public static Transaction Create<T> (OpeningMode mode, StmObject<T> val1, Action<T> tr)
 			where T : class
 		{
-			return new Transaction(mode, new Isolated[] { val1 }, (isolateds) => tr((T)isolateds[0]));
+			return new Transaction(mode, new StmObject[] { val1 }, (isolateds) => tr((T)isolateds[0]));
 		}
 		
-		public static Transaction Create<T, U> (OpeningMode mode, Isolated<T> val1,
-		                                        Isolated<U> val2, Action<T, U> tr)
+		public static Transaction Create<T, U> (OpeningMode mode, StmObject<T> val1,
+		                                        StmObject<U> val2, Action<T, U> tr)
 			where T : class where U : class
 		{
-			return new Transaction(mode, new Isolated[] { val1, val2 },
+			return new Transaction(mode, new StmObject[] { val1, val2 },
 			(isolateds) => tr((T)isolateds[0], (U)isolateds[1]));
 		}
 		

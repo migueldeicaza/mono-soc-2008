@@ -37,30 +37,31 @@ namespace System.Threading
 		Failed
 	}
 	
-	internal class MCasDesc<T> where T : class
+	internal class MCasDesc
 	{
-		internal readonly T[] Expecteds;
+		/*internal readonly T[] Expecteds;
 		internal readonly T[] NewValues;
 		
 		public MCasDesc(T[] expecteds, T[] newValues)
 		{
 			this.Expecteds = expecteds;
 			this.NewValues = newValues;
-		}
+		}*/
 		
-		//internal volatile bool Succeed = true;
 		internal volatile MCasState State = MCasState.Undefined;
 	}
 	
 	internal class MCasSlot<T> where T : class
 	{
-		internal readonly MCasDesc<T> Desc;
-		internal readonly int Index;
-		
-		public MCasSlot(MCasDesc<T> desc, int index)
+		internal readonly MCasDesc Desc;
+		internal readonly T Expected;
+		internal readonly T NewValue;
+	
+		public MCasSlot(MCasDesc desc, T expected, T newValue)
 		{
 			this.Desc = desc;
-			this.Index = index;
+			this.Expected = expected;
+			this.NewValue = newValue;
 		}
 	}
 		
@@ -74,11 +75,11 @@ namespace System.Threading
 				throw new ArgumentOutOfRangeException("parameters length mismatch");
 			
 			SpinWait wait = new SpinWait();
-			MCasDesc<T> desc = new MCasDesc<T>(expected, newValues);
+			MCasDesc desc = new MCasDesc();
 			desc.State = MCasState.Implementing;
 			for (int i = 0; i < locations.Length && desc.State != MCasState.Failed; i++) {
 				Swappable<T> isolated = locations[i];
-				MCasSlot<T> slot = new MCasSlot<T>(desc, i);
+				MCasSlot<T> slot = new MCasSlot<T>(desc, expected[i], newValues[i]);
 				while (desc.State != MCasState.Failed) {
 					MCasSlot<T> s = null;
 					
@@ -91,15 +92,14 @@ namespace System.Threading
 							continue;
 						}
 						// Already a slot present. Helps the existing MCas process
-						int j = s.Index;
 						if (s.Desc.State == MCasState.Succeed) {
 							T ret = Interlocked.CompareExchange(ref isolated.Object,
-							                                    s.Desc.NewValues[j],
-							                                    s.Desc.Expecteds[j]);
+							                                    s.NewValue,
+							                                    s.Expected);
 							
 							
 							// 1/ Failed CAS or 2/ someone already used CAS successfully
-							if (ret != s.Desc.Expecteds[j] && ret != s.Desc.NewValues[j])
+							if (ret != s.Expected && ret != s.NewValue)
 								s.Desc.State = MCasState.Failed;
 						}
 						Interlocked.CompareExchange(ref isolated.Slot, null, s);

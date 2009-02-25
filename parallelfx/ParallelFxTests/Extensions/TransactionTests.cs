@@ -44,14 +44,14 @@ namespace ParallelFxTests
 			}
 		}
 		
-		Isolated<BusinessClass> b1;
-		Isolated<BusinessClass> b2;
+		StmObject<BusinessClass> b1;
+		StmObject<BusinessClass> b2;
 		
 		[SetUp]
 		public void Setup ()
 		{
-			b1 = new Isolated<BusinessClass>(new BusinessClass(1, "foo"));
-			b2 = new Isolated<BusinessClass>(new BusinessClass(2, "bar"));
+			b1 = new StmObject<BusinessClass>(new BusinessClass(1, "foo"));
+			b2 = new StmObject<BusinessClass>(new BusinessClass(2, "bar"));
 		}
 		
 		[Test]

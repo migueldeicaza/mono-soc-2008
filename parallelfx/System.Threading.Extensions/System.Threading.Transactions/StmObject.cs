@@ -16,12 +16,12 @@ namespace System.Threading.Transactions
 		}
 	}
 	
-	public abstract class Isolated
+	public abstract class StmObject
 	{
 		internal readonly Swappable<object> Object;
 		readonly Func<object, object> cloneFunc;
 		
-		protected Isolated (object value, Func<object, object> cloneFunc)
+		protected StmObject (object value, Func<object, object> cloneFunc)
 		{
 			Object = new Swappable<object> (value);
 			this.cloneFunc = cloneFunc;
@@ -34,14 +34,14 @@ namespace System.Threading.Transactions
 		}
 	}
 	
-	public class Isolated<T> : Isolated where T : class
+	public class StmObject<T> : StmObject where T : class
 	{
-		public Isolated (ICloneable value)
+		public StmObject (ICloneable value)
 			: base (value, (v) => ((ICloneable)v).Clone())
 		{
 		}
 		
-		public Isolated (T value, Func<T, T> cloneFunc)
+		public StmObject (T value, Func<T, T> cloneFunc)
 			: base (value, (v) => cloneFunc ((T)v))
 		{
 		}
