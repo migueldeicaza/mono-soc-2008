@@ -1,5 +1,4 @@
-<Combine name="ParallelFX" fileversion="2.0">
-  <Policies />
+<Combine fileversion="2.0" name="ParallelFX">
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="CombineConfiguration">
       <Entry build="True" name="System.Threading" configuration="Debug" />

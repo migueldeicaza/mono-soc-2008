@@ -130,6 +130,7 @@ namespace System.Threading
 						success = false;
 						break;
 					}
+					MultiCompareAndSwapInternal<T>(desc);
 				}
 			}
 
@@ -139,7 +140,7 @@ namespace System.Threading
 			Interlocked.CompareExchange(ref d.Stat, (int)desired, (int)Status.Undefined);
 			success = d.Stat == (int)Status.Successful;
 
-			for (int i = 0; i < d.Locations.Length && success; i++)
+			for (int i = 0; i < d.Locations.Length; i++)
 				Interlocked.CompareExchange(ref d.Locations[i].InternalValue,
 				                            success ? d.NewValues[i] : d.Expecteds[i], d.Expecteds[i]);
 

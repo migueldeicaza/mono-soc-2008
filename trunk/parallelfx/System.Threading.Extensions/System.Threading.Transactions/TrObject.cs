@@ -78,7 +78,7 @@ namespace System.Threading.Transactions
 		public T Open(Transaction tr, TransactionOpeningMode mode)
 		{
 			ICloneable copy = (ICloneable)Object.Value.Clone();
-			tr.Register(new TransactionContainer(this, copy));
+			//tr.Register(new TransactionContainer(this, copy));
 			return (T)Object.Value.Clone();
 		}
 	}
