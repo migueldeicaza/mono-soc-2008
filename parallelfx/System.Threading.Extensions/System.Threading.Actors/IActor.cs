@@ -26,7 +26,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {
 	// The type T represents the type of the message passed to the actor
 	public interface IActor

@@ -26,7 +26,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {
 	public static class Combinators
 	{

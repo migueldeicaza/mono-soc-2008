@@ -26,7 +26,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace System.Threading.Transactions
+namespace Mono.Threading.Transactions
 {
 
 	public class Transaction

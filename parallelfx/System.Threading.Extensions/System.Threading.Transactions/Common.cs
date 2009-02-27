@@ -24,7 +24,7 @@
 
 using System;
 
-namespace System.Threading.Transactions
+namespace Mono.Threading.Transactions
 {
 	
 	public enum OpeningMode
