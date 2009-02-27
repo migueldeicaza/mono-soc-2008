@@ -89,9 +89,11 @@ namespace System.Threading
 			//Thread.BeginCriticalRegion();
 			while (result == isOwned) {
 				// If resource available, set it to in-use and return
-				result = Interlocked.Exchange (ref lockState, isOwned);
-				if (result == isFree)
-					break;
+				if (result == isFree) {
+					result = Interlocked.Exchange (ref lockState, isOwned);
+					if (result == isFree)
+						break;
+				}
 				
 				// Efficiently spin, until the resource looks like it might 
 				// be free. NOTE: Just reading here (as compared to repeatedly 
@@ -130,7 +132,7 @@ namespace System.Threading
 			bool result = false;
 			
 			while (sw.ElapsedMilliseconds < milliSeconds) {
-				if (Interlocked.Exchange (ref lockState, isOwned) == isFree) {
+				if (lockState == isFree && Interlocked.Exchange (ref lockState, isOwned) == isFree) {
 					threadWhoTookLock = Thread.CurrentThread.ManagedThreadId;
 					result = true;
 				}
@@ -180,7 +182,7 @@ namespace System.Threading
 			if (!flushReleaseWrites) {
 				lockState = isFree;
 			} else {
-				Thread.VolatileWrite (ref lockState, isFree);
+				Interlocked.Exchange (ref lockState, isFree);
 			}
 			//Thread.EndCriticalRegion();
 		}

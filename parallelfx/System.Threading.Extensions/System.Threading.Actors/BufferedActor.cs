@@ -34,18 +34,21 @@ namespace System.Threading.Actors
 	{	
 		ConcurrentQueue<ActorMessage<MessageArgs>> mbox
 			= new ConcurrentQueue<ActorMessage<MessageArgs>>();
+		
+		static TaskManager tm
+			= new TaskManager(new TaskManagerPolicy(), new ThreadPoolScheduler());
     
 		// Use this ctor if you don't want to subclass, syntax may be a little less sympathic
 		// The BufferedActor passed as argument represents this.
-		public BufferedActor(Action<BufferedActor> body)
+		public BufferedActor(Action<IActor> body)
 		{
-			Task.StartNew(delegate { body(this); });
+			Task.StartNew (_ => body(this), tm);
 		}
 		
 		// Use this ctor in derived class and override Act method to do the actual processing
 		protected BufferedActor()
 		{
-			Task.StartNew(delegate { Act(); });
+			Task.StartNew (_ => Act(), tm);
 		}
 		
 		protected virtual void Act()
@@ -62,7 +65,7 @@ namespace System.Threading.Actors
 		{
 			bool flag = true;
 			
-			Combinators.LoopWhile(delegate {
+			Combinators.LoopWhile(() => {
 				flag = !TryReceive(handler);
 			}, () => flag).Wait();
 		}
@@ -73,7 +76,7 @@ namespace System.Threading.Actors
 		{
 			ActorMessage<MessageArgs> message;
 			if (mbox.TryDequeue(out message)) {
-				Task.StartNew(delegate { handler(message); });
+				Task.StartNew(_ => handler(message), tm);
 				return true;
 			}
 			

@@ -1,4 +1,4 @@
-// SimpleActor.cs
+// ThreadPoolScheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -23,23 +23,64 @@
 //
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace System.Threading.Actors
 {
-	// This actor simply wraps up Tasks
-	public class SimpleActor<T>: IActor<T>
+	internal class ThreadPoolScheduler : IScheduler
 	{
-		Action<T> action;
+		SpinWait sw = new SpinWait ();
 		
-		public SimpleActor(Action<T> action)
+		#region IDisposable implementation 
+		public void Dispose ()
 		{
-			this.action = action;
+		}
+		#endregion
+
+		#region IScheduler implementation 
+		
+		public void AddWork (Task t)
+		{
+			ThreadPool.QueueUserWorkItem (delegate {
+				t.Execute (AddWork);
+			});
 		}
 		
-		public void Act(T data)
+		public void Participate ()
 		{
-			Task.Create(_ => action(data));
+			throw new NotSupportedException();
 		}
+		
+		public void ParticipateUntil (Task task)
+		{
+			while (!task.IsCompleted)
+				sw.SpinOnce();
+		}
+		
+		public bool ParticipateUntil (Task task, Func<bool> predicate)
+		{
+			while (!task.IsCompleted) {
+				if (predicate())
+					return false;
+				sw.SpinOnce();
+			}
+
+			return true;
+		}
+		
+		public void ParticipateUntil (Func<bool> predicate)
+		{
+			while (!predicate())
+				sw.SpinOnce();
+		}
+		
+		public void PulseAll ()
+		{
+			
+		}
+		
+		#endregion 
+		
 	}
 }
