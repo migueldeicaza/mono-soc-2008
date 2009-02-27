@@ -28,22 +28,9 @@ namespace System.Threading.Actors
 {
 	public static class Actor
 	{
-		public static IActor<T> CreateActor<T>(Action<T> action)
+		public static IActor Create(Action<IActor> action)
 		{
-			return CreateActor(action, false);
-		}
-		
-		public static IActor<T> CreateBufferedActor<T>(Action<T> action)
-		{
-			return CreateActor(action, true);
-		}
-		
-		public static IActor<T> CreateActor<T>(Action<T> action, bool queued)
-		{
-			if (queued)
-				return new StandardActor<T>(action);
-			else
-				return new SimpleActor<T>(action);
+			return new BufferedActor(action);
 		}
 	}
 }

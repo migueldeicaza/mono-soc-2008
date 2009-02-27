@@ -39,7 +39,7 @@ namespace System.Threading.Actors
 		}
 
 
-	  // The following Loop and LoopWhile are to be used inside actor to simulate a infinite loop or a while-like loop. They have the same semantic but allows other Tasks to be processed and so to not clung the scheduler.
+		// The following Loop and LoopWhile are to be used inside actor to simulate a infinite loop or a while-like loop. They have the same semantic but allows other Tasks to be processed and so to not clung the scheduler.
 		public static Task Loop(Action body)
 		{
 			return AndThen(body, delegate { Loop(body); });
