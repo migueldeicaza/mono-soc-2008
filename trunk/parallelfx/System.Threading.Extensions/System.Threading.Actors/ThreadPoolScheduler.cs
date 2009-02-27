@@ -26,7 +26,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {
 	internal class ThreadPoolScheduler : IScheduler
 	{

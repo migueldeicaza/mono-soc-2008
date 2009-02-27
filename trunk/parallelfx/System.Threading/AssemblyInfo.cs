@@ -20,7 +20,7 @@ using System.Runtime.CompilerServices;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: InternalsVisibleTo("ParallelFxTests")]
-[assembly: InternalsVisibleTo("System.Threading.Extensions")]
+[assembly: InternalsVisibleTo("Mono.Threading.Extensions")]
 [assembly: CLSCompliant(true)]
 
 // The assembly version has the format "{Major}.{Minor}.{Build}.{Revision}".

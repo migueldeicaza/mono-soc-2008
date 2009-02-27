@@ -28,7 +28,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Collections;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {
 	/* This class is quite similar to what EventArgs are for events. If you want to use a custom
 	 * message which wraps up some data for example, subclass this class. TypeFlag can be used

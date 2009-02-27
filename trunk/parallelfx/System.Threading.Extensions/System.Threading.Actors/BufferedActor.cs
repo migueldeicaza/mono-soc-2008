@@ -28,7 +28,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Collections;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {	
 	public class BufferedActor: IActor
 	{	

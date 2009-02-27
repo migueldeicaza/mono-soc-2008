@@ -24,7 +24,7 @@
 
 using System;
 
-namespace System.Threading.Actors
+namespace Mono.Threading.Actors
 {
 	public static class Actor
 	{
