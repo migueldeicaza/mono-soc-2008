@@ -31,7 +31,7 @@ namespace System.Threading
 	public struct SpinWait
 	{
 		// The number of step until SpinOnce yield on multicore machine
-		const           int  step = 32;
+		const           int  step = 30;
 		static readonly bool isSingleCpu = (Environment.ProcessorCount == 1);
 		
 		int ntime;

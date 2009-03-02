@@ -146,19 +146,14 @@ namespace System.Threading.Tasks
 		
 		public Task ContinueWith (Action<Task> a, TaskContinuationKind kind, TaskCreationOptions option, bool executeSync)
 		{
-			Task continuation = new Task (TaskManager.Current, delegate { a (this); }, null, option);
+			Task continuation = new Task (TaskManager.Current, _ => a (this), null, option);
 			ContinueWithCore (continuation, kind, false);
 			return continuation;
 		}
 		
 		protected void ContinueWithCore (Task continuation, TaskContinuationKind kind, bool executeSync)
 		{
-			if (IsCompleted) {
-				CheckAndSchedule (executeSync, continuation);
-				return;
-			}
-				
-			completed += delegate {
+			EventHandler action = delegate {
 				switch (kind) {
 				case TaskContinuationKind.OnAny:
 					CheckAndSchedule (executeSync, continuation);
@@ -177,6 +172,13 @@ namespace System.Threading.Tasks
 					break;
 				}
 			};
+			
+			if (IsCompleted) {
+				action (this, EventArgs.Empty);
+				return;
+			}
+				
+			completed += action;
 		}
 		
 		void CheckAndSchedule (bool executeSync, Task continuation)
@@ -192,7 +194,7 @@ namespace System.Threading.Tasks
 		internal protected void Schedule ()
 		{			
 			// If worker is null it means it is a local one, revert to the old behavior
-			if (current == null || childWorkAdder == null) {
+			if (current == null || childWorkAdder == null || parent == null) {
 				m_taskManager.AddWork (this);
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
