@@ -37,7 +37,7 @@ namespace System.Threading.Tasks
 		
 		readonly          ThreadWorker[]        others;
 		internal readonly DynamicDeque<Task>    dDeque;
-		readonly          ConcurrentStack<Task> sharedWorkQueue;
+		readonly          IConcurrentCollection<Task> sharedWorkQueue;
 		readonly          Action<Task>          childWorkAdder;
 		
 		// Flag to tell if workerThread is running
@@ -55,13 +55,13 @@ namespace System.Threading.Tasks
 		
 		Action threadInitializer;
 		
-		public ThreadWorker (IScheduler sched, ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
+		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IConcurrentCollection<Task> sharedWorkQueue,
 		                     int maxStackSize, ThreadPriority priority)
 			: this (sched, others, sharedWorkQueue, true, maxStackSize, priority)
 		{
 		}
 		
-		public ThreadWorker (IScheduler sched, ThreadWorker[] others, ConcurrentStack<Task> sharedWorkQueue,
+		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IConcurrentCollection<Task> sharedWorkQueue,
 		                     bool createThread, int maxStackSize, ThreadPriority priority)
 		{
 			this.others          = others;
@@ -161,8 +161,8 @@ namespace System.Threading.Tasks
 				Task value;
 				
 				// We fill up our work deque concurrently with other ThreadWorker
-				while (!sharedWorkQueue.IsEmpty) {
-					while (sharedWorkQueue.TryPop (out value)) {
+				while (sharedWorkQueue.Count > 0) {
+					while (sharedWorkQueue.Remove (out value)) {
 						dDeque.PushBottom (value);
 					}
 					
@@ -196,7 +196,7 @@ namespace System.Threading.Tasks
 						}
 					}
 				}
-			} while (!sharedWorkQueue.IsEmpty || hasStolenFromOther);
+			} while (sharedWorkQueue.Count > 0 || hasStolenFromOther);
 			
 			return result;
 		}
@@ -204,14 +204,14 @@ namespace System.Threading.Tasks
 		// Almost same as above but with an added predicate and treating one item at a time. 
 		// It's used by Scheduler Participate(...) method for special waiting case like
 		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
-		public static void WorkerMethod (Func<bool> predicate, ConcurrentStack<Task> sharedWorkQueue,
+		public static void WorkerMethod (Func<bool> predicate, IConcurrentCollection<Task> sharedWorkQueue,
 		                                 ThreadWorker[] others)
 		{
 			while (!predicate ()) {
 				Task value;
 				
 				// Dequeue only one item as we have restriction
-				if (sharedWorkQueue.TryPop (out value)) {
+				if (sharedWorkQueue.Remove (out value)) {
 					if (value != null) {
 						value.Execute (null);
 					}

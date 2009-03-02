@@ -32,7 +32,7 @@ namespace System.Threading.Tasks
 {
 	internal class Scheduler: IScheduler
 	{
-		ConcurrentStack<Task> workQueue;
+		IConcurrentCollection<Task> workQueue;
 		ThreadWorker[]        workers;
 		bool                  isPulsable = true;
 		
@@ -49,7 +49,7 @@ namespace System.Threading.Tasks
 		public void AddWork (Task t)
 		{
 			// Add to the shared work pool
-			workQueue.Push (t);
+			workQueue.Add (t);
 			// Wake up some worker if they were asleep
 			PulseAll ();
 		}
