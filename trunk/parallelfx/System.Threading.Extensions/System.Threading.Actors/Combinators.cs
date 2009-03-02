@@ -30,27 +30,27 @@ namespace Mono.Threading.Actors
 {
 	public static class Combinators
 	{
-		public static Task AndThen(Action initial, params Action[] chain)
+		public static Task AndThen (Action initial, params Action[] chain)
 		{
-			Task root = Task.StartNew(delegate { initial(); });
-			chain.Aggregate(root, (t, a) => t.ContinueWith(delegate { a(); }));
+			Task root = Task.StartNew (_ => initial());
+			chain.Aggregate (root, (t, a) => t.ContinueWith (_ => a (), TaskContinuationKind.OnAny,
+			                                                 TaskCreationOptions.Detached));
 			
 			return root;
 		}
 
-
 		// The following Loop and LoopWhile are to be used inside actor to simulate a infinite loop or a while-like loop. They have the same semantic but allows other Tasks to be processed and so to not clung the scheduler.
-		public static Task Loop(Action body)
+		public static Task Loop (Action body)
 		{
-			return AndThen(body, delegate { Loop(body); });
+			return AndThen (body, () => Loop(body));
 		}
 		
-		public static Task LoopWhile(Action body, Func<bool> predicate)
+		public static Task LoopWhile (Action body, Func<bool> predicate)
 		{
-			if (predicate())
-				return AndThen(body, delegate { LoopWhile(body, predicate); });
+			if (predicate ())
+				return AndThen (body, () => LoopWhile (body, predicate));
 			
-			return Task.StartNew(delegate { });
+			return Task.StartNew (delegate { });
 		}
 	}
 }

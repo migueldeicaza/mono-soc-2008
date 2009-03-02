@@ -32,17 +32,23 @@ namespace Mono.Threading.Actors
 {	
 	public class BufferedActor: IActor
 	{	
-		ConcurrentQueue<ActorMessage<MessageArgs>> mbox
+		IConcurrentCollection<ActorMessage<MessageArgs>> mbox
 			= new ConcurrentQueue<ActorMessage<MessageArgs>>();
 		
-		static TaskManager tm
-			= new TaskManager(new TaskManagerPolicy(), new ThreadPoolScheduler());
+		/*static TaskManager tm
+			= new TaskManager(new TaskManagerPolicy(), new ThreadPoolScheduler());*/
+		static TaskManager tm = new TaskManager(new TaskManagerPolicy(2, 2, 1));
     
 		// Use this ctor if you don't want to subclass, syntax may be a little less sympathic
 		// The BufferedActor passed as argument represents this.
 		public BufferedActor(Action<IActor> body)
 		{
 			Task.StartNew (_ => body(this), tm);
+		}
+		
+		public BufferedActor(Action body)
+		{
+			Task.StartNew (_ => body(), tm);
 		}
 		
 		// Use this ctor in derived class and override Act method to do the actual processing
@@ -57,7 +63,7 @@ namespace Mono.Threading.Actors
 		
 		public void Send(IActor sender, MessageArgs message)
 		{
-			mbox.Enqueue(new ActorMessage<MessageArgs>(sender, message));
+			mbox.Add(new ActorMessage<MessageArgs>(sender, message));
 		}
 		
 		// This method blocks by calling TryReceive repeatidly, always sure to return a good result
@@ -75,8 +81,8 @@ namespace Mono.Threading.Actors
 		public bool TryReceive(Action<ActorMessage<MessageArgs>> handler)
 		{
 			ActorMessage<MessageArgs> message;
-			if (mbox.TryDequeue(out message)) {
-				Task.StartNew(_ => handler(message), tm);
+			if (mbox.Remove(out message)) {
+				handler(message);
 				return true;
 			}
 			
@@ -94,7 +100,7 @@ namespace Mono.Threading.Actors
 						data = m.Message;
 						flag = false;
 					} else {
-						mbox.Enqueue(m);
+						mbox.Add(m);
 					}	
 				});
 			}
