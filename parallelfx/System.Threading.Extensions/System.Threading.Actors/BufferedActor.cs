@@ -67,18 +67,20 @@ namespace Mono.Threading.Actors
 		}
 		
 		// This method blocks by calling TryReceive repeatidly, always sure to return a good result
-		public void Receive(Action<ActorMessage<MessageArgs>> handler)
+		public bool TryReceive(out ActorMessage<MessageArgs> message)
 		{
-			bool flag = true;
+			message = default(ActorMessage<MessageArgs>);
 			
-			Combinators.LoopWhile(() => {
-				flag = !TryReceive(handler);
-			}, () => flag).Wait();
+			ActorMessage<MessageArgs> temp = message;
+			bool result = Receive((m) => temp = m);
+			message = temp;
+			
+			return result;
 		}
 		
 		// This method try to dequeue an element from the message box and if successful
 		// launch a Task executing the handler with the dequeued element
-		public bool TryReceive(Action<ActorMessage<MessageArgs>> handler)
+		public bool Receive(Action<ActorMessage<MessageArgs>> handler)
 		{
 			ActorMessage<MessageArgs> message;
 			if (mbox.Remove(out message)) {
@@ -89,7 +91,7 @@ namespace Mono.Threading.Actors
 			return false;
 		}
 		
-		public MessageArgs SendToAndWait(IActor dest, MessageArgs message)
+		/*public MessageArgs SendToAndWait(IActor dest, MessageArgs message)
 		{
 			MessageArgs data = MessageArgs.Empty;
 			dest.Send(this, message);
@@ -106,6 +108,6 @@ namespace Mono.Threading.Actors
 			}
 			
 			return data;
-		}
+		}*/
 	}
 }

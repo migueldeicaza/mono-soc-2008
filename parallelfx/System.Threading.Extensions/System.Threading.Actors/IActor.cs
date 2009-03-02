@@ -32,8 +32,8 @@ namespace Mono.Threading.Actors
 	public interface IActor
 	{
 		void Send                 (IActor sender, MessageArgs message);
-		void Receive              (Action<ActorMessage<MessageArgs>> handler);
-		bool TryReceive           (Action<ActorMessage<MessageArgs>> handler);
-		MessageArgs SendToAndWait (IActor destination, MessageArgs message);		
+		bool Receive              (Action<ActorMessage<MessageArgs>> handler);
+		bool TryReceive           (out ActorMessage<MessageArgs> message);
+		//MessageArgs SendToAndWait (IActor destination, MessageArgs message);		
 	}
 }

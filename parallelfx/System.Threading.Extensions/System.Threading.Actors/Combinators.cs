@@ -33,7 +33,8 @@ namespace Mono.Threading.Actors
 		public static Task AndThen (Action initial, params Action[] chain)
 		{
 			Task root = Task.StartNew (_ => initial());
-			chain.Aggregate (root, (t, a) => t.ContinueWith (_ => a (), TaskContinuationKind.OnAny,
+			chain.Aggregate (root, (t, a) => t.ContinueWith (_ => a (),
+			                                                 TaskContinuationKind.OnCompletedSuccessfully,
 			                                                 TaskCreationOptions.Detached));
 			
 			return root;

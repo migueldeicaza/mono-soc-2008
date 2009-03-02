@@ -49,7 +49,6 @@ namespace Mono.Threading.Transactions
 			}
 		}
 		
-		
 		private Transaction (OpeningMode mode, StmObject[] isolateds, Action<object[]> transaction)
 		{
 			this.isolateds = isolateds;
@@ -69,6 +68,24 @@ namespace Mono.Threading.Transactions
 		{
 			return new Transaction(mode, new StmObject[] { val1, val2 },
 			(isolateds) => tr((T)isolateds[0], (U)isolateds[1]));
+		}
+		
+		public static Transaction Create<T, U, V> (OpeningMode mode, StmObject<T> val1,
+		                                           StmObject<U> val2, StmObject<V> val3,
+		                                           Action<T, U, V> tr)
+			where T : class where U : class where V : class
+		{
+			return new Transaction(mode, new StmObject[] { val1, val2, val3 },
+			(isolateds) => tr((T)isolateds[0], (U)isolateds[1], (V)isolateds[2]));
+		}
+		
+		public static Transaction Create<T, U, V, W> (OpeningMode mode, StmObject<T> val1,
+		                                              StmObject<U> val2, StmObject<V> val3,
+		                                              StmObject<W> val4, Action<T, U, V, W> tr)
+			where T : class where U : class where V : class where W : class
+		{
+			return new Transaction(mode, new StmObject[] { val1, val2, val3 },
+			(isolateds) => tr((T)isolateds[0], (U)isolateds[1], (V)isolateds[2], (W)isolateds[3]));
 		}
 		
 		public bool Execute()
