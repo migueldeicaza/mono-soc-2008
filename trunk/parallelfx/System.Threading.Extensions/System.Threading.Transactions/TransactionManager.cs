@@ -45,6 +45,7 @@ namespace Mono.Threading.Transactions
 			return true;
 		}
 		
+		// TODO: See if the check semantic is strict enough for most use case
 		bool DoRead(StmObject[] isolateds, Action<object[]> tr)
 		{
 			object[] args = isolateds.Select((i) => i.Object.Value).ToArray();
@@ -61,9 +62,7 @@ namespace Mono.Threading.Transactions
 			if (type == ExecutionType.OnlyOnce) {
 				return DoWrite(transaction.Isolateds, transaction.Action);
 			} else {
-				while (!DoWrite(transaction.Isolateds, transaction.Action))
-				{
-				}
+				while (!DoWrite(transaction.Isolateds, transaction.Action));
 			}
 			
 			return true;
