@@ -32,5 +32,10 @@ namespace Mono.Threading.Actors
 		{
 			return new BufferedActor(action);
 		}
+		
+		public static IActor Create(Action action)
+		{
+			return new BufferedActor(action);
+		}
 	}
 }

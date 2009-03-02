@@ -32,6 +32,11 @@ namespace Mono.Threading.Actors
 	{
 		SpinWait sw = new SpinWait ();
 		
+		public ThreadPoolScheduler ()
+		{
+			//ThreadPool.SetMaxThreads(20, 20);
+		}
+		
 		#region IDisposable implementation 
 		public void Dispose ()
 		{
