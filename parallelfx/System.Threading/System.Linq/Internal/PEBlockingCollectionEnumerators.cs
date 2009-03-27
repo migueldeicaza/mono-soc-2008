@@ -64,7 +64,7 @@ namespace System.Linq
 	#region BlockingCollectionOrderedEnumerator
 	internal class BlockingCollectionOrderedEnumerator<TSource, T>: BlockingCollectionEnumeratorBase<T>
 	{
-		SpinLock sl = new SpinLock(false);
+		readonly SpinLock sl = new SpinLock(false);
 		readonly SpinWait sw = new SpinWait();
 		readonly Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		readonly IParallelEnumerator<TSource> enumerator;

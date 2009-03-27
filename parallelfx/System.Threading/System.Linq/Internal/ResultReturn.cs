@@ -32,7 +32,7 @@ namespace System.Linq
 		public readonly bool Result;
 		public readonly bool IsValid;
 		public readonly T Item;
-		public readonly int Index;
+		public int Index;
 
 		public static readonly ResultReturn<T> False = new ResultReturn<T>(false, false, default(T), -1);
 

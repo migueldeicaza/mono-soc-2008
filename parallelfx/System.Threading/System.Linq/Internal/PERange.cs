@@ -32,7 +32,8 @@ namespace System.Linq
 	// Some dummy interface implementation to provide optimization for some PLinq operators
 	internal class PERange: ParallelEnumerableBase<int>, ICollection<int>, IList<int>
 	{
-		int start, count;
+		readonly int start;
+		readonly int count;
 		
 		public PERange(int start, int count, int dop): base(dop)
 		{

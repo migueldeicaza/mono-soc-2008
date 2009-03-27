@@ -27,7 +27,7 @@ using System;
 
 namespace System.Threading
 {
-	internal struct AtomicBoolean
+	internal class AtomicBoolean
 	{
 		int flag;
 		const int UnSet = 0;
@@ -60,7 +60,7 @@ namespace System.Threading
 				return flag == Set;
 			} 
 			set {
-				Thread.VolatileWrite (ref flag, value ? Set : UnSet);
+				Interlocked.Exchange (ref flag, value ? Set : UnSet);
 			}
 		}
 		

@@ -40,7 +40,8 @@ namespace System.Threading.Collections
 		
 		readonly SpinWait sw = new SpinWait ();
 		
-		volatile bool isComplete;
+		AtomicBoolean isComplete;
+		//bool isComplete;
 		readonly SpinLock addLock = new SpinLock (false);
 		
 		#region ctors
@@ -63,6 +64,7 @@ namespace System.Threading.Collections
 		{
 			this.underlyingColl = underlyingColl;
 			this.upperBound     = upperBound;
+			this.isComplete     = new AtomicBoolean ();
 			
 			if (upperBound == -1)
 				isFull = FalseIsFull;
@@ -91,21 +93,27 @@ namespace System.Threading.Collections
 		{
 			while (true) {
 				while (isFull ()) {
-					if (isComplete)
+					if (isComplete.Value)
 						throw new InvalidOperationException ("The BlockingCollection<T>"
 						                                     + " has been marked as complete with regards to additions.");
 					Block ();
 				}
 				// Extra check. The status might have changed after Block() or if isFull() is always false
-				if (isComplete)
+				if (isComplete.Value)
 					throw new InvalidOperationException ("The BlockingCollection<T> has"
 					                                     + " been marked as complete with regards to additions.");
 				
 				try {
 					addLock.Enter ();
+					
+					if (isComplete.Value)
+						throw new InvalidOperationException ("The BlockingCollection<T>"
+						                                     + " has been marked as complete with regards to additions.");
+
 					// Go back in main waiting loop
 					if (isFull ())
 						continue;
+					
 					underlyingColl.Add (item);
 					return;
 				} finally {
@@ -117,7 +125,7 @@ namespace System.Threading.Collections
 		public T Remove ()
 		{
 			while (underlyingColl.Count == 0) {
-				if (isComplete)
+				if (isComplete.Value)
 					throw new OperationCanceledException ("The BlockingCollection<T> is empty and has been marked as complete with regards to additions.");
 				Block ();
 			}
@@ -130,12 +138,13 @@ namespace System.Threading.Collections
 		
 		public bool TryAdd (T item)
 		{
-			if (isComplete || isFull ()) {
+			if (isComplete.Value || isFull ()) {
 					return false;
 			}
+			
 			try {
 				addLock.Enter ();
-				if (isFull ()) {
+				if (isFull () || isComplete.Value) {
 					return false;
 				}
 				return underlyingColl.Add (item);
@@ -153,13 +162,13 @@ namespace System.Threading.Collections
 		{
 			Stopwatch sw = Stopwatch.StartNew ();
 			while (isFull ()) {
-				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
+				if (isComplete.Value || sw.ElapsedMilliseconds > millisecondsTimeout) {
 					sw.Stop ();
 					return false;
 				}
 				Block ();
 			}
-			return underlyingColl.Add (item);
+			return TryAdd (item);
 		}
 		
 		public bool TryRemove (out T item)
@@ -176,14 +185,14 @@ namespace System.Threading.Collections
 		{
 			Stopwatch sw = Stopwatch.StartNew ();
 			while (underlyingColl.Count == 0) {
-				if (isComplete || sw.ElapsedMilliseconds > millisecondsTimeout) {
+				if (isComplete.Value || sw.ElapsedMilliseconds > millisecondsTimeout) {
 					item = default (T);
 					return false;
 				}
 					
 				Block ();
 			}
-			return underlyingColl.Remove (out item);
+			return TryRemove (out item);
 		}
 		#endregion
 		
@@ -314,7 +323,12 @@ namespace System.Threading.Collections
 		
 		public void CompleteAdding ()
 		{
-			isComplete = true;
+			try {
+				addLock.Enter ();
+				isComplete.Value = true;
+			} finally {
+				addLock.Exit ();
+			}
 		}
 		
 		void ICollection.CopyTo (Array array, int index)
@@ -385,13 +399,13 @@ namespace System.Threading.Collections
 		
 		public bool IsAddingCompleted {
 			get {
-				return isComplete;
+				return isComplete.Value;
 			}
 		}
 		
 		public bool IsCompleted {
 			get {
-				return isComplete && underlyingColl.Count == 0;
+				return isComplete.Value && underlyingColl.Count == 0;
 			}
 		}
 		

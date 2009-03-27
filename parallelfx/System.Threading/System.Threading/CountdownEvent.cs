@@ -55,9 +55,9 @@ namespace System.Threading
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
-			if (IsSet || num > count)
+			
+			if (!ApplyOperation (-num))
 				throw new InvalidOperationException ();
-			Interlocked.Add (ref count, -num);
 		}
 		
 		public void Increment ()
@@ -69,9 +69,9 @@ namespace System.Threading
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
-			if (IsSet || num > int.MaxValue - count)
+			
+			if (!ApplyOperation (num))
 				throw new InvalidOperationException ();
-			Interlocked.Add (ref count, num);
 		}
 		
 		public bool TryIncrement ()
@@ -85,13 +85,23 @@ namespace System.Threading
 				return false;
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
-			if (num > int.MaxValue - count)
-				throw new InvalidOperationException ();
 			
-			if (IsSet)
-				return false;
+			return ApplyOperation (num);
+		}
 			
-			Interlocked.Add (ref count, num);
+		bool ApplyOperation (int num)
+		{
+			int oldCount;
+			int newValue;
+			
+			do {
+				if (IsSet)
+					return false;
+				
+				oldCount = count;
+				newValue = oldCount + num;
+			} while (Interlocked.CompareExchange (ref count, newValue, oldCount) != oldCount);
+			
 			return true;
 		}
 		
@@ -135,7 +145,7 @@ namespace System.Threading
 		
 		public void Reset (int value)
 		{
-			Thread.VolatileWrite (ref count, value);
+			Interlocked.Exchange (ref count, value);
 		}
 		
 		public int CurrentCount {
@@ -180,7 +190,7 @@ namespace System.Threading
 		
 		public void Cancel ()
 		{
-			Thread.VolatileWrite (ref count, 0);
+			Interlocked.Exchange (ref count, 0);
 			isCanceled = true;
 		}
 		

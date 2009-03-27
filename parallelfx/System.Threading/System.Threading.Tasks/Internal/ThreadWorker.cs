@@ -137,7 +137,12 @@ namespace System.Threading.Tasks
 			
 			// Main loop
 			while (started == 1) {
-				bool result = WorkerMethod ();
+				bool result = false;
+				try {
+					result = WorkerMethod ();
+				} catch (Exception e) {
+					Console.WriteLine (e.ToString ());
+				}
 				
 				// Wait a little and if the Thread has been more sleeping than working shut it down
 				wait.SpinOnce ();
@@ -152,7 +157,7 @@ namespace System.Threading.Tasks
 		
 		// Main method, used to do all the logic of retrieving, processing and stealing work.
 		bool WorkerMethod ()
-		{
+		{		
 			bool result = false;
 			bool hasStolenFromOther;
 			do {

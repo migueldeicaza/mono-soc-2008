@@ -115,7 +115,7 @@ namespace System.Linq
 		{
 			IParallelEnumerator<TSource> feedEnum = source.GetParallelEnumerator(false);
 			
-			Parallel.SpawnBestNumber(delegate {
+			Parallel.SpawnBestNumber (delegate {
 				TSource item;
 				int i;
 				while (feedEnum.MoveNext(out item, out i)) {
