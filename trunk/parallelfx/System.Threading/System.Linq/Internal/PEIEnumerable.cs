@@ -49,7 +49,11 @@ namespace System.Linq
 			const int chunkSize = 10;
 			
 			readonly IEnumerable<T> enumerable;
+#if USE_MONITOR
+			readonly object syncRoot = new object ();
+#else
 			readonly SpinLock sl;
+#endif
 			
 			IEnumerator<T> enumerator;
 			T current;
@@ -59,7 +63,9 @@ namespace System.Linq
 			{
 				this.enumerable = enumerable;
 				this.enumerator = enumerable.GetEnumerator();
+#if !USE_MONITOR
 				this.sl = new SpinLock(false);
+#endif
 			}
 			
 			T IEnumerator<T>.Current {
@@ -78,6 +84,13 @@ namespace System.Linq
 			{
 				bool result = false;
 				
+#if USE_MONITOR
+				lock (syncRoot) {
+					if (result = enumerator.MoveNext()) {
+						current = enumerator.Current;
+					}
+				}
+#else
 				try {
 					sl.Enter();
 					if (result = enumerator.MoveNext()) {
@@ -86,6 +99,7 @@ namespace System.Linq
 				} finally {
 					sl.Exit(true);
 				}
+#endif
 				
 				return result;
 			}
@@ -96,6 +110,14 @@ namespace System.Linq
 				bool result = false;
 				index = -1;
 				
+#if USE_MONITOR
+				lock (syncRoot) {
+					if (result = enumerator.MoveNext()) {
+						current = item = enumerator.Current;
+						index   = ++currIndex;
+					}
+				}
+#else
 				try {
 					sl.Enter();
 					if (result = enumerator.MoveNext()) {
@@ -105,18 +127,26 @@ namespace System.Linq
 				} finally {
 					sl.Exit(true);
 				}
+#endif
 				
 				return result;
 			}
 			
 			public void Reset()
 			{
+#if USE_MONITOR
+				lock (syncRoot) {
+					enumerator = enumerable.GetEnumerator ();
+				}
+#else
 				try {
 					sl.Enter();
 					enumerator = enumerable.GetEnumerator();
 				} finally {
 					sl.Exit(true);
 				}
+#endif
+				
 			}
 			
 			public void Dispose()

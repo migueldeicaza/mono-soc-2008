@@ -45,7 +45,7 @@ namespace System.Threading.Tasks
 		
 		int                 taskId;
 		Exception           exception;
-		AtomicBoolean       isCanceled;
+		AtomicBoolean       isCanceled = new AtomicBoolean ();
 		bool                respectParentCancellation;
 		bool                isCompleted;
 		TaskCreationOptions taskCreationOptions;
@@ -153,23 +153,26 @@ namespace System.Threading.Tasks
 		
 		protected void ContinueWithCore (Task continuation, TaskContinuationKind kind, bool executeSync)
 		{
+			AtomicBoolean launched = new AtomicBoolean ();
 			EventHandler action = delegate {
-				switch (kind) {
-				case TaskContinuationKind.OnAny:
-					CheckAndSchedule (executeSync, continuation);
-					break;
-				case TaskContinuationKind.OnAborted:
-					if (isCanceled.Value)
+				if (!launched.Exchange (true)) {
+					switch (kind) {
+					case TaskContinuationKind.OnAny:
 						CheckAndSchedule (executeSync, continuation);
-					break;
-				case TaskContinuationKind.OnFailed:
-					if (exception != null)
-						CheckAndSchedule (executeSync, continuation);
-					break;
-				case TaskContinuationKind.OnCompletedSuccessfully:
-					if (exception == null && !isCanceled.Value)
-						CheckAndSchedule (executeSync, continuation);
-					break;
+						break;
+					case TaskContinuationKind.OnAborted:
+						if (isCanceled.Value)
+							CheckAndSchedule (executeSync, continuation);
+						break;
+					case TaskContinuationKind.OnFailed:
+						if (exception != null)
+							CheckAndSchedule (executeSync, continuation);
+						break;
+					case TaskContinuationKind.OnCompletedSuccessfully:
+						if (exception == null && !isCanceled.Value)
+							CheckAndSchedule (executeSync, continuation);
+						break;
+					}
 				}
 			};
 			
@@ -179,6 +182,10 @@ namespace System.Threading.Tasks
 			}
 				
 			completed += action;
+			
+			// Retry in case completion was achieved but event adding was too late
+			if (IsCompleted)
+				action (this, EventArgs.Empty);
 		}
 		
 		void CheckAndSchedule (bool executeSync, Task continuation)
@@ -239,7 +246,7 @@ namespace System.Threading.Tasks
 		
 		internal void AddChild ()
 		{
-			childTasks.Increment ();
+			childTasks.TryIncrement ();
 		}
 
 		internal void ChildCompleted ()
@@ -263,6 +270,9 @@ namespace System.Threading.Tasks
 			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
 				parent.ChildCompleted ();
 			Dispose ();
+			
+			if (exception != null)
+				throw exception;
 		}
 		
 		internal bool ChildTasks {

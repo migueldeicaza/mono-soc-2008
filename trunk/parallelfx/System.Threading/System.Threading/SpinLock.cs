@@ -34,9 +34,9 @@ namespace System.Threading
 		const int isFree = 0;
 		const int isOwned = 1;
 		int lockState;
-		SpinWait sw;
+		readonly SpinWait sw;
 		int threadWhoTookLock;
-		bool isThreadOwnerTrackingEnabled;
+		readonly bool isThreadOwnerTrackingEnabled;
 		
 		public bool IsThreadOwnerTrackingEnabled {
 			get {
@@ -99,9 +99,9 @@ namespace System.Threading
 				// be free. NOTE: Just reading here (as compared to repeatedly 
 				// calling Exchange) improves performance because writing 
 				// forces all CPUs to update this value
-				while (Thread.VolatileRead (ref lockState) == isOwned) {
+				//while (Thread.VolatileRead (ref lockState) == isOwned) {
 					sw.SpinOnce ();
-				}
+				//}
 			}
 			
 			CheckAndSetThreadId ();

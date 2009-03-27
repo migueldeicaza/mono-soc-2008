@@ -63,7 +63,6 @@ namespace System.Linq
 		{
 			return PEHelper.Process<TSource, TSource> (source, delegate (int i, TSource e) {
 				if (predicate(e, i))
-					// TODO: Make the given back index correct 
 					return new ResultReturn<TSource>(true, true, e, i);
 				else
 					return new ResultReturn<TSource>(true, false, default(TSource), i);
@@ -84,19 +83,14 @@ namespace System.Linq
 		}
 		
 		public static int Count<TSource>(this IParallelEnumerable<TSource> source, Func<TSource, bool> predicate)
-		{
-			int count = 0;
-			
+		{	
 			var coll = source.AsICollection();
 			if (coll != null) return coll.Count;
 			
-			PEHelper.Process(source, delegate (int i, TSource element) {
-				if (predicate(element))
-					Interlocked.Increment(ref count);
-				return true;
-			}, true);
-			
-			return count;
+			return source.Aggregate<TSource, int, int>(() => 0,
+			                                           (acc, e) => predicate (e) ? acc + 1 : acc,
+			                                           (acc1, acc2) => acc1 + acc2,
+			                                           (result) => result);
 		}
 		#endregion
 		
@@ -461,7 +455,7 @@ namespace System.Linq
 		                                                               Func<TAccumulate, TAccumulate, TAccumulate> finalReduceFunc,
 		                                                               Func<TAccumulate, TResult> resultSelector)
 		{
-			int count = Parallel.GetBestWorkerNumber() + 1;
+			int count = Parallel.GetBestWorkerNumber();
 			
 			TAccumulate[] accumulators = new TAccumulate[count];
 			
@@ -634,7 +628,7 @@ namespace System.Linq
 			
 			bool result = false;
 			
-			PEHelper.Process<TSource>(source, delegate (int i, TSource e) {
+			PEHelper.Process<TSource>(source.AsOrdered (), delegate (int i, TSource e) {
 				if (predicate(e)) {
 					element = e;
 					result = true;
@@ -673,7 +667,7 @@ namespace System.Linq
 			
 			TSource element = default(TSource);
 			
-			PEHelper.Process<TSource>(source, delegate (int i, TSource e) {
+			PEHelper.Process<TSource>(source.AsOrdered (), delegate (int i, TSource e) {
 				if (predicate(e)) {
 					element = e;
 					return false;
@@ -705,6 +699,10 @@ namespace System.Linq
 		// This ones is the most efficient, however it brokes ordering in all case
 		public static List<T> ToList<T>(this IParallelEnumerable<T> source)
 		{
+			/*var ordered = source as IParallelOrderedEnumerable<T>;
+			if (ordered != null)
+				return ToList (ordered);*/
+			
 			List<T> temp = source.Aggregate(() => new List<T>(),
 			                                (list, e) => { list.Add(e); return list; },
 			                                (list, list2) => { list.AddRange(list2); return list; },
@@ -722,6 +720,11 @@ namespace System.Linq
 		}
 		
 		public static T[] ToArray<T>(this IParallelEnumerable<T> source)
+		{
+			return source.ToList().ToArray();	
+		}
+		
+		public static T[] ToArray<T>(this IParallelOrderedEnumerable<T> source)
 		{
 			return source.ToList().ToArray();	
 		}

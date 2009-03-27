@@ -35,7 +35,8 @@ namespace System.Linq
 
 		Comparison<T> comparison;
 		
-		internal POrderedEnumerable(IParallelEnumerable<T> source, Comparison<T> comparison): base(source.Dop())
+		internal POrderedEnumerable(IParallelEnumerable<T> source, Comparison<T> comparison)
+			: base (source.Dop())
 		{
 			this.source = source;
 
@@ -50,7 +51,8 @@ namespace System.Linq
 		{
 			this.doSort = false;
 			
-			return new POrderedEnumerable<T> (this, FromComparer(comparison, keySelector, comparer, descending));
+			return new POrderedEnumerable<T> (this, FromComparer(comparison, keySelector,
+			                                                     comparer, descending));
 		}
 		
 		public IOrderedEnumerable<T> CreateOrderedEnumerable<TKey>(Func<T, TKey> keySelector,
@@ -60,7 +62,8 @@ namespace System.Linq
 			return CreateParallelOrderedEnumerable(keySelector, comparer, descending);
 		}
 		
-		static Comparison<T> FromComparer<TKey>(Comparison<T> parent, Func<T, TKey> ks, IComparer<TKey> comparer, bool descending)
+		static Comparison<T> FromComparer<TKey>(Comparison<T> parent, Func<T, TKey> ks,
+		                                        IComparer<TKey> comparer, bool descending)
 		{
 			Comparison<T> child;
 			if (!descending)

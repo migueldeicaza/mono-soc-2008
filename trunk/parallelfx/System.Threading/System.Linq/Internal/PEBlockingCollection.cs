@@ -55,7 +55,7 @@ namespace System.Linq
 					if (result.IsValid)
 						bColl.TryAdd(result.Item);
 				}
-			}, dop, () => bColl.CompleteAdding());
+			}, dop, () => bColl.CompleteAdding ());
 		}
 		
 		void LaunchOrderedLast(IParallelEnumerator<TSource> enumerator)
@@ -93,7 +93,7 @@ namespace System.Linq
 							sw.SpinOnce();
 					}	
 				}
-			}, dop, () => bColl.CompleteAdding());
+			}, dop, () => bColl.CompleteAdding ());
 		}
 		
 		public override IParallelEnumerator<T> GetParallelEnumerator(bool isLast)

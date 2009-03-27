@@ -399,25 +399,15 @@ namespace System.Threading
 			int num = dop == -1 ? (wait ? GetBestWorkerNumber () + 1 : GetBestWorkerNumber ()) : dop;
 			
 			// Initialize worker
+			CountdownEvent evt = new CountdownEvent (num);
 			Task[] tasks = new Task [num];
 			for (int i = 0; i < num; i++) {
-				tasks [i] = Task.StartNew (_ => action ());
-			}
-			
-			// Register wait callback if any
-			if (callback != null) {
-				for (int j = 0; j < num; j++) {
-					tasks [j].ContinueWith (delegate {
-						for (int i = 0; i < num; i++) {
-							if (i == j) continue;
-							// Dont call callback if we aren't
-							// the last task
-							if (!tasks [i].IsCompleted)
-								return;
-						}
+				tasks [i] = Task.StartNew (_ => { 
+					action ();
+					evt.Decrement ();
+					if (callback != null && evt.IsSet)
 						callback ();
-					});
-				}
+				});
 			}
 
 			// If explicitely told, wait for all workers to complete 
