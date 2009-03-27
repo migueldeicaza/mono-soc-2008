@@ -256,7 +256,8 @@ namespace System.Threading.Tasks
 
 		protected virtual void InnerInvoke ()
 		{
-			action (m_stateObject);
+			if (action != null)
+				action (m_stateObject);
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in an anonymous method
 			action = null;
@@ -271,7 +272,7 @@ namespace System.Threading.Tasks
 				parent.ChildCompleted ();
 			Dispose ();
 			
-			if (exception != null)
+			if (exception != null && !(exception is TaskCanceledException))
 				throw exception;
 		}
 		

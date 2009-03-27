@@ -78,7 +78,7 @@ namespace System.Threading
 		{
 			List<Exception> inner = new List<Exception> ();
 			
-			foreach (AggregateException e in innerExceptions) {
+			foreach (Exception e in innerExceptions) {
 				AggregateException aggEx = e as AggregateException;
 				if (aggEx != null) {
 					inner.AddRange (aggEx.Flatten ().InnerExceptions);

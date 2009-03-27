@@ -30,6 +30,14 @@ namespace ParallelFxTests
 {
 	public static class ParallelTestHelper
 	{
+		const int numRun = 100;
+		
+		public static void Repeat (Action action)
+		{
+			for (int i = 0; i < numRun; i++)
+				action ();
+		}
+		
 		public static void ParallelStressTest<TSource>(TSource obj, Action<TSource> action)
 		{
 			ParallelStressTest(obj, action, Environment.ProcessorCount + 2);

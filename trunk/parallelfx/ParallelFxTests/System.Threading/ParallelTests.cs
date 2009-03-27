@@ -67,18 +67,20 @@ namespace ParallelFxTests
 		[Test, ExpectedException(typeof(AggregateException))]
 		public void ParallelForExceptionTestCase()
 		{
-			Parallel.For(1, 10, delegate (int i) { throw new Exception("foo"); });
+			Parallel.For(1, 100, delegate (int i) { throw new Exception("foo"); });
 		}
 		
 		[Test]
 		public void ParallelForEachTestCase()
 		{
-			IEnumerable<int> e = Enumerable.Repeat(1, 10);
-			int count = 0;
-			
-			Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
-			
-			Assert.AreEqual(10, count);
+			ParallelTestHelper.Repeat (() => {
+				IEnumerable<int> e = Enumerable.Repeat(1, 100);
+				int count = 0;
+				
+				Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
+				
+				Assert.AreEqual(100, count);
+			});
 		}
 		
 		[Test, ExpectedException(typeof(AggregateException))]
@@ -91,13 +93,15 @@ namespace ParallelFxTests
 		[Test]
 		public void ParallelWhileTestCase()
 		{
-			int i = 0;
-			int count = 0;
-			
-			Parallel.While(() => Interlocked.Increment(ref i) <= 10, () => Interlocked.Increment(ref count));
-			
-			Assert.Greater(i, 10, "#1");
-			Assert.AreEqual(10, count, "#2");
+			ParallelTestHelper.Repeat (() => {
+				int i = 0;
+				int count = 0;
+				
+				Parallel.While(() => Interlocked.Increment(ref i) <= 10, () => Interlocked.Increment(ref count));
+				
+				Assert.Greater(i, 10, "#1");
+				Assert.AreEqual(10, count, "#2");
+			});
 		}
 	}
 }
