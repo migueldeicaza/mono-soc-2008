@@ -221,7 +221,11 @@ namespace System.Threading
 			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
 			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
 			// most collection.
+#if USE_MONITOR
+			object syncRoot = new object ();
+#else
 			SpinLockWrapper sl = new SpinLockWrapper ();
+#endif
 			
 			int num = GetBestWorkerNumber();
 			
@@ -237,8 +241,12 @@ namespace System.Threading
 				TSource element = default(TSource);
 				
 				while (!isFinished && !state.IsStopped) {
+#if USE_MONITOR
+					lock (syncRoot) {
+#else
 					try {
-						sl.Lock.Enter();
+						sl.Lock.Enter ();
+#endif
 						// From here it's thread-safe
 						index      = currentIndex++;
 						isFinished = !enumerator.MoveNext();
@@ -246,9 +254,13 @@ namespace System.Threading
 							return;
 						element = enumerator.Current;
 						// End of thread-safety
-					} finally {
-						sl.Lock.Exit();
+#if USE_MONITOR
 					}
+#else
+					} finally {
+						sl.Lock.Exit ();
+					}
+#endif
 					
 					action (element, index, state);
 				}
@@ -287,7 +299,11 @@ namespace System.Threading
 			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
 			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
 			// most collection.
+#if USE_MONITOR
+			object syncRoot = new object ();
+#else
 			SpinLockWrapper sl = new SpinLockWrapper ();
+#endif
 			
 			int num = GetBestWorkerNumber ();
 			
@@ -303,8 +319,12 @@ namespace System.Threading
 				TSource element = default (TSource);
 				
 				while (!isFinished && !state.IsStopped) {
+#if USE_MONITOR
+					lock (syncRoot) {
+#else
 					try {
 						sl.Lock.Enter ();
+#endif
 						// From here it's thread-safe
 						index      = currentIndex++;
 						isFinished = !enumerator.MoveNext ();
@@ -312,9 +332,13 @@ namespace System.Threading
 							return;
 						element = enumerator.Current;
 						// End of thread-safety
+#if USE_MONITOR
+					}
+#else
 					} finally {
 						sl.Lock.Exit ();
 					}
+#endif
 					
 					body (element, index, state);
 				}
