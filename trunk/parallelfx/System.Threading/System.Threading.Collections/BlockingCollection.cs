@@ -102,23 +102,12 @@ namespace System.Threading.Collections
 				if (isComplete.Value)
 					throw new InvalidOperationException ("The BlockingCollection<T> has"
 					                                     + " been marked as complete with regards to additions.");
+				// Go back in main waiting loop
+				if (isFull ())
+					continue;
 				
-				try {
-					addLock.Enter ();
-					
-					if (isComplete.Value)
-						throw new InvalidOperationException ("The BlockingCollection<T>"
-						                                     + " has been marked as complete with regards to additions.");
-
-					// Go back in main waiting loop
-					if (isFull ())
-						continue;
-					
-					underlyingColl.Add (item);
-					return;
-				} finally {
-					addLock.Exit (true);
-				}
+				if (underlyingColl.Add (item))
+					break;
 			}
 		}
 		
@@ -142,15 +131,7 @@ namespace System.Threading.Collections
 					return false;
 			}
 			
-			try {
-				addLock.Enter ();
-				if (isFull () || isComplete.Value) {
-					return false;
-				}
-				return underlyingColl.Add (item);
-			} finally {
-				addLock.Exit (true);
-			}
+			return underlyingColl.Add (item);
 		}
 		
 		public bool TryAdd (T item, TimeSpan ts)
