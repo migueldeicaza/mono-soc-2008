@@ -60,7 +60,7 @@ namespace System.Threading
 				return flag == Set;
 			} 
 			set {
-				Interlocked.Exchange (ref flag, value ? Set : UnSet);
+				Exchange (value);
 			}
 		}
 		

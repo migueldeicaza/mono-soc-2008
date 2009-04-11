@@ -34,7 +34,7 @@ namespace System.Threading.Tasks
 		Abort
 	}
 	
-	internal class DynamicDeque<T> where T : class
+	internal class DynamicDeque<T> : IDequeOperations<T> where T : class
 	{
 		const int ArraySize = 10;
 		const int BaseArraySize = 2000;
@@ -57,21 +57,33 @@ namespace System.Threading.Tasks
 		
 		class BottomInfo
 		{
-			public Node Bottom;
-			public int BottomIndex;
+			public readonly Node Bottom;
+			public readonly int BottomIndex;
+			
+			public BottomInfo (Node bottom, int bottomIndex)
+			{
+				Bottom = bottom;
+				BottomIndex = bottomIndex;
+			}
 		}
 		
 		class TopInfo
 		{
-			public Node Top;
-			public int TopIndex;
-			public int TopTag;
+			public readonly Node Top;
+			public readonly int TopIndex;
+			public readonly int TopTag;
+			
+			public TopInfo (Node top, int topIndex, int topTag)
+			{
+				Top = top;
+				TopIndex = topIndex;
+				TopTag = topTag;
+			}
 		}
 		
 		BottomInfo bottom;
 		TopInfo    top;
 		
-		//int  isBaseNodeFreed;
 		Node baseNode;
 		
 		public DynamicDeque ()
@@ -107,13 +119,14 @@ namespace System.Threading.Tasks
 				currNode.Previous = newNode;
 				newIndex = newNode.Data.Length - 1;
 			}
-			bottom = EncodeBottom (newNode, newIndex);
+			//bottom = EncodeBottom (newNode, newIndex);
+			Interlocked.Exchange (ref bottom, EncodeBottom (newNode, newIndex));
 		}
 		
 		public PopResult PopTop (out T result)
 		{
 			TopInfo    currTop = top;
-			BottomInfo currBottom =  bottom;
+			BottomInfo currBottom = bottom;
 			
 			Node currTopNode, newTopNode;
 			int currTopIndex, newTopIndex;
@@ -163,7 +176,8 @@ namespace System.Threading.Tasks
 				newBotIndex = 0;
 			}
 			// It's ok to touch Bottom like this since only the thread owning DynamicDeque will touch bottom
-			bottom = EncodeBottom (newBotNode, newBotIndex);
+			//bottom = EncodeBottom (newBotNode, newBotIndex);
+			Interlocked.Exchange (ref bottom, EncodeBottom (newBotNode, newBotIndex));
 			
 			TopInfo currTop = top;
 			Node currTopNode;
@@ -174,20 +188,22 @@ namespace System.Threading.Tasks
 			
 			// We are attempting to make Bottom cross over Top. Bad. Revert the last EncodeBottom
 			if (object.ReferenceEquals (oldBotNode, currTopNode) && oldBotIndex == currTopIndex) {
-				bottom = EncodeBottom (oldBotNode, oldBotIndex);
+				//bottom = EncodeBottom (oldBotNode, oldBotIndex);
+				Interlocked.Exchange (ref bottom, EncodeBottom (oldBotNode, oldBotIndex));
 				result = null;
 				return PopResult.Empty;
 			// Same as before but in the case of the updated bottom info
 			} else if (object.ReferenceEquals (newBotNode, currTopNode) && newBotIndex == currTopIndex) {
 				// We update top's tag to prevent a concurrent PopTop crossing over
 				TopInfo newTop = EncodeTop (currTopNode, currTopIndex, currTopTag + 1);
-				// If the CAS fails then it's already to late and we revert back the Bottom position like before to prevent
-				// the cross-over
+				// If the CAS fails then it's already too late and we revert back the Bottom position like before to prevent
+				// the cross-over'
 				if (Interlocked.CompareExchange (ref top, newTop, currTop) == currTop) {
 					result = retVal;
 					return PopResult.Succeed;
 				} else {
-					bottom = EncodeBottom (oldBotNode, oldBotIndex);
+					//bottom = EncodeBottom (oldBotNode, oldBotIndex);
+					Interlocked.Exchange (ref bottom, EncodeBottom (oldBotNode, oldBotIndex));
 					result = null;
 					return PopResult.Empty;
 				}
@@ -205,9 +221,9 @@ namespace System.Threading.Tasks
 		
 		BottomInfo EncodeBottom (Node node, int index)
 		{
-			BottomInfo temp = new BottomInfo ();
-			temp.Bottom = node;
-			temp.BottomIndex = index;
+			BottomInfo temp = new BottomInfo (node, index);
+			/*temp.Bottom = node;
+			temp.BottomIndex = index;*/
 			return temp;
 		}
 		
@@ -220,10 +236,10 @@ namespace System.Threading.Tasks
 		
 		TopInfo EncodeTop (Node node, int index, int tag)
 		{
-			TopInfo temp = new TopInfo ();
-			temp.Top = node;
+			TopInfo temp = new TopInfo (node, index, tag);
+			/*temp.Top = node;
 			temp.TopIndex = index;
-			temp.TopTag = tag;
+			temp.TopTag = tag;*/
 			return temp;
 		}
 		
