@@ -60,7 +60,11 @@ namespace System.Linq
 		
 		void LaunchOrderedLast(IParallelEnumerator<TSource> enumerator)
 		{
+#if !USE_MONITOR
 			SpinLockWrapper sl = new SpinLockWrapper ();
+#else
+			object syncRoot = new object ();
+#endif
 			SpinWait sw = new SpinWait ();
 			int indexToBeAdded = -1;
 				
@@ -72,8 +76,12 @@ namespace System.Linq
 					
 					bool added = false;
 					while (!added) {
+#if !USE_MONITOR
 						try {
 							sl.Lock.Enter();
+#else
+							lock (syncRoot) {
+#endif
 							if (result.Index == indexToBeAdded + 1) {
 								if (!result.IsValid) {
 									// Just increment the index to let the next possible
@@ -84,9 +92,11 @@ namespace System.Linq
 									indexToBeAdded++;
 								}
 								added = true;
-							}	
+								}
+#if !USE_MONITOR
 						} finally {
 							sl.Lock.Exit();
+#endif
 						}
 						
 						if (!added)

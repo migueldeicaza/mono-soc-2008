@@ -56,8 +56,15 @@ namespace System.Threading
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
 			
-			if (!ApplyOperation (-num))
-				throw new InvalidOperationException ();
+			Action<int> check = delegate (int value) {
+				if (value < 0)
+				throw new InvalidOperationException ("the specified count is larger that CurrentCount");
+				if (IsCanceled)
+				throw new OperationCanceledException ();
+			};
+			
+			if (!ApplyOperation (-num, check))
+				throw new InvalidOperationException ("The event is already set");
 		}
 		
 		public void Increment ()
@@ -70,8 +77,8 @@ namespace System.Threading
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
 			
-			if (!ApplyOperation (num))
-				throw new InvalidOperationException ();
+			if (!TryIncrement (num))
+				throw new InvalidOperationException ("The event is already set");
 		}
 		
 		public bool TryIncrement ()
@@ -80,16 +87,19 @@ namespace System.Threading
 		}
 		
 		public bool TryIncrement (int num)
-		{
-			if (IsSet)
-				return false;
+		{	
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
 			
-			return ApplyOperation (num);
+			Action<int> check = delegate (int value) {
+				if (IsCanceled)
+				throw new OperationCanceledException ();
+			};
+			
+			return ApplyOperation (num, check);
 		}
 			
-		bool ApplyOperation (int num)
+		bool ApplyOperation (int num, Action<int> doCheck)
 		{
 			int oldCount;
 			int newValue;
@@ -100,6 +110,9 @@ namespace System.Threading
 				
 				oldCount = count;
 				newValue = oldCount + num;
+				
+				doCheck (newValue);
+				
 			} while (Interlocked.CompareExchange (ref count, newValue, oldCount) != oldCount);
 			
 			return true;

@@ -36,7 +36,7 @@ namespace System.Threading.Tasks
 		Thread workerThread;
 		
 		readonly          ThreadWorker[]        others;
-		internal readonly DynamicDeque<Task>    dDeque;
+		internal readonly IDequeOperations<Task>    dDeque;
 		readonly          IConcurrentCollection<Task> sharedWorkQueue;
 		readonly          Action<Task>          childWorkAdder;
 		
@@ -65,7 +65,19 @@ namespace System.Threading.Tasks
 		                     bool createThread, int maxStackSize, ThreadPriority priority)
 		{
 			this.others          = others;
+			/*
+#if USE_CYCLIC_DEQUE
+			this.dDeque          = new CyclicDeque<Task> ();
+#else
 			this.dDeque          = new DynamicDeque<Task> ();
+#endif*/
+			if (Environment.GetEnvironmentVariable ("USE_CYCLIC") != null) {
+				Console.WriteLine ("Using cyclic deque");
+				this.dDeque = new CyclicDeque<Task> ();
+			} else {
+				this.dDeque = new DynamicDeque<Task> ();
+			}
+			
 			this.sharedWorkQueue = sharedWorkQueue;
 			this.workerLength    = others.Length;
 			this.isLocal         = !createThread;

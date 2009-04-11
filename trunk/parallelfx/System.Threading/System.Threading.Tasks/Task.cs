@@ -46,6 +46,7 @@ namespace System.Threading.Tasks
 		int                 taskId;
 		Exception           exception;
 		AtomicBoolean       isCanceled = new AtomicBoolean ();
+		AtomicBoolean       isConsummed = new AtomicBoolean ();
 		bool                respectParentCancellation;
 		bool                isCompleted;
 		TaskCreationOptions taskCreationOptions;
@@ -155,7 +156,7 @@ namespace System.Threading.Tasks
 		{
 			AtomicBoolean launched = new AtomicBoolean ();
 			EventHandler action = delegate {
-				if (!launched.Exchange (true)) {
+				if (!launched.Value && !launched.Exchange (true)) {
 					switch (kind) {
 					case TaskContinuationKind.OnAny:
 						CheckAndSchedule (executeSync, continuation);
@@ -214,6 +215,9 @@ namespace System.Threading.Tasks
 		
 		void ThreadStart ()
 		{
+			if (isConsummed.Value || isConsummed.Exchange (true))
+				return;
+			
 			if (!isCanceled.Value
 			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 				current = this;
