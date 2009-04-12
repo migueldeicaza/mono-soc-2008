@@ -71,7 +71,7 @@
     <File name="System.Linq/Internal/ResultReturn.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Linq/ParallelEnumerableHelper.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Collections/ConcurrentDictionary.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading/Snzi.cs" subtype="Code" buildaction="Nothing" />
+    <File name="System.Threading/Snzi.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/CyclicDeque.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>

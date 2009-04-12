@@ -83,7 +83,7 @@ namespace System.Threading.Tasks
 			long b = reader.Read (ref bottom);
 			var a = array;
 			
-			// Take care or growing
+			// Take care of growing
 			if (b - upperBound >= a.Size - 1) {
 				upperBound = reader.Read (ref top);
 				a = a.Grow (b, upperBound);
