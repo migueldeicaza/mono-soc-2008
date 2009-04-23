@@ -46,16 +46,17 @@ namespace System.Threading
 		[ThreadStaticAttribute]
 		int nextIndex;
 		
-		public Snzi (int count)
+		public Snzi (int num)
 		{
 			for (int i = 0; i < Depth; i++)
 				count += 1 << i;
 			
 			nodes = new ISnziNode[count];
+			nodes[0] = new RootNode ();
 			PopulateLeafs (nodes[0], 1);
 			PopulateLeafs (nodes[0], 2);
 			
-			for (int i = 0; i < count; i++)
+			for (int i = 0; i < num; i++)
 				nodes[0].Arrive ();
 		}
 		
@@ -79,7 +80,7 @@ namespace System.Threading
 		
 		public bool IsSet {
 			get {
-				return nodes[GetRandomIndex ()].Query;
+				return nodes[0].Query;
 			}
 		}
 		
@@ -138,8 +139,7 @@ namespace System.Threading
 							v += 1;
 							x = temp;
 						}
-					}
-					if (c == - 1) {
+					} else if (c == - 1) {
 						parent.Arrive ();
 						if (Interlocked.CompareExchange (ref var, Encode (1, v), x) != x)
 							undoArr += 1;
@@ -199,7 +199,7 @@ namespace System.Threading
 			#region ISnziNode implementation
 			public void Arrive ()
 			{
-				int temp, x;
+				int temp, x = 0;
 				short c, v;
 				bool a;
 				
@@ -212,14 +212,14 @@ namespace System.Threading
 						temp = Encode (1, true, (short)(v + 1));
 					else
 						temp = Encode ((short)(c + 1), a, v);
-				} while (Interlocked.CompareExchange (ref var, temp, x) == x);
+				} while (Interlocked.CompareExchange (ref var, temp, x) != x);
 				
 				Decode (temp, out c, out a, out v);
 				if (a) {
 					while (true) {
 						int i = state;
-						int newI = (i & 0x7FFF) + 1;
-						newI |= 0x8000;
+						int newI = (i & 0x7FFFFFFF) + 1;
+						newI |= 0x8000000;
 						if (Interlocked.CompareExchange (ref state, newI, i) == i)
 							break;
 					}
@@ -242,7 +242,7 @@ namespace System.Threading
 							int i = state;
 							if (((short)(var >> 16)) != v)
 								return;
-							int newI = (i & 0x7FFF) + 1;
+							int newI = (i & 0x7FFFFFFF) + 1;
 							if (Interlocked.CompareExchange (ref state, newI, i) == i)
 								return;
 						}
@@ -257,7 +257,7 @@ namespace System.Threading
 			
 			public bool Query {
 				get {
-					return (state & 0x4000) > 0;
+					return (state & 0x8000000) > 0;
 				}
 			}
 			#endregion
@@ -275,7 +275,7 @@ namespace System.Threading
 			void Decode (int value, out short c, out bool a, out short v)
 			{
 				c = (short)(value & 0x7FFF);
-				a = (value & 0x4000) > 0;
+				a = (value & 0x8000) > 0;
 				v = (short)(value >> 16);
 			}
 		}

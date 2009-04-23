@@ -101,7 +101,6 @@ namespace System.Threading.Tasks
 			Node currNode;
 			int currIndex;
 			DecodeBottom (bottom, out currNode, out currIndex);
-			//Console.WriteLine("Pushing Bottom at " + currIndex + " from " + Thread.CurrentThread.ManagedThreadId);
 			currNode.Data [currIndex] = item;
 			
 			Node newNode;
