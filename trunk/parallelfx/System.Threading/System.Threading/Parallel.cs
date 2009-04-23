@@ -32,6 +32,16 @@ namespace System.Threading
 {
 	public static class Parallel
 	{
+		static Parallel ()
+		{
+			string str = Environment.GetEnvironmentVariable ("MAX_FOR_COUNT");
+			int count;
+			if (!string.IsNullOrEmpty (str) && int.TryParse (str, out count))
+				MaxForCount = count;
+			else
+				MaxForCount = 1;
+		}
+		
 		public static int GetBestWorkerNumber ()
 		{
 			return GetBestWorkerNumber (TaskManager.Current.Policy);
@@ -78,6 +88,8 @@ namespace System.Threading
 		
 		#region For
 		
+		static readonly int MaxForCount;
+		
 		public static void For (int from, int to, Action<int> action)
 		{
 			For (from, to, 1, action);
@@ -109,8 +121,14 @@ namespace System.Threading
 			
 			Action<object> workerMethod = delegate {
 				int index;
-				while ((index = Interlocked.Add (ref currentIndex, step) - step) < to && !state.IsStopped) {
+				/*while ((index = Interlocked.Add (ref currentIndex, step) - step) < to && !state.IsStopped) {
 					action (index, state);
+				}*/
+				int count = MaxForCount * step;
+				while ((index = Interlocked.Add (ref currentIndex, count) - (count)) < to && !state.IsStopped) {
+					for (int i = index; i < to && i < index + (count); i += step) {
+						action (i, state);
+					}
 				}
 			};
 			
