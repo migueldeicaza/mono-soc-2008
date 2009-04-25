@@ -40,18 +40,27 @@ namespace System.Threading
 	{
 		readonly ISnziNode[] nodes;
 		
-		const int Depth = 5;
-		readonly int count;
+		//const int Depth = 1;
+		readonly int count = Environment.ProcessorCount + 1;
 		
+		public Snzi () : this (0)
+		{
+		
+		}
+			
 		public Snzi (int num)
 		{
-			for (int i = 0; i < Depth; i++)
+			/*for (int i = 0; i < Depth; i++)
 				count += 1 << i;
 			
 			nodes = new ISnziNode[count];
 			nodes[0] = new RootNode ();
 			PopulateLeafs (nodes[0], 1);
-			PopulateLeafs (nodes[0], 2);
+			PopulateLeafs (nodes[0], 2);*/
+			nodes = new ISnziNode[count];
+			nodes[0] = new RootNode ();
+			for (int i = 1; i < count; i++)
+				nodes[i] = new LeafNode (nodes[0]);
 			
 			for (int i = 0; i < num; i++)
 				nodes[0].Arrive ();
@@ -103,7 +112,8 @@ namespace System.Threading
 		
 		int GetRandomIndex ()
 		{
-			return Thread.CurrentThread.ManagedThreadId % count;
+			return (Thread.CurrentThread.ManagedThreadId) % count;
+			//return 0;
 		}
 		
 		class LeafNode : ISnziNode

@@ -57,10 +57,11 @@ namespace System.Threading
 		
 		public bool Value {
 			get {
-				return flag == Set;
+				return Thread.VolatileRead (ref flag) == Set;
 			} 
 			set {
-				Exchange (value);
+				//Exchange (value);
+				Thread.VolatileWrite (ref flag, value ? Set : UnSet);
 			}
 		}
 		

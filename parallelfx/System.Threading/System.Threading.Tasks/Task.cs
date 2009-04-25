@@ -37,16 +37,16 @@ namespace System.Threading.Tasks
 		static Task         current;
 		[System.ThreadStatic]
 		static Action<Task> childWorkAdder;
-		static int          id = 0;
+		static int          id = -1;
 		
-		CountdownEvent childTasks = new CountdownEvent (1);
+		//CountdownEvent childTasks = new CountdownEvent (1);
+		Snzi childTasks = new Snzi ();
 		Task parent  = current;
 		Task creator = current;
 		
 		int                 taskId;
 		Exception           exception;
-		AtomicBoolean       isCanceled = new AtomicBoolean ();
-		AtomicBoolean       isConsummed = new AtomicBoolean ();
+		readonly AtomicBoolean isCanceled = new AtomicBoolean ();
 		bool                respectParentCancellation;
 		bool                isCompleted;
 		TaskCreationOptions taskCreationOptions;
@@ -215,9 +215,6 @@ namespace System.Threading.Tasks
 		
 		void ThreadStart ()
 		{
-			if (isConsummed.Value || isConsummed.Exchange (true))
-				return;
-			
 			if (!isCanceled.Value
 			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 				current = this;
@@ -250,7 +247,7 @@ namespace System.Threading.Tasks
 		
 		internal void AddChild ()
 		{
-			childTasks.TryIncrement ();
+			childTasks.Increment ();
 		}
 
 		internal void ChildCompleted ()
@@ -271,13 +268,15 @@ namespace System.Threading.Tasks
 		{
 			// If there wasn't any child created in the task we set the CountdownEvent
 			childTasks.Decrement ();
+			
 			// Tell parent that we are finished
 			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
 				parent.ChildCompleted ();
 			Dispose ();
 			
-			if (exception != null && !(exception is TaskCanceledException))
-				throw exception;
+			// Disabled for now as this is a 4.0 aspect
+			/*if (exception != null && !(exception is TaskCanceledException))
+				throw exception;*/
 		}
 		
 		internal bool ChildTasks {

@@ -40,6 +40,12 @@ namespace ParallelFxTests
 		static readonly int max = 3 * Environment.ProcessorCount;
 		const int testRun = 10;
 		
+		void Run (Action action)
+		{
+			for (int i = 0; i < testRun; i++)
+				action ();
+		}
+		
 		[SetUp]
 		public void Setup()
 		{
@@ -67,144 +73,161 @@ namespace ParallelFxTests
 		[TestAttribute]
 		public void WaitAnyTest()
 		{
-			int achieved = 0;
-			tasks[0] = Task.StartNew(delegate {
-				Interlocked.Increment(ref achieved);
+			Run (delegate {
+				bool first = false;
+				
+				tasks[0] = Task.StartNew(delegate {
+					first = true;
+				});
+				InitWithDelegate(delegate {
+					while (!first) {
+						Thread.Sleep(4000);
+					}
+					
+				}, 1);
+				
+				int index = Task.WaitAny(tasks);
+				
+				Assert.IsTrue (first, "#1");
+				Assert.AreEqual (index, 0, "#2");
 			});
-			InitWithDelegate(delegate {
-				Thread.Sleep(1000);
-				Interlocked.Increment(ref achieved);
-			}, 1);
-			int index = Task.WaitAny(tasks);
-			Assert.AreNotEqual(0, achieved, "#1");
-			Assert.Less(index, max, "#3");
-			Assert.GreaterOrEqual(index, 0, "#2");
 		}
 		
 		[TestAttribute]
 		public void WaitAllTest()
 		{
-			int achieved = 0;
-			InitWithDelegate(delegate { Interlocked.Increment(ref achieved); });
-			Task.WaitAll(tasks);
-			Assert.AreEqual(max, achieved, "#1");
+			Run (delegate {
+				int achieved = 0;
+				InitWithDelegate(delegate { Interlocked.Increment(ref achieved); });
+				Task.WaitAll(tasks);
+				Assert.AreEqual(max, achieved, "#1");
+			});
 		}
 		
 		[Test]
 		public void CancelTestCase()
 		{
-			bool result = false;
-			
-			Task t = new Task(TaskManager.Current, delegate {
-				result = true;
-			}, null, TaskCreationOptions.None);
-			t.Cancel();
-			t.Schedule();
-			
-			Assert.IsInstanceOfType(typeof(TaskCanceledException), t.Exception, "#1");
-			TaskCanceledException ex = (TaskCanceledException)t.Exception;
-			Assert.AreEqual(t, ex.Task, "#2");
-			Assert.IsFalse(result, "#3");
+			int count = 1;
+			Run (delegate {
+				bool result = false;
+				
+				Task t = new Task(TaskManager.Current, delegate {
+					result = true;
+				}, null, TaskCreationOptions.None);
+				t.Cancel();
+				Assert.IsTrue (t.IsCancellationRequested, "#-1");
+				t.Schedule();
+				
+				Assert.IsInstanceOfType(typeof(TaskCanceledException), t.Exception, "#1 : " + count ++);
+				TaskCanceledException ex = (TaskCanceledException)t.Exception;
+				Assert.AreEqual(t, ex.Task, "#2");
+				Assert.IsFalse(result, "#3");
+			});
 		}
 		
 		[Test]
 		public void ContinueWithOnAnyTestCase()
 		{
-			bool result = false;
-			
-			Task t = Task.StartNew(delegate { });
-			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAny);
-			t.Wait();
-			cont.Wait();
-			
-			Assert.IsNull(cont.Exception, "#1");
-			Assert.IsNotNull(cont, "#2");
-			Assert.IsTrue(result, "#3");
+			Run (delegate {
+				bool result = false;
+				
+				Task t = Task.StartNew(delegate { });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAny);
+				t.Wait();
+				cont.Wait();
+				
+				Assert.IsNull(cont.Exception, "#1");
+				Assert.IsNotNull(cont, "#2");
+				Assert.IsTrue(result, "#3");
+			});
 		}
 		
 		[Test]
 		public void ContinueWithOnCompletedSuccessfullyTestCase()
 		{
-			bool result = false;
-			
-			Task t = Task.StartNew(delegate { });
-			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnCompletedSuccessfully);
-			t.Wait();
-			cont.Wait();
-			
-			Assert.IsNull(cont.Exception, "#1");
-			Assert.IsNotNull(cont, "#2");
-			Assert.IsTrue(result, "#3");
+			Run (delegate {
+				bool result = false;
+				
+				Task t = Task.StartNew(delegate { });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnCompletedSuccessfully);
+				t.Wait();
+				cont.Wait();
+				
+				Assert.IsNull(cont.Exception, "#1");
+				Assert.IsNotNull(cont, "#2");
+				Assert.IsTrue(result, "#3");
+			});
 		}
 		
 		[Test]
 		public void ContinueWithOnAbortedTestCase()
 		{
-			bool result = false;
-			
-			Task t = new Task(TaskManager.Current, delegate { }, null, TaskCreationOptions.None);
-			t.Cancel();
-			t.Schedule();
-			
-			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAborted);
-			t.Wait();
-			cont.Wait();
-			
-			Assert.IsNull(cont.Exception, "#1");
-			Assert.IsNotNull(cont, "#2");
-			Assert.IsTrue(result, "#3");
+			Run (delegate {
+				bool result = false;
+				
+				Task t = new Task(TaskManager.Current, delegate { }, null, TaskCreationOptions.None);
+				t.Cancel();
+				t.Schedule();
+				
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAborted);
+				t.Wait();
+				cont.Wait();
+				
+				Assert.IsNull(cont.Exception, "#1");
+				Assert.IsNotNull(cont, "#2");
+				Assert.IsTrue(result, "#3");
+			});
 		}
 		
 		[Test]
 		public void ContinueWithOnFailedTestCase()
 		{
-			bool result = false;
-			
-			Task t = Task.StartNew(delegate {throw new Exception("foo"); });
-			Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnFailed);
-			t.Wait();
-			cont.Wait();
-			
-			Assert.IsNotNull(t.Exception, "#1");
-			Assert.IsNotNull(cont, "#2");
-			Assert.IsTrue(result, "#3");
+			Run (delegate {
+				bool result = false;
+				
+				Task t = Task.StartNew(delegate {throw new Exception("foo"); });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnFailed);
+				t.Wait();
+				cont.Wait();
+				
+				Assert.IsNotNull (t.Exception, "#1");
+				Assert.IsNotNull (cont, "#2");
+				Assert.IsTrue (result, "#3");
+			});
 		}
 
 		[TestAttribute]
 		public void MultipleTaskTestCase()
 		{
-			bool r1 = false, r2 = false, r3 = false;
-
-			Task t1 = Task.StartNew(delegate {
-				r1 = true;
+			Run (delegate {
+				bool r1 = false, r2 = false, r3 = false;
+				
+				Task t1 = Task.StartNew(delegate {
+					r1 = true;
+				});
+				Task t2 = Task.StartNew(delegate {
+					r2 = true;
+				});
+				Task t3 = Task.StartNew(delegate {
+					r3 = true;
+				});
+				
+				t1.Wait();
+				t2.Wait();
+				t3.Wait();
+				
+				Assert.IsTrue(r1, "#1");
+				Assert.IsTrue(r2, "#2");
+				Assert.IsTrue(r3, "#3");
 			});
-			Task t2 = Task.StartNew(delegate {
-				r2 = true;
-			});
-			Task t3 = Task.StartNew(delegate {
-				r3 = true;
-			});
-			
-			t1.Wait();
-			t2.Wait();
-			t3.Wait();
-
-			Assert.IsTrue(r1, "#1");
-			Assert.IsTrue(r2, "#2");
-			Assert.IsTrue(r3, "#3");
 		}
 		
 		[Test]
 		public void WaitChildTestCase()
 		{
 			bool r1 = false, r2 = false, r3 = false;
-
-			Task.StartNew(delegate { Console.WriteLine("foo"); });
-
-			//Console.WriteLine("bar");
 			
 			Task t = Task.StartNew(delegate {
-				//Console.WriteLine("foobar");
 				Task.StartNew(delegate {
 					Thread.Sleep(50);
 					r1 = true;
@@ -223,8 +246,8 @@ namespace ParallelFxTests
 			});
 			
 			t.Wait();
-			Assert.IsTrue(r3, "#1");
-			Assert.IsTrue(r2, "#2");
+			Assert.IsTrue(r2, "#1");
+			Assert.IsTrue(r3, "#2");
 			Assert.IsTrue(r1, "#1");
 		}
 	}
