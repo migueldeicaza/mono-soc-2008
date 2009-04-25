@@ -38,11 +38,6 @@ namespace System.Threading.Tasks
 		
 		public Scheduler (int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
-			AppDomain.CurrentDomain.UnhandledException += delegate (object s, UnhandledExceptionEventArgs e) {
-				Console.WriteLine ("Unhandled exception catched");
-				Console.WriteLine (e.ExceptionObject);
-			};
-			
 			workQueue = new ConcurrentStack<Task> ();
 			workers = new ThreadWorker [maxWorker];
 			

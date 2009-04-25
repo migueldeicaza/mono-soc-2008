@@ -67,11 +67,13 @@ namespace ParallelFxTests
 		{
 			snzi.Increment ();
 			
-			for (int i = 0; i < 10; i++) {
+			for (int i = 0; i < 20; i++) {
 				if (i % 2 == 0)
 					snzi.Increment ();
 				else
 					snzi.Decrement ();
+				if (i % 5 == 0)
+					Thread.Sleep (0);
 			}
 			
 			Assert.IsFalse (snzi.IsSet, "#1");
@@ -81,14 +83,15 @@ namespace ParallelFxTests
 		public void StressZeroTest ()
 		{
 			ParallelTestHelper.ParallelStressTest (snzi, (s) => {
-				for (int i = 0; i < 10; i++) {
+				for (int i = 0; i < 20; i++) {
 					if (i % 2 == 0)
 						snzi.Increment ();
 					else
 						snzi.Decrement ();
+					if (i % 5 == 0)
+						Thread.Sleep (0);
 				}
 			});
-			snzi.Decrement ();
 			
 			Assert.IsTrue (snzi.IsSet, "#1");
 		}
