@@ -42,7 +42,7 @@ namespace System.Threading.Collections
 		
 		AtomicBoolean isComplete;
 		//bool isComplete;
-		readonly SpinLock addLock = new SpinLock (false);
+		//readonly SpinLock addLock = new SpinLock (false);
 		
 		#region ctors
 		public BlockingCollection ()
@@ -304,12 +304,7 @@ namespace System.Threading.Collections
 		
 		public void CompleteAdding ()
 		{
-			try {
-				addLock.Enter ();
-				isComplete.Value = true;
-			} finally {
-				addLock.Exit ();
-			}
+			isComplete.Value = true;
 		}
 		
 		void ICollection.CopyTo (Array array, int index)

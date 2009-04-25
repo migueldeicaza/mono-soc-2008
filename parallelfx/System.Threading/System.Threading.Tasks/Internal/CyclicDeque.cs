@@ -27,8 +27,6 @@
 using System;
 using System.Threading;
 
-//using Scalar = System.Int64;
-
 namespace System.Threading.Tasks
 {
 	internal interface IDequeOperations<T> where T : class

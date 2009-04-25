@@ -64,7 +64,11 @@ namespace System.Linq
 	#region BlockingCollectionOrderedEnumerator
 	internal class BlockingCollectionOrderedEnumerator<TSource, T>: BlockingCollectionEnumeratorBase<T>
 	{
+#if USE_MONITOR
+		readonly object syncRoot = new object ();
+#else
 		readonly SpinLock sl = new SpinLock(false);
+#endif
 		readonly SpinWait sw = new SpinWait();
 		readonly Func<IParallelEnumerator<TSource>, ResultReturn<T>> action;
 		readonly IParallelEnumerator<TSource> enumerator;
@@ -94,8 +98,12 @@ namespace System.Linq
 				
 			bool hasGoodValue = false;
 			while (!hasGoodValue && result.Result) {
+#if USE_MONITOR
+				lock (syncRoot) {
+#else
 				try {
 					sl.Enter();
+#endif
 					if (result.Result && result.Index == currIndex + 1) {
 						// If we have the right element index-speaking then everything is fine
 						currIndex++;
@@ -108,9 +116,13 @@ namespace System.Linq
 							result = action(enumerator);
 						}
 					}
+#if USE_MONITOR
+				}
+#else
 				} finally {
 					sl.Exit();
 				}
+#endif
 				if (!hasGoodValue)
 					sw.SpinOnce();
 			}
