@@ -35,25 +35,12 @@ namespace ParallelFxTests
 	public class TaskTest
 	{
 		Task[]      tasks;
-		//IScheduler  mockScheduler;
-		//DynamicMock mock;
 		static readonly int max = 3 * Environment.ProcessorCount;
-		const int testRun = 10;
-		
-		void Run (Action action)
-		{
-			for (int i = 0; i < testRun; i++)
-				action ();
-		}
 		
 		[SetUp]
 		public void Setup()
 		{
-			/*mock = new DynamicMock(typeof(IScheduler));
-			mockScheduler = (IScheduler)mock.MockInstance;*/
-			tasks = new Task[max];
-			//TaskManager.Current = new TaskManager(new TaskManagerPolicy(), mockScheduler);
-			
+			tasks = new Task[max];			
 		}
 		
 		void InitWithDelegate(Action<object> action)
@@ -63,40 +50,31 @@ namespace ParallelFxTests
 			}
 		}
 		
-		void InitWithDelegate(Action<object> action, int startIndex)
-		{
-			for (int i = startIndex; i < max; i++) {
-				tasks[i] = Task.StartNew(action);
-			}
-		}
-		
 		[TestAttribute]
 		public void WaitAnyTest()
 		{
-			Run (delegate {
-				bool first = false;
+			ParallelTestHelper.Repeat (delegate {
+				int flag = 0;
+				int finished = 0;
 				
-				tasks[0] = Task.StartNew(delegate {
-					first = true;
-				});
 				InitWithDelegate(delegate {
-					while (!first) {
-						Thread.Sleep(4000);
-					}
-					
-				}, 1);
+					int times = Interlocked.Exchange (ref flag, 1);
+					Thread.Sleep (times * 4000);
+					Interlocked.Increment (ref finished);
+				});
 				
 				int index = Task.WaitAny(tasks);
 				
-				Assert.IsTrue (first, "#1");
-				Assert.AreEqual (index, 0, "#2");
+				Assert.IsTrue (flag == 1, "#1");
+				Assert.AreEqual (1, finished, "#2");
+				Assert.AreNotEqual (-1, index, "#3");
 			});
 		}
 		
 		[TestAttribute]
 		public void WaitAllTest()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				int achieved = 0;
 				InitWithDelegate(delegate { Interlocked.Increment(ref achieved); });
 				Task.WaitAll(tasks);
@@ -108,7 +86,7 @@ namespace ParallelFxTests
 		public void CancelTestCase()
 		{
 			int count = 1;
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
 				Task t = new Task(TaskManager.Current, delegate {
@@ -128,7 +106,7 @@ namespace ParallelFxTests
 		[Test]
 		public void ContinueWithOnAnyTestCase()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
 				Task t = Task.StartNew(delegate { });
@@ -145,7 +123,7 @@ namespace ParallelFxTests
 		[Test]
 		public void ContinueWithOnCompletedSuccessfullyTestCase()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
 				Task t = Task.StartNew(delegate { });
@@ -162,7 +140,7 @@ namespace ParallelFxTests
 		[Test]
 		public void ContinueWithOnAbortedTestCase()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
 				Task t = new Task(TaskManager.Current, delegate { }, null, TaskCreationOptions.None);
@@ -182,7 +160,7 @@ namespace ParallelFxTests
 		[Test]
 		public void ContinueWithOnFailedTestCase()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
 				Task t = Task.StartNew(delegate {throw new Exception("foo"); });
@@ -199,7 +177,7 @@ namespace ParallelFxTests
 		[TestAttribute]
 		public void MultipleTaskTestCase()
 		{
-			Run (delegate {
+			ParallelTestHelper.Repeat (delegate {
 				bool r1 = false, r2 = false, r3 = false;
 				
 				Task t1 = Task.StartNew(delegate {
