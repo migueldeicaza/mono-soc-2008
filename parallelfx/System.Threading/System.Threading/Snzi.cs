@@ -43,9 +43,6 @@ namespace System.Threading
 		const int Depth = 5;
 		readonly int count;
 		
-		[ThreadStaticAttribute]
-		int nextIndex;
-		
 		public Snzi (int num)
 		{
 			for (int i = 0; i < Depth; i++)
@@ -106,7 +103,7 @@ namespace System.Threading
 		
 		int GetRandomIndex ()
 		{
-			return nextIndex = (nextIndex + Environment.TickCount + Thread.CurrentThread.ManagedThreadId) % count;
+			return Thread.CurrentThread.ManagedThreadId % count;
 		}
 		
 		class LeafNode : ISnziNode
@@ -139,7 +136,8 @@ namespace System.Threading
 							v += 1;
 							x = temp;
 						}
-					} else if (c == - 1) {
+					}
+					if (c == - 1) {
 						parent.Arrive ();
 						if (Interlocked.CompareExchange (ref var, Encode (1, v), x) != x)
 							undoArr += 1;
@@ -193,8 +191,8 @@ namespace System.Threading
 		
 		class RootNode : ISnziNode
 		{
-			int var;
-			int state;
+			int var = 0;
+			int state = 0;
 
 			#region ISnziNode implementation
 			public void Arrive ()
@@ -204,7 +202,7 @@ namespace System.Threading
 				bool a;
 				
 				do {
-					x = var;	
+					x = var;
 					
 					Decode (x, out c, out a, out v);
 					
@@ -215,11 +213,12 @@ namespace System.Threading
 				} while (Interlocked.CompareExchange (ref var, temp, x) != x);
 				
 				Decode (temp, out c, out a, out v);
+				Console.WriteLine (a);
 				if (a) {
 					while (true) {
 						int i = state;
 						int newI = (i & 0x7FFFFFFF) + 1;
-						newI |= 0x8000000;
+						newI = (int)(((uint)newI) | 0x80000000);
 						if (Interlocked.CompareExchange (ref state, newI, i) == i)
 							break;
 					}
@@ -257,7 +256,7 @@ namespace System.Threading
 			
 			public bool Query {
 				get {
-					return (state & 0x8000000) > 0;
+					return (state & 0x80000000) == 0;
 				}
 			}
 			#endregion

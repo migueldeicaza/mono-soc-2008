@@ -45,7 +45,7 @@ namespace ParallelFxTests
 		[Test]
 		public void InitialTest ()
 		{
-			Assert.IsFalse (snzi.IsSet, "#1");
+			Assert.IsTrue (snzi.IsSet, "#1");
 			
 		}
 		
@@ -58,7 +58,6 @@ namespace ParallelFxTests
 				else
 					snzi.Decrement ();
 			}
-			snzi.Decrement ();
 			
 			Assert.IsTrue (snzi.IsSet, "#1");
 		}
@@ -89,6 +88,7 @@ namespace ParallelFxTests
 						snzi.Decrement ();
 				}
 			});
+			snzi.Decrement ();
 			
 			Assert.IsTrue (snzi.IsSet, "#1");
 		}
