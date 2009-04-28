@@ -95,6 +95,7 @@ namespace ParallelFxTests
 				t.Cancel();
 				Assert.IsTrue (t.IsCancellationRequested, "#-1");
 				t.Schedule();
+				t.Wait ();
 				
 				Assert.IsInstanceOfType(typeof(TaskCanceledException), t.Exception, "#1 : " + count ++);
 				TaskCanceledException ex = (TaskCanceledException)t.Exception;
@@ -203,30 +204,32 @@ namespace ParallelFxTests
 		[Test]
 		public void WaitChildTestCase()
 		{
-			bool r1 = false, r2 = false, r3 = false;
-			
-			Task t = Task.StartNew(delegate {
-				Task.StartNew(delegate {
-					Thread.Sleep(50);
-					r1 = true;
-					Console.WriteLine("finishing 1");
+			ParallelTestHelper.Repeat (delegate {
+				bool r1 = false, r2 = false, r3 = false;
+				
+				Task t = Task.StartNew(delegate {
+					Task.StartNew(delegate {
+						Thread.Sleep(50);
+						r1 = true;
+						Console.WriteLine("finishing 1");
+					});
+					Task.StartNew(delegate {
+						Thread.Sleep(300);
+						r2 = true;
+						Console.WriteLine("finishing 2");
+					});
+					Task.StartNew(delegate {
+						Thread.Sleep(150);
+						r3 = true;
+						Console.WriteLine("finishing 3");
+					});
 				});
-				Task.StartNew(delegate {
-					Thread.Sleep(1000);
-					r2 = true;
-					Console.WriteLine("finishing 2");
-				});
-				Task.StartNew(delegate {
-					Thread.Sleep(150);
-					r3 = true;
-					Console.WriteLine("finishing 3");
-				});
-			});
-			
-			t.Wait();
-			Assert.IsTrue(r2, "#1");
-			Assert.IsTrue(r3, "#2");
-			Assert.IsTrue(r1, "#1");
+				
+				t.Wait();
+				Assert.IsTrue(r2, "#1");
+				Assert.IsTrue(r3, "#2");
+				Assert.IsTrue(r1, "#3");
+			}, 10);
 		}
 	}
 }

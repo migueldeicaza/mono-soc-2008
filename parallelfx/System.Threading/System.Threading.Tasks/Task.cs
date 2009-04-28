@@ -39,16 +39,16 @@ namespace System.Threading.Tasks
 		static Action<Task> childWorkAdder;
 		static int          id = -1;
 		
-		//CountdownEvent childTasks = new CountdownEvent (1);
-		Snzi childTasks = new Snzi ();
+		CountdownEvent childTasks = new CountdownEvent (1);
+		//Snzi childTasks = new Snzi ();
 		Task parent  = current;
 		Task creator = current;
 		
 		int                 taskId;
 		Exception           exception;
-		readonly AtomicBoolean isCanceled = new AtomicBoolean ();
+		AtomicBoolean       isCanceled = new AtomicBoolean ();
 		bool                respectParentCancellation;
-		bool                isCompleted;
+		AtomicBoolean       isCompleted;
 		TaskCreationOptions taskCreationOptions;
 		
 		// Ugly coding style because of initial API
@@ -221,15 +221,15 @@ namespace System.Threading.Tasks
 				try {
 					InnerInvoke ();
 				} catch (Exception e) {
-					exception = e;
+					Interlocked.Exchange (ref exception, e);
 				} finally {
 					current = null;
 				}
 			} else {
-				this.exception = new TaskCanceledException (this);
+				Interlocked.Exchange (ref exception, new TaskCanceledException (this));
 			}
 			
-			isCompleted = true;
+			isCompleted.Value = true;
 			
 			// Call the event in the correct style
 			EventHandler tempCompleted = completed;
@@ -270,8 +270,10 @@ namespace System.Threading.Tasks
 			childTasks.Decrement ();
 			
 			// Tell parent that we are finished
-			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null)
+			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null){
 				parent.ChildCompleted ();
+			}
+			
 			Dispose ();
 			
 			// Disabled for now as this is a 4.0 aspect
@@ -475,7 +477,7 @@ namespace System.Threading.Tasks
 		
 		public bool IsCanceled {
 			get {
-				return isCanceled.Value && isCompleted;
+				return isCanceled.Value && isCompleted.Value;
 			}
 		}
 
@@ -487,7 +489,7 @@ namespace System.Threading.Tasks
 
 		public bool IsCompleted {
 			get {
-				return isCompleted;
+				return isCompleted.Value;
 			}
 		}
 

@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.IO;
 
 namespace System.Threading
 {
@@ -40,7 +41,6 @@ namespace System.Threading
 	{
 		readonly ISnziNode[] nodes;
 		
-		//const int Depth = 1;
 		readonly int count = Environment.ProcessorCount + 1;
 		
 		public Snzi () : this (0)
@@ -50,13 +50,6 @@ namespace System.Threading
 			
 		public Snzi (int num)
 		{
-			/*for (int i = 0; i < Depth; i++)
-				count += 1 << i;
-			
-			nodes = new ISnziNode[count];
-			nodes[0] = new RootNode ();
-			PopulateLeafs (nodes[0], 1);
-			PopulateLeafs (nodes[0], 2);*/
 			nodes = new ISnziNode[count];
 			nodes[0] = new RootNode ();
 			for (int i = 1; i < count; i++)
@@ -67,7 +60,7 @@ namespace System.Threading
 		}
 		
 		public void Increment ()
-		{
+		{	
 			ISnziNode node = nodes[GetRandomIndex ()];
 			node.Arrive ();
 		}
@@ -88,26 +81,6 @@ namespace System.Threading
 			get {
 				return nodes[0].Query;
 			}
-		}
-		
-		void PopulateLeafs (ISnziNode parent, int index)
-		{
-			if (index >= count)
-				return;
-			
-			nodes[index] = new LeafNode (parent);
-			PopulateLeafs (nodes[index], GetLeft (index));
-			PopulateLeafs (nodes[index], GetRight (index));
-		}
-		
-		int GetLeft (int index)
-		{
-			return 2 * index + 1;
-		}
-		
-		int GetRight (int index)
-		{
-			return 2 * index + 2;
 		}
 		
 		int GetRandomIndex ()
@@ -135,10 +108,12 @@ namespace System.Threading
 					int x = var;
 					short c, v;
 					Decode (x, out c, out v);
-					if (c >= 1) {
+					
+					if (c >= 1)
 						if (Interlocked.CompareExchange (ref var, Encode ((short)(c + 1), v), x) == x)
-							succ = true;
-					} else if (c == 0) {
+							break;
+					
+					if (c == 0) {
 						int temp = Encode (-1, (short)(v + 1));
 						if (Interlocked.CompareExchange (ref var, temp, x) == x) {
 							succ = true;
@@ -147,6 +122,7 @@ namespace System.Threading
 							x = temp;
 						}
 					}
+					
 					if (c == - 1) {
 						parent.Arrive ();
 						if (Interlocked.CompareExchange (ref var, Encode (1, v), x) != x)
@@ -185,17 +161,18 @@ namespace System.Threading
 			
 			int Encode (short c, short v)
 			{
-				int temp = 0;
-				temp |= c;
-				temp |= ((int)v) << 16;
+				uint temp = 0;
+				temp |= (uint)c;
+				temp |= ((uint)v) << 16;
 				
-				return temp;
+				return (int)temp;
 			}
 			
 			void Decode (int value, out short c, out short v)
 			{
-				c = (short)(value & 0xFFFF);
-				v = (short)(value >> 16);
+				uint temp = (uint)value;
+				c = (short)(temp & 0xFFFF);
+				v = (short)(temp >> 16);
 			}
 		}
 		
@@ -229,8 +206,9 @@ namespace System.Threading
 						int i = state;
 						int newI = (i & 0x7FFFFFFF) + 1;
 						newI = (int)(((uint)newI) | 0x80000000);
-						if (Interlocked.CompareExchange (ref state, newI, i) == i)
+						if (Interlocked.CompareExchange (ref state, newI, i) == i) {
 							break;
+						}
 					}
 					Interlocked.CompareExchange (ref var, Encode (c, false, v), temp);
 				}
@@ -252,8 +230,9 @@ namespace System.Threading
 							if (((short)(var >> 16)) != v)
 								return;
 							int newI = (i & 0x7FFFFFFF) + 1;
-							if (Interlocked.CompareExchange (ref state, newI, i) == i)
+							if (Interlocked.CompareExchange (ref state, newI, i) == i) {
 								return;
+							}
 						}
 					}
 				}
@@ -273,19 +252,20 @@ namespace System.Threading
 			
 			int Encode (short c, bool a, short v)
 			{
-				int temp = 0;
-				temp |= c;
-				temp |= a ? 0x8000 : 0;
-				temp |= ((int)v) << 16;
+				uint temp = 0;
+				temp |= (uint)c;
+				temp |= (uint)(a ? 0x8000 : 0);
+				temp |= ((uint)v) << 16;
 				
-				return temp;
+				return (int)temp;
 			}
 			
 			void Decode (int value, out short c, out bool a, out short v)
 			{
-				c = (short)(value & 0x7FFF);
-				a = (value & 0x8000) > 0;
-				v = (short)(value >> 16);
+				uint temp = (uint)value;
+				c = (short)(temp & 0x7FFF);
+				a = (temp & 0x8000) > 0;
+				v = (short)(temp >> 16);
 			}
 		}
 	}

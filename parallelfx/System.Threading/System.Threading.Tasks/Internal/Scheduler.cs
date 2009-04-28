@@ -38,7 +38,7 @@ namespace System.Threading.Tasks
 		
 		public Scheduler (int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
-			workQueue = new ConcurrentStack<Task> ();
+			workQueue = new ConcurrentQueue<Task> ();
 			workers = new ThreadWorker [maxWorker];
 			
 			for (int i = 0; i < maxWorker; i++) {
