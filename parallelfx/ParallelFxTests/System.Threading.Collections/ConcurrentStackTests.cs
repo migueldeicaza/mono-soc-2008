@@ -24,6 +24,8 @@
 //
 
 using System;
+using System.Threading;
+using System.Linq;
 using System.Threading.Collections;
 using NUnit.Framework;
 
@@ -41,6 +43,68 @@ namespace ParallelFxTests
 			for (int i = 0; i < 10; i++) {
 				stack.Push(i);
 			}
+		}
+		
+		[Test]
+		public void StressPushTestCase ()
+		{
+			ParallelTestHelper.Repeat (delegate {
+				stack = new ConcurrentStack<int> ();
+				int amount = -1;
+				const int count = 10;
+				const int threads = 5;
+				
+				ParallelTestHelper.ParallelStressTest (stack, (q) => {
+					int t = Interlocked.Increment (ref amount);
+					for (int i = 0; i < count; i++)
+						stack.Push (t);
+				}, threads);
+				
+				Assert.AreEqual (threads * count, stack.Count, "#-1");
+				int[] values = new int[threads];
+				int temp;
+				while (stack.TryPop (out temp)) {
+					values[temp]++;
+				}
+				
+				for (int i = 0; i < threads; i++)
+					Assert.AreEqual (count, values[i], "#" + i);
+			});
+		}
+		
+		[Test]
+		public void StressPopTestCase ()
+		{
+			ParallelTestHelper.Repeat (delegate {
+				stack = new ConcurrentStack<int> ();
+				const int count = 10;
+				const int threads = 5;
+				const int delta = 5;
+				
+				for (int i = 0; i < (count + delta) * threads; i++)
+					stack.Push (i);
+				
+				bool state = true;
+				
+				ParallelTestHelper.ParallelStressTest (stack, (q) => {
+					int t;
+					for (int i = 0; i < count; i++)
+						state &= stack.TryPop (out t);
+				}, threads);
+				
+				Assert.IsTrue (state, "#1");
+				Assert.AreEqual (delta * threads, stack.Count, "#2");
+				
+				string actual = string.Empty;
+				int temp;
+				while (stack.TryPop (out temp)) {
+					actual += temp;
+				}
+				string expected = Enumerable.Range (0, delta * threads).Reverse()
+					.Aggregate (string.Empty, (acc, v) => acc + v);
+				
+				Assert.AreEqual (expected, actual, "#3");
+			});
 		}
 		
 		[Test]
