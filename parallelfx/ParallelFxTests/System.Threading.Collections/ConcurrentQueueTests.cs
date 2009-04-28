@@ -24,6 +24,9 @@
 //
 
 using System;
+using System.Linq;
+using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Collections;
 
 using NUnit.Framework;
@@ -47,6 +50,68 @@ namespace ParallelFxTests
 		}
 		
 		[Test]
+		public void StressEnqueueTestCase ()
+		{
+			ParallelTestHelper.Repeat (delegate {
+				queue = new ConcurrentQueue<int> ();
+				int amount = -1;
+				const int count = 10;
+				const int threads = 5;
+				
+				ParallelTestHelper.ParallelStressTest (queue, (q) => {
+					int t = Interlocked.Increment (ref amount);
+					for (int i = 0; i < count; i++)
+						queue.Enqueue (t);
+				}, threads);
+				
+				Assert.AreEqual (threads * count, queue.Count, "#-1");
+				int[] values = new int[threads];
+				int temp;
+				while (queue.TryDequeue (out temp)) {
+					values[temp]++;
+				}
+				
+				for (int i = 0; i < threads; i++)
+					Assert.AreEqual (count, values[i], "#" + i);
+			});
+		}
+		
+		[Test]
+		public void StressDequeueTestCase ()
+		{
+			ParallelTestHelper.Repeat (delegate {
+				queue = new ConcurrentQueue<int> ();
+				const int count = 10;
+				const int threads = 5;
+				const int delta = 5;
+				
+				for (int i = 0; i < (count + delta) * threads; i++)
+					queue.Enqueue (i);
+				
+				bool state = true;
+				
+				ParallelTestHelper.ParallelStressTest (queue, (q) => {
+					int t;
+					for (int i = 0; i < count; i++)
+						state &= queue.TryDequeue (out t);
+				}, threads);
+				
+				Assert.IsTrue (state, "#1");
+				Assert.AreEqual (delta * threads, queue.Count, "#2");
+				
+				string actual = string.Empty;
+				int temp;
+				while (queue.TryDequeue (out temp)) {
+					actual += temp;
+				}
+				string expected = Enumerable.Range (count * threads, delta * threads)
+					.Aggregate (string.Empty, (acc, v) => acc + v);
+				
+				Assert.AreEqual (expected, actual, "#3");
+			});
+		}
+		
+		[Test]
 		public void CountTestCase()
 		{
 			Assert.AreEqual(10, queue.Count, "#1");
@@ -61,7 +126,7 @@ namespace ParallelFxTests
 		}
 		
 		//[Ignore]
-		[Test()]
+		[Test]
 		public void EnumerateTestCase()
 		{
 			string s = string.Empty;

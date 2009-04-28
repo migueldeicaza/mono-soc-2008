@@ -40,7 +40,6 @@ namespace System.Threading.Tasks
 		static int          id = -1;
 		
 		CountdownEvent childTasks = new CountdownEvent (1);
-		//Snzi childTasks = new Snzi ();
 		Task parent  = current;
 		Task creator = current;
 		
