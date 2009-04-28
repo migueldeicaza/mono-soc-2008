@@ -71,7 +71,7 @@ namespace System.Threading.Tasks
 #else
 			this.dDeque          = new DynamicDeque<Task> ();
 #endif*/
-			if (Environment.GetEnvironmentVariable ("USE_CYCLIC") != null) {
+			if (!string.IsNullOrEmpty (Environment.GetEnvironmentVariable ("USE_CYCLIC"))) {
 				Console.WriteLine ("Using cyclic deque");
 				this.dDeque = new CyclicDeque<Task> ();
 			} else {

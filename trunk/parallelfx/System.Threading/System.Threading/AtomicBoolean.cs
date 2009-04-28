@@ -27,7 +27,7 @@ using System;
 
 namespace System.Threading
 {
-	internal class AtomicBoolean
+	internal struct AtomicBoolean
 	{
 		int flag;
 		const int UnSet = 0;
@@ -57,11 +57,10 @@ namespace System.Threading
 		
 		public bool Value {
 			get {
-				return Thread.VolatileRead (ref flag) == Set;
+				return flag == Set;
 			} 
 			set {
-				//Exchange (value);
-				Thread.VolatileWrite (ref flag, value ? Set : UnSet);
+				Exchange (value);
 			}
 		}
 		

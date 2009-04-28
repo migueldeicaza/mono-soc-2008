@@ -30,9 +30,14 @@ namespace ParallelFxTests
 {
 	public static class ParallelTestHelper
 	{
-		const int numRun = 100;
+		const int NumRun = 100;
 		
 		public static void Repeat (Action action)
+		{
+			Repeat (action, NumRun);
+		}
+		
+		public static void Repeat (Action action, int numRun)
 		{
 			for (int i = 0; i < numRun; i++)
 				action ();
