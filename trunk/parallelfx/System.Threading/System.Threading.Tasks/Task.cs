@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // Task.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -29,7 +29,7 @@ using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
-	public class Task : TaskBase, IDisposable, IAsyncResult
+	public class Task : IDisposable, IAsyncResult, ICancelableOperation
 	{
 		// With this attribute each thread has its own value so that it's correct for our Schedule code
 		// and for Parent and Creator properties. Though it may not be the value that Current should yield.
@@ -95,40 +95,6 @@ namespace System.Threading.Tasks
 		}
 		
 		#region Create and ContinueWith
-		public static Task StartNew (Action<object> action)
-		{
-			return StartNew (action, null, TaskManager.Default, TaskCreationOptions.None);
-		}
-		
-		public static Task StartNew (Action<object> action, object state)
-		{
-			return StartNew (action, state, TaskManager.Current, TaskCreationOptions.None);
-		}
-		
-		public static Task StartNew (Action<object> action, TaskManager tm)
-		{
-			return StartNew (action, null, tm, TaskCreationOptions.None);
-		}
-		
-		public static Task StartNew (Action<object> action, TaskCreationOptions options)
-		{
-			return StartNew (action, null, TaskManager.Current, options);
-		}
-		
-		
-		public static Task StartNew (Action<object> action, TaskManager tm, TaskCreationOptions options)
-		{
-			return StartNew (action, null, tm, options);
-		}
-		
-		public static Task StartNew (Action<object> action, object state, TaskManager tm,
-		                             TaskCreationOptions options)
-		{
-			Task result = new Task (tm, action, state, options);
-			result.Schedule ();
-			return result;
-		}
-		
 		public Task ContinueWith (Action<Task> a)
 		{
 			return ContinueWith (a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
@@ -541,4 +507,4 @@ namespace System.Threading.Tasks
 		#endregion
 	}
 }
-#endif
+//#endif

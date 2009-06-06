@@ -30,7 +30,7 @@
     <File name="deps/raytracer-output.xml" subtype="Code" buildaction="EmbedAsResource" />
     <File name="System.Linq" subtype="Directory" buildaction="Compile" />
     <File name="System.Linq/ParallelEnumerableTests.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Linq/MonoEnumerableTests.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Linq/MonoEnumerableTests.cs" subtype="Code" buildaction="Nothing" />
     <File name="System.Linq/MonoEnumerableMoreTest.cs" subtype="Code" buildaction="Nothing" />
     <File name="System.Threading/AggregateExceptionTests.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/LazyInitTests.cs" subtype="Code" buildaction="Compile" />
