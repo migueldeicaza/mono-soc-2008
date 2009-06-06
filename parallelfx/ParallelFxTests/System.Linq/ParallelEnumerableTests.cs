@@ -41,7 +41,7 @@ namespace ParallelFxTests
 		[SetUpAttribute]
 		public void Setup()
 		{
-			baseEnumerable = Enumerable.Range(1, 500);
+			baseEnumerable = Enumerable.Range(1, 10000);
 		}
 		
 		void AreEquivalent(IEnumerable<int> syncEnumerable, IEnumerable<int> asyncEnumerable, int count)
@@ -136,8 +136,8 @@ namespace ParallelFxTests
 		public void TakeTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IParallelEnumerable<int> async = baseEnumerable.AsParallel().Take(200);
-				IEnumerable<int> sync = baseEnumerable.Take(200);
+				IParallelEnumerable<int> async = baseEnumerable.AsParallel().Take(2000);
+				IEnumerable<int> sync = baseEnumerable.Take(2000);
 				
 				AreEquivalent(sync, async, 1);
 				
@@ -152,8 +152,8 @@ namespace ParallelFxTests
 		public void SkipTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IParallelEnumerable<int> async = baseEnumerable.AsParallel().AsOrdered().Skip(200);
-				IEnumerable<int> sync = baseEnumerable.Skip(200);
+				IParallelEnumerable<int> async = baseEnumerable.AsParallel().AsOrdered().Skip(2000);
+				IEnumerable<int> sync = baseEnumerable.Skip(2000);
 				
 				AreEquivalent(sync, async, 1);
 				
@@ -168,11 +168,11 @@ namespace ParallelFxTests
 		public void ZipTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IParallelEnumerable<int> async1 = ParallelEnumerable.Range(0, 10);
-				IParallelEnumerable<int> async2 = ParallelEnumerable.Repeat(1, 10).Zip(async1, (e1, e2) => e1 + e2);
+				IParallelEnumerable<int> async1 = ParallelEnumerable.Range(0, 10000);
+				IParallelEnumerable<int> async2 = ParallelEnumerable.Repeat(1, 10000).Zip(async1, (e1, e2) => e1 + e2);
 				
-				int[] expected = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-				CollectionAssert.AreEquivalent(expected, async2.ToArray(), "#1");
+				int[] expected = Enumerable.Range (1, 10000).ToArray ();
+				CollectionAssert.AreEquivalent(expected, Enumerable.ToArray (async2), "#1");
 			});
 		}
 		
@@ -180,8 +180,8 @@ namespace ParallelFxTests
 		public void RangeTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IEnumerable<int> sync  = Enumerable.Range(1, 10);
-				IEnumerable<int> async = ParallelEnumerable.Range(1, 10);
+				IEnumerable<int> sync  = Enumerable.Range(1, 1000);
+				IEnumerable<int> async = ParallelEnumerable.Range(1, 1000);
 				
 				AssertAreSame(sync, async);
 			});
@@ -191,8 +191,8 @@ namespace ParallelFxTests
 		public void RepeatTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IEnumerable<int> sync  = Enumerable.Repeat(1, 10);
-				IEnumerable<int> async = ParallelEnumerable.Repeat(1, 10);
+				IEnumerable<int> sync  = Enumerable.Repeat(1, 1000);
+				IEnumerable<int> async = ParallelEnumerable.Repeat(1, 1000);
 				
 				AssertAreSame(sync, async);
 			});
