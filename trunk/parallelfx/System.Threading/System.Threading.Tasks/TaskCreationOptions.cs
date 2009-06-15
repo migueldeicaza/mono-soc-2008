@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // TaskCreationOptions.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -31,10 +31,10 @@ namespace System.Threading.Tasks
 	public enum TaskCreationOptions
 	{
 		None,
-		SuppressExecutionContextFlow,
-		RespectCreatorCancellation,
-		SelfReplicating,
-		Detached,
+		PreferFairness,
+		RespectParentCancellation,
+		LongRunning,
+		DetachedFromParent,
 	}
 }
-#endif
+//#endif

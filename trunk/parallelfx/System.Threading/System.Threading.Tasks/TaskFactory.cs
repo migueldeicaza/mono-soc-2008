@@ -58,15 +58,15 @@ namespace System.Threading.Tasks
 		}
 		#endregion
 		
-		#region StartNew
+		#region StartNew for Task
 		public Task StartNew (Action action)
 		{
-			return StartNew (action, TaskCreationOptions.None);
+			return StartNew (action, options, scheduler);
 		}
 		
 		public Task StartNew (Action action, TaskCreationOptions options)
 		{
-			return StartNew (action, options, null);
+			return StartNew (action, options, scheduler);
 		}
 		
 		public Task StartNew (Action action, TaskCreationOptions options, TaskScheduler scheduler)
@@ -76,17 +76,55 @@ namespace System.Threading.Tasks
 		
 		public Task StartNew (Action<object> action, object state)
 		{
-			return StartNew (action, state, TaskManager.Current, TaskCreationOptions.None);
+			return StartNew (action, state, options, scheduler);
 		}
 		
 		public Task StartNew (Action<object> action, object state, TaskCreationOptions options)
 		{
-			return StartNew (action, null, options, null);
+			return StartNew (action, state, options, scheduler);
 		}
 		
 		public Task StartNew (Action<object> action, object state, TaskCreationOptions options, TaskScheduler scheduler)
 		{
-			return null;
+			Task t = new Task (action, state, options);
+			t.Start (scheduler);
+			
+			return t;
+		}
+		#endregion
+		
+		#region StartNew for Task<T>	
+		public static Task<T> StartNew<T> (Func<T> function)
+		{
+			return StartNew<T> (function, options, scheduler);
+		}
+		
+		public static Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options)
+		{
+			return StartNew<T> (function, options, scheduler);
+		}
+		
+		public static Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options, TaskScheduler scheduler)
+		{
+			return StartNew<T> ((o) => function (), null, options, scheduler);
+		}
+		
+		public static Task<T> StartNew<T> (Func<object, T> function, object state)
+		{
+			return StartNew<T> (function, state, options, scheduler);
+		}
+		
+		public static Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options)
+		{
+			return StartNew<T> (function, state, options, scheduler);
+		}
+		
+		public static Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options, TaskScheduler scheduler)
+		{
+			Task<T> t = new Task<T> (function, state, options);
+			t.Start (scheduler);
+			
+			return t;
 		}
 		#endregion
 		
@@ -106,6 +144,10 @@ namespace System.Threading.Tasks
 		{
 			return null;
 		}
+		#endregion
+		
+		#region FromAsync
+		
 		#endregion
 		
 		public TaskScheduler Scheduler {

@@ -25,18 +25,23 @@
 // THE SOFTWARE.
 
 using System;
+using System.Threading;
 using System.Collections.Generic;
 
 namespace System.Threading.Tasks
 {
-	
 	public abstract class TaskScheduler
 	{
 		static TaskScheduler defaultScheduler;
+		[ThreadStatic]
 		static TaskScheduler currentScheduler;
+		
+		int id;
+		static int lastId = int.MinValue;
 		
 		protected TaskScheduler ()
 		{
+			this.id = Interlocked.Increment (ref lastId);
 		}
 		
 		public static TaskScheduler Default  {
@@ -47,18 +52,32 @@ namespace System.Threading.Tasks
 		
 		public static TaskScheduler Current  {
 			get {
-				return currentScheduler;
+				if (Task.Current != null)
+					return currentScheduler;
+				
+				return defaultScheduler;
 			}
 			internal set {
-				if (value != null)
-					currentScheduler = value;
+				currentScheduler = value;
+			}
+		}
+		
+		public int Id {
+			get {
+				return id;
+			}
+		}
+		
+		public virtual int MaximumConcurrencyLevel {
+			get {
+				return Environment.ProcessorCount;
 			}
 		}
 		
 		protected abstract IEnumerable<Task> GetScheduledTasks ();
-		protected internal abstract void QueueTask(Task task);
-		protected internal virtual bool TryDequeue(Task task);
-		protected bool TryExecuteTask(Task task);
-		protected abstract bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued);
+		protected internal abstract void QueueTask (Task task);
+		protected internal abstract bool TryDequeue (Task task);
+		protected abstract bool TryExecuteTask (Task task);
+		protected abstract bool TryExecuteTaskInline (Task task, bool taskWasPreviouslyQueued);
 	}
 }
