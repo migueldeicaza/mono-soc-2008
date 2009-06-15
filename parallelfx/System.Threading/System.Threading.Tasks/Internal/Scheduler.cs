@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // Scheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -121,8 +121,8 @@ namespace System.Threading.Tasks
 			if (!parent.IsCompleted)
 				return false;
 			
-			return parent.ChildTasks;
+			return parent.Status == TaskStatus.WaitingForChildrenToComplete;
 		}
 	}
 }
-#endif
+//#endif

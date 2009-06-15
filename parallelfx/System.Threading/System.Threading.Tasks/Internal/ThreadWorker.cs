@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ThreadWorker.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -65,18 +65,14 @@ namespace System.Threading.Tasks
 		                     bool createThread, int maxStackSize, ThreadPriority priority)
 		{
 			this.others          = others;
-			/*
-#if USE_CYCLIC_DEQUE
-			this.dDeque          = new CyclicDeque<Task> ();
-#else
-			this.dDeque          = new DynamicDeque<Task> ();
-#endif*/
-			if (!string.IsNullOrEmpty (Environment.GetEnvironmentVariable ("USE_CYCLIC"))) {
-				Console.WriteLine ("Using cyclic deque");
-				this.dDeque = new CyclicDeque<Task> ();
-			} else {
-				this.dDeque = new DynamicDeque<Task> ();
-			}
+
+//			if (!string.IsNullOrEmpty (Environment.GetEnvironmentVariable ("USE_CYCLIC"))) {
+//				Console.WriteLine ("Using cyclic deque");
+//				this.dDeque = new CyclicDeque<Task> ();
+//			} else {
+//				this.dDeque = new DynamicDeque<Task> ();
+//			}
+			this.dDeque = new CyclicDeque<Task> ();
 			
 			this.sharedWorkQueue = sharedWorkQueue;
 			this.workerLength    = others.Length;
@@ -293,4 +289,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
-#endif
+//#endif

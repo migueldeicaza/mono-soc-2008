@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // Parallel.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -44,12 +44,12 @@ namespace System.Threading
 		
 		public static int GetBestWorkerNumber ()
 		{
-			return GetBestWorkerNumber (TaskManager.Current.Policy);
+			return GetBestWorkerNumber (TaskScheduler.Current);
 		}
 		
-		public static int GetBestWorkerNumber (TaskManagerPolicy policy)
+		public static int GetBestWorkerNumber (TaskScheduler scheduler)
 		{	
-			return policy.IdealProcessors * policy.IdealThreadsPerProcessor;
+			return scheduler.MaximumConcurrencyLevel;
 		}
 		
 		static void HandleExceptions (IEnumerable<Task> tasks)
@@ -95,12 +95,37 @@ namespace System.Threading
 			For (from, to, 1, action);
 		}
 		
-		public static void For (int from, int to, int step, Action<int> action)
+		public static void For (long from, long to, Action<long> action)
 		{
 			For (from, to, step, (i, state) => action (i));
 		}
 		
-		public static void For (int from, int to, Action<int, ParallelState> action)
+		public static void For (int from, int to, Action<int, ParallelLoopState> action)
+		{
+			For (from, to, 1, action);
+		}
+		
+		public static void For (long from, long to, Action<long, ParallelLoopState> action)
+		{
+			For (from, to, 1, action);
+		}
+		
+		public static void For (int from, int to, ParallelOptions options, Action<int> action)
+		{
+			For (from, to, 1, action);
+		}
+		
+		public static void For (long from, long to, ParallelOptions options, Action<long> action)
+		{
+			For (from, to, step, (i, state) => action (i));
+		}
+		
+		public static void For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
+		{
+			For (from, to, 1, action);
+		}
+		
+		public static void For (long from, long to, ParallelOptions options, Action<long, ParallelLoopState> action)
 		{
 			For (from, to, 1, action);
 		}
@@ -109,8 +134,6 @@ namespace System.Threading
 		{
 			if (action == null)
 				throw new ArgumentNullException ("action");
-			if (step < 0)
-				throw new ArgumentOutOfRangeException ("step", "step must be positive");
 			
 			int num = GetBestWorkerNumber ();
 
@@ -462,4 +485,4 @@ namespace System.Threading
 		#endregion
 	}
 }
-#endif
+//#endif

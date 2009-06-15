@@ -1,20 +1,94 @@
 <Combine fileversion="2.0" name="ParallelFX">
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="CombineConfiguration">
-      <Entry build="True" name="System.Threading" configuration="Debug" />
-      <Entry build="True" name="ParallelFxTests" configuration="Debug" />
-      <Entry build="True" name="Mono.Threading.Extensions" configuration="Debug" />
+      <Entry build="True" name="System.Threading" configuration="Debug">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entry build="True" name="ParallelFxTests" configuration="Debug">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entry build="True" name="Mono.Threading.Extensions" configuration="Debug">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entries>
+        <Entry filename="System.Threading/System.mdp" />
+        <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+        <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+      </Entries>
     </Configuration>
     <Configuration name="Release" ctype="CombineConfiguration">
-      <Entry build="True" name="System.Threading" configuration="Release" />
-      <Entry build="True" name="ParallelFxTests" configuration="Release" />
-      <Entry build="True" name="Mono.Threading.Extensions" configuration="Release" />
+      <Entry build="True" name="System.Threading" configuration="Release">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entry build="True" name="ParallelFxTests" configuration="Release">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entry build="True" name="Mono.Threading.Extensions" configuration="Release">
+        <Entries>
+          <Entry filename="System.Threading/System.mdp" />
+          <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+          <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+        </Entries>
+      </Entry>
+      <Entries>
+        <Entry filename="System.Threading/System.mdp" />
+        <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+        <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+      </Entries>
     </Configuration>
+    <Entries>
+      <Entry filename="System.Threading/System.mdp" />
+      <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+      <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+    </Entries>
   </Configurations>
   <StartMode startupentry="System.Threading" single="True">
-    <Execute type="None" entry="System.Threading" />
-    <Execute type="None" entry="ParallelFxTests" />
-    <Execute type="None" entry="Mono.Threading.Extensions" />
+    <Execute type="None" entry="System.Threading">
+      <Entries>
+        <Entry filename="System.Threading/System.mdp" />
+        <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+        <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+      </Entries>
+    </Execute>
+    <Execute type="None" entry="ParallelFxTests">
+      <Entries>
+        <Entry filename="System.Threading/System.mdp" />
+        <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+        <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+      </Entries>
+    </Execute>
+    <Execute type="None" entry="Mono.Threading.Extensions">
+      <Entries>
+        <Entry filename="System.Threading/System.mdp" />
+        <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+        <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+      </Entries>
+    </Execute>
+    <Entries>
+      <Entry filename="System.Threading/System.mdp" />
+      <Entry filename="ParallelFxTests/ParallelFxTests.mdp" />
+      <Entry filename="System.Threading.Extensions/System.Threading.Extensions.mdp" />
+    </Entries>
   </StartMode>
   <Entries>
     <Entry filename="System.Threading/System.mdp" />

@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // IScheduler.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -32,13 +32,10 @@ namespace System.Threading.Tasks
 	internal interface IScheduler: IDisposable
 	{
 		void AddWork (Task t);
-		//void Participate();
 		void ParticipateUntil (Task task);
 		bool ParticipateUntil (Task task, Func<bool> predicate);
 		void ParticipateUntil (Func<bool> predicate);
 		void PulseAll ();
-		/*void InhibitPulse();
-		void UnInhibitPulse();*/
 	}
 }
-#endif
+//#endif
