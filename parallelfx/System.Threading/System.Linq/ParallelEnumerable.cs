@@ -470,7 +470,7 @@ namespace System.Linq
 			Task[] tasks = new Task[count];
 			for (int i = 0; i < count; i++) {
 				int reserved = i;
-				tasks[i] = Task.StartNew(delegate {
+				tasks[i] = Task.Factory.StartNew(delegate {
 					TSource item;
 					int index;
 					

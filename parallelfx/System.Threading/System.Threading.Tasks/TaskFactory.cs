@@ -34,23 +34,23 @@ namespace System.Threading.Tasks
 	{
 		TaskScheduler scheduler;
 		TaskCreationOptions options;
-		TaskCreationOptions contOptions;		
+		TaskContinuationOptions contOptions;		
 		
 		#region ctors
-		public TaskFactory () : this (scheduler.Default, TaskCreationOptions.None, TaskCreationOptions.None)
+		public TaskFactory () : this (TaskScheduler.Default, TaskCreationOptions.None, TaskContinuationOptions.None)
 		{	
 		}
 		
-		public TaskFactory (TaskScheduler scheduler) : this (scheduler, TaskCreationOptions.None, TaskCreationOptions.None)
+		public TaskFactory (TaskScheduler scheduler) : this (scheduler, TaskCreationOptions.None, TaskContinuationOptions.None)
 		{	
 		}
 		
-		public TaskFactory (TaskCreationOptions options, TaskCreationOptions contOptions)
+		public TaskFactory (TaskCreationOptions options, TaskContinuationOptions contOptions)
 			: this (TaskScheduler.Default, options, contOptions)
 		{	
 		}
 		
-		public TaskFactory (TaskScheduler scheduler, TaskCreationOptions options, TaskCreationOptions contOptions)
+		public TaskFactory (TaskScheduler scheduler, TaskCreationOptions options, TaskContinuationOptions contOptions)
 		{
 			this.scheduler = scheduler;
 			this.options = options;
@@ -94,32 +94,32 @@ namespace System.Threading.Tasks
 		#endregion
 		
 		#region StartNew for Task<T>	
-		public static Task<T> StartNew<T> (Func<T> function)
+		public Task<T> StartNew<T> (Func<T> function)
 		{
 			return StartNew<T> (function, options, scheduler);
 		}
 		
-		public static Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options)
+		public Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options)
 		{
 			return StartNew<T> (function, options, scheduler);
 		}
 		
-		public static Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options, TaskScheduler scheduler)
+		public Task<T> StartNew<T> (Func<T> function, TaskCreationOptions options, TaskScheduler scheduler)
 		{
 			return StartNew<T> ((o) => function (), null, options, scheduler);
 		}
 		
-		public static Task<T> StartNew<T> (Func<object, T> function, object state)
+		public Task<T> StartNew<T> (Func<object, T> function, object state)
 		{
 			return StartNew<T> (function, state, options, scheduler);
 		}
 		
-		public static Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options)
+		public Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options)
 		{
 			return StartNew<T> (function, state, options, scheduler);
 		}
 		
-		public static Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options, TaskScheduler scheduler)
+		public Task<T> StartNew<T> (Func<object, T> function, object state, TaskCreationOptions options, TaskScheduler scheduler)
 		{
 			Task<T> t = new Task<T> (function, state, options);
 			t.Start (scheduler);
@@ -156,7 +156,7 @@ namespace System.Threading.Tasks
 			}
 		}
 		
-		public TaskCreationOptions ContinuationOptions {
+		public TaskContinuationOptions ContinuationOptions {
 			get {
 				return contOptions;
 			}

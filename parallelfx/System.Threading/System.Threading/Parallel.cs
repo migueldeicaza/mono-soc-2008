@@ -67,7 +67,7 @@ namespace System.Threading
 		
 		static void InitTasks (Task[] tasks, Action<object> action, int count)
 		{
-			InitTasks (tasks, count, () => Task.StartNew (action, TaskCreationOptions.Detached));
+			InitTasks (tasks, count, () => Task.Factory.StartNew (action, TaskCreationOptions.DetachedFromParent));
 		}
 		
 		static void InitTasks (Task[] tasks, int count, Func<Task> taskCreator)
@@ -77,68 +77,63 @@ namespace System.Threading
 			}
 		}
 		
-		static void InitCleanerCallback<TLocal> (Task[] tasks, ParallelState<TLocal> state, Action<TLocal> cleanFunc)
+		/*static void InitCleanerCallback<TLocal> (Task[] tasks, ParallelState<TLocal> state, Action<TLocal> cleanFunc)
 		{
 			Action<Task> cleanCallback = delegate (Task t) {
 				cleanFunc (state.ThreadLocalState);
 			};
 			foreach (Task t in tasks)
 				t.ContinueWith (cleanCallback, TaskContinuationKind.OnAny, TaskCreationOptions.None, true);
-		}
+		}*/
 		
 		#region For
 		
 		static readonly int MaxForCount;
 		
-		public static void For (int from, int to, Action<int> action)
-		{
-			For (from, to, 1, action);
-		}
-		
 		public static void For (long from, long to, Action<long> action)
 		{
-			For (from, to, step, (i, state) => action (i));
+			For (from, to, (i, state) => action (i));
 		}
 		
 		public static void For (int from, int to, Action<int, ParallelLoopState> action)
 		{
-			For (from, to, 1, action);
+			For (from, to, action);
 		}
 		
 		public static void For (long from, long to, Action<long, ParallelLoopState> action)
 		{
-			For (from, to, 1, action);
+			For (from, to, action);
 		}
 		
 		public static void For (int from, int to, ParallelOptions options, Action<int> action)
 		{
-			For (from, to, 1, action);
+			For (from, to, action);
 		}
 		
 		public static void For (long from, long to, ParallelOptions options, Action<long> action)
 		{
-			For (from, to, step, (i, state) => action (i));
+			For (from, to, (i, state) => action (i));
 		}
 		
 		public static void For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
 		{
-			For (from, to, 1, action);
+			For (from, to, action);
 		}
 		
 		public static void For (long from, long to, ParallelOptions options, Action<long, ParallelLoopState> action)
 		{
-			For (from, to, 1, action);
+			For (from, to, action);
 		}
 		
-		public static void For (int from, int to, int step, Action<int, ParallelState> action)
+		public static void For (int from, int to, Action<int> action)
 		{
 			if (action == null)
 				throw new ArgumentNullException ("action");
 			
+			int step = 1;
 			int num = GetBestWorkerNumber ();
 
 			Task[] tasks = new Task [num];
-			ParallelState state = new ParallelState (tasks);
 			
 			int currentIndex = from;
 			
@@ -148,9 +143,9 @@ namespace System.Threading
 					action (index, state);
 				}*/
 				int count = MaxForCount * step;
-				while ((index = Interlocked.Add (ref currentIndex, count) - (count)) < to && !state.IsStopped) {
+				while ((index = Interlocked.Add (ref currentIndex, count) - (count)) < to) {
 					for (int i = index; i < to && i < index + (count); i += step) {
-						action (i, state);
+						action (i);
 					}
 				}
 			};
@@ -159,104 +154,27 @@ namespace System.Threading
 			Task.WaitAll (tasks);
 			HandleExceptions (tasks);
 		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body)
-		{
-			For<TLocal>(fromInclusive, toExclusive, 1, threadLocalSelector, body);
-		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body)
-		{
-			For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector, body, null);
-		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			For<TLocal>(fromInclusive, toExclusive, 1, threadLocalSelector, body, threadLocalCleanup);
-		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			if (body == null)
-				throw new ArgumentNullException ("body");
-			if (step < 0)
-				throw new ArgumentOutOfRangeException ("step", "step must be positive");
-			if (threadLocalSelector == null)
-				throw new ArgumentNullException ("threadLocalSelector");
-			
-			For<TLocal> (fromInclusive, toExclusive, step, threadLocalSelector,
-			             body, threadLocalCleanup, (a, count, act) => InitTasks (a, act, count));
-		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
-		                                TaskManager manager, TaskCreationOptions options)
-		{
-			if (body == null)
-				throw new ArgumentNullException ("body");
-			if (step < 0)
-				throw new ArgumentOutOfRangeException ("step", "step must be positive");
-			if (threadLocalSelector == null)
-				throw new ArgumentNullException ("threadLocalSelector");
-			if (manager == null)
-				throw new ArgumentNullException ("manager");
-			
-			For<TLocal>(fromInclusive, toExclusive, step, threadLocalSelector,
-			            body, threadLocalCleanup,
-			            (a, count, act) => InitTasks (a, count, () => Task.StartNew (act, manager, options)));
-		}
-		
-		public static void For<TLocal> (int fromInclusive, int toExclusive, int step, Func<TLocal> threadLocalSelector,
-		                                Action<int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
-		                                Action<Task[], int, Action<object>> tasksCreator)
-		{
-			int num = GetBestWorkerNumber ();
-			
-			Task[] tasks = new Task [num];
-			ParallelState<TLocal> state = new ParallelState<TLocal> (tasks, threadLocalSelector);
-			
-			int currentIndex = fromInclusive;
-			
-			Action<object> workerMethod = delegate {
-				int index;
-				while ((index = Interlocked.Add (ref currentIndex, step) - step) < toExclusive && !state.IsStopped) {
-					body (index, state);
-				}
-			};
-			
-			tasksCreator (tasks, num, workerMethod);
-			if (threadLocalCleanup != null)
-				InitCleanerCallback (tasks, state, threadLocalCleanup);
-			
-			Task.WaitAll (tasks);
-			HandleExceptions (tasks);
-		}
-		
 		#endregion
 		
 		#region Foreach
 		
 		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			ForEach (enumerable, (e, index, state) => action (e));
+			ForEach (enumerable, (e, index) => action (e));
 		}
 		
-		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource,
+		/*public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource,
 		                                     ParallelState> action)
 		{
 			ForEach (enumerable, (e, index, state) => action (e, state));
-		}
+		}*/
 		
 		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, int> action)
 		{
-			ForEach (enumerable, (e, index, state) => action (e, index));
+			//ForEach (enumerable, (e, index, state) => action (e, index));
 		}
 		
-		public static void ForEach<TSource> (IEnumerable<TSource> enumerable,
+		/*public static void ForEach<TSource> (IEnumerable<TSource> enumerable,
 		                                     Action<TSource, int, ParallelState> action)
 		{
 			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
@@ -390,26 +308,26 @@ namespace System.Threading
 				InitCleanerCallback (tasks, state, threadLocalCleanup);
 			Task.WaitAll (tasks);
 			HandleExceptions (tasks);
-		}
+		}*/
 		
 		#endregion
 		
 		#region While
-		public static void While (Func<bool> predicate, Action body)
+		/*public static void While (Func<bool> predicate, Action body)
 		{
 			While (predicate, (state) => body ());
-		}
+		}*/
 		
-		public static void While (Func<bool> predicate, Action<ParallelState> body)
+		public static void While (Func<bool> predicate, Action body)
 		{
 			int num = GetBestWorkerNumber ();
 			
 			Task[] tasks = new Task [num];
-			ParallelState state = new ParallelState (tasks);
+			//ParallelState state = new ParallelState (tasks);
 			
 			Action<object> action = delegate {
-				while (!state.IsStopped && predicate ())
-				body (state);
+				//while (!state.IsStopped && predicate ())
+				body ();
 			};
 			
 			InitTasks (tasks, action, num);
@@ -422,13 +340,13 @@ namespace System.Threading
 		#region Invoke
 		public static void Invoke (params Action[] actions)
 		{			
-			Invoke (actions, (Action a) => Task.StartNew ((o) => a ()));
+			Invoke (actions, (Action a) => Task.Factory.StartNew (a));
 		}
 		
-		public static void Invoke (Action[] actions, TaskManager tm, TaskCreationOptions tco)
+		/*public static void Invoke (Action[] actions, TaskManager tm, TaskCreationOptions tco)
 		{
 			Invoke (actions, (Action a) => Task.StartNew ((o) => a (), tm, tco));
-		}
+		}*/
 		
 		static void Invoke (Action[] actions, Func<Action, Task> taskCreator)
 		{
@@ -467,7 +385,7 @@ namespace System.Threading
 			CountdownEvent evt = new CountdownEvent (num);
 			Task[] tasks = new Task [num];
 			for (int i = 0; i < num; i++) {
-				tasks [i] = Task.StartNew (_ => { 
+				tasks [i] = Task.Factory.StartNew (() => { 
 					action ();
 					evt.Decrement ();
 					if (callback != null && evt.IsSet)

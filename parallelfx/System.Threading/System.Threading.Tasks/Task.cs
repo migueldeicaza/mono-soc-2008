@@ -134,17 +134,17 @@ namespace System.Threading.Tasks
 		#region Create and ContinueWith
 		public Task ContinueWith (Action<Task> a)
 		{
-			return ContinueWith (a, TaskContinuationOptions.OnAny, TaskCreationOptions.None);
+			return ContinueWith (a, TaskContinuationOptions.None);
 		}
 		
 		public Task ContinueWith (Action<Task> a, TaskContinuationOptions kind)
 		{
-			return ContinueWith (a, kind, TaskCreationOptions.None);
+			return ContinueWith (a, kind, TaskScheduler.Current);
 		}
 		
 		public Task ContinueWith (Action<Task> a, TaskScheduler scheduler)
 		{
-			return ContinueWith (a, kind, option, false);
+			return ContinueWith (a, TaskContinuationOptions.None, scheduler);
 		}
 		
 		public Task ContinueWith (Action<Task> a, TaskContinuationOptions kind, TaskScheduler scheduler)
@@ -190,7 +190,7 @@ namespace System.Threading.Tasks
 							return;
 					}
 					
-					CheckAndSchedule (continuation, kind);
+					CheckAndSchedule (continuation, kind, scheduler);
 				}
 			};
 			
@@ -295,7 +295,7 @@ namespace System.Threading.Tasks
 			childTasks.Decrement ();
 			
 			// Tell parent that we are finished
-			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.Detached) && parent != null){
+			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.DetachedFromParent) && parent != null){
 				parent.ChildCompleted ();
 			}
 			

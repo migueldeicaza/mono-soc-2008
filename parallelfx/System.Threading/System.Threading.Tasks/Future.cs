@@ -31,12 +31,17 @@ namespace System.Threading.Tasks
 	public class Task<T>: Task
 	{
 		T value;
-		Action func;
+		
+		Func<object, T> function;
+		object state;
 		
 		public T Value {
 			get {
 				Wait ();
 				return value;
+			}
+			private set {
+				this.value = value;
 			}
 		}
 		
@@ -56,8 +61,15 @@ namespace System.Threading.Tasks
 		}
 		
 		public Task (Func<object, T> function, object state, TaskCreationOptions options)
-			: base ((o) => value = function (o), state, options)
+			: base (null, state, options)
 		{
+			this.function = function;
+			this.state = state;
+		}
+		
+		protected override void InnerInvoke ()
+		{
+			value = function (state);
 		}
 		
 		public Task ContinueWith (Action<Task<T>> a)
@@ -77,8 +89,10 @@ namespace System.Threading.Tasks
 		
 		public Task ContinueWith (Action<Task<T>> a, TaskScheduler scheduler, TaskContinuationOptions options)
 		{
-			Task t = new Task ((o) => a ((Task<T>)o), this, options);
-			ContinueWithCore (t, kind, scheduler);
+			Task t = new Task ((o) => a ((Task<T>)o), this, TaskCreationOptions.None);
+			ContinueWithCore (t, options, scheduler);
+			
+			return t;
 		}
 		
 		/*public Task ContinueWith (Action<Task<T>> a)
