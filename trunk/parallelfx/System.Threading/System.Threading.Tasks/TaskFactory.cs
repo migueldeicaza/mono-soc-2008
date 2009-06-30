@@ -37,7 +37,7 @@ namespace System.Threading.Tasks
 		TaskContinuationOptions contOptions;		
 		
 		#region ctors
-		public TaskFactory () : this (TaskScheduler.Default, TaskCreationOptions.None, TaskContinuationOptions.None)
+		public TaskFactory () : this (TaskScheduler.Current, TaskCreationOptions.None, TaskContinuationOptions.None)
 		{	
 		}
 		
@@ -46,7 +46,7 @@ namespace System.Threading.Tasks
 		}
 		
 		public TaskFactory (TaskCreationOptions options, TaskContinuationOptions contOptions)
-			: this (TaskScheduler.Default, options, contOptions)
+			: this (TaskScheduler.Current, options, contOptions)
 		{	
 		}
 		

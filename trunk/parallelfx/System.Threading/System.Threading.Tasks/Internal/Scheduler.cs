@@ -25,16 +25,21 @@
 
 using System;
 using System.Linq;
-//using System.Collections.Generic;
 using System.Threading.Collections;
 
 namespace System.Threading.Tasks
 {
-	internal class Scheduler: IScheduler
+	internal class Scheduler: TaskScheduler, IScheduler
 	{
 		IConcurrentCollection<Task> workQueue;
 		ThreadWorker[]        workers;
 		bool                  isPulsable = true;
+
+		public Scheduler ()
+			: this (Environment.ProcessorCount, -1, ThreadPriority.Normal)
+		{
+			
+		}
 		
 		public Scheduler (int maxWorker, int maxStackSize, ThreadPriority priority)
 		{
@@ -123,6 +128,39 @@ namespace System.Threading.Tasks
 			
 			return parent.Status == TaskStatus.WaitingForChildrenToComplete;
 		}
+
+		#region Scheduler dummy stubs
+		protected override System.Collections.Generic.IEnumerable<Task> GetScheduledTasks ()
+		{
+			throw new System.NotImplementedException();
+		}
+
+		protected internal override void QueueTask (Task task)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		protected internal override bool TryDequeue (Task task)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		protected override bool TryExecuteTask (Task task)
+		{
+			throw new System.NotImplementedException();
+		}
+
+		protected override bool TryExecuteTaskInline (Task task, bool taskWasPreviouslyQueued)
+		{
+			throw new System.NotImplementedException();
+		}
+		
+		public override int MaximumConcurrencyLevel {
+			get {
+				return base.MaximumConcurrencyLevel;
+			}
+		}
+		#endregion
 	}
 }
 //#endif
