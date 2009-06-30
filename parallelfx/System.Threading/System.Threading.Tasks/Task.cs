@@ -32,7 +32,7 @@ namespace System.Threading.Tasks
 	public class Task : IDisposable, IAsyncResult, ICancelableOperation
 	{
 		// With this attribute each thread has its own value so that it's correct for our Schedule code
-		// and for Parent and Creator properties. Though it may not be the value that Current should yield.
+		// and for Parent property.
 		[System.ThreadStatic]
 		static Task         current;
 		[System.ThreadStatic]
@@ -319,6 +319,16 @@ namespace System.Threading.Tasks
 		#endregion
 		
 		#region Cancel and Wait related methods
+		public void AcknowledgeCancellation ()
+		{
+			if (this != current)
+				throw new InvalidOperationException ("The Task object is different from the currently executing"
+				                                     + "task or the current task hasn't been "
+				                                     + "marked for cancellation.");
+			
+			status = TaskStatus.Canceled;
+		}
+		
 		public void Cancel ()
 		{
 			// Mark the Task as canceled so that the worker function will return immediately

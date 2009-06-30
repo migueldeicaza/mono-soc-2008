@@ -40,7 +40,6 @@
     <File name="System.Threading/CountdownEvent.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/Scheduler.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/ThreadWorker.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading.Tasks/TaskBase.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/TaskContinuationOptions.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/IScheduler.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/OptimizedStack.cs" subtype="Code" buildaction="Compile" />
@@ -77,6 +76,9 @@
     <File name="System.Threading.Tasks/TaskStatus.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/SchedulerProxy.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/ParallelOptions.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/CancellationToken.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/CancellationTokenRegistration.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/CancellationTokenSource.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
