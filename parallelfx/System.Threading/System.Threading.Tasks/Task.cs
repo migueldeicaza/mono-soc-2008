@@ -37,18 +37,20 @@ namespace System.Threading.Tasks
 		static Task         current;
 		[System.ThreadStatic]
 		static Action<Task> childWorkAdder;
+		
 		static int          id = -1;
 		static TaskFactory  defaultFactory = new TaskFactory ();
 		
 		CountdownEvent childTasks = new CountdownEvent (1);
+		
 		Task parent  = current;
-		Task creator = current;
 		
 		int                 taskId;
 		AtomicBoolean       isCanceled = new AtomicBoolean ();
 		bool                respectParentCancellation;
 		AtomicBoolean       isCompleted;
 		TaskCreationOptions taskCreationOptions;
+		
 		IScheduler          scheduler;
 		TaskScheduler       taskScheduler;
 		
@@ -165,30 +167,8 @@ namespace System.Threading.Tasks
 			AtomicBoolean launched = new AtomicBoolean ();
 			EventHandler action = delegate {
 				if (!launched.Value && !launched.Exchange (true)) {
-					if (status == TaskStatus.Canceled) {
-						if (kind == TaskContinuationOptions.NotOnCanceled)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnFaulted)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
-							return;
-					}
-					if (status == TaskStatus.Faulted) {
-						if (kind == TaskContinuationOptions.NotOnFaulted)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnCanceled)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
-							return;
-					}
-					if (status == TaskStatus.RanToCompletion) {
-						if (kind == TaskContinuationOptions.NotOnRanToCompletion)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnFaulted)
-							return;
-						if (kind == TaskContinuationOptions.OnlyOnCanceled)
-							return;
-					}
+					if (!ContinuationStatusCheck (kind))
+						return;
 					
 					CheckAndSchedule (continuation, kind, scheduler);
 				}
@@ -204,6 +184,40 @@ namespace System.Threading.Tasks
 			// Retry in case completion was achieved but event adding was too late
 			if (IsCompleted)
 				action (this, EventArgs.Empty);
+		}
+		
+		bool ContinuationStatusCheck (TaskContinuationOptions kind)
+		{
+			int kindCode = (int)kind;
+			
+			if (kindCode >= ((int)TaskContinuationOptions.NotOnRanToCompletion)) {
+				if (status == TaskStatus.Canceled) {
+					if (kind == TaskContinuationOptions.NotOnCanceled)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnFaulted)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
+						return false;
+				}
+				if (status == TaskStatus.Faulted) {
+					if (kind == TaskContinuationOptions.NotOnFaulted)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnCanceled)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
+						return false;
+				}
+				if (status == TaskStatus.RanToCompletion) {
+					if (kind == TaskContinuationOptions.NotOnRanToCompletion)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnFaulted)
+						return false;
+					if (kind == TaskContinuationOptions.OnlyOnCanceled)
+						return false;
+				}
+			}
+			
+			return true;
 		}
 		
 		void CheckAndSchedule (Task continuation, TaskContinuationOptions options, TaskScheduler scheduler)
@@ -287,6 +301,7 @@ namespace System.Threading.Tasks
 			// Set action to null so that the GC can collect the delegate and thus
 			// any big object references that the user might have captured in an anonymous method
 			action = null;
+			state = null;
 		}
 		
 		protected void Finish ()
@@ -523,12 +538,6 @@ namespace System.Threading.Tasks
 		public Task Parent {
 			get {
 				return parent;
-			}
-		}
-		
-		public Task Creator {
-			get {
-				return creator;	
 			}
 		}
 

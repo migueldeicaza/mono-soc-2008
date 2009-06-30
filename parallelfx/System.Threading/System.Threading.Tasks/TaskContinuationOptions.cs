@@ -30,18 +30,18 @@ namespace System.Threading.Tasks
 	[System.FlagsAttribute, System.SerializableAttribute]
 	public enum TaskContinuationOptions
 	{
-		None,
+		None = 0,
 		PreferFairness,
 		RespectParentCancellation,
 		LongRunning,
 		DetachedFromParent,
+		ExecuteSynchronously,
 		NotOnRanToCompletion,
 		NotOnFaulted,
 		NotOnCanceled,
 		OnlyOnRanToCompletion,
 		OnlyOnFaulted,
-		OnlyOnCanceled,
-		ExecuteSynchronously
+		OnlyOnCanceled
 	}
 }
 //#endif

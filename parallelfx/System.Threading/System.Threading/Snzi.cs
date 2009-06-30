@@ -37,7 +37,7 @@ namespace System.Threading
 		bool Reset ();
 	}
 	
-	internal class Snzi
+	public class Snzi
 	{
 		readonly ISnziNode[] nodes;
 		

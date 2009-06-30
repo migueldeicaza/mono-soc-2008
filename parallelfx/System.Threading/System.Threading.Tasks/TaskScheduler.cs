@@ -32,7 +32,8 @@ namespace System.Threading.Tasks
 {
 	public abstract class TaskScheduler
 	{
-		static TaskScheduler defaultScheduler;
+		static TaskScheduler defaultScheduler = new Scheduler ();
+		
 		[ThreadStatic]
 		static TaskScheduler currentScheduler;
 		
