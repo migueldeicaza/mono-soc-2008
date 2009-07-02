@@ -1,5 +1,5 @@
-#if NET_4_0
-// FutureTests.cs
+//#if NET_4_0
+// TaskTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
 //
@@ -34,58 +34,59 @@ namespace ParallelFxTests
 	[TestFixture]
 	public class FutureTests
 	{
-		Future<int> InitTestFuture()
+		Task<int> InitTestTask()
 		{
-			return Future.StartNew(() => 5);
+			return Task.Factory.StartNew<int> (() => 5);
 		}
 		
 		[Test]
-		public void SimpleFutureTestCase()
+		public void SimpleTaskTestCase ()
 		{
-			Future<int> f = InitTestFuture();
+			Task<int> f = InitTestTask ();
 			
 			Assert.IsNotNull(f, "#1");
 			Assert.AreEqual(5, f.Value, "#2");
 		}
 		
 		[Test]
-		public void EmptyFutureTestCase()
+		public void TaskContinueWithTestCase ()
 		{
-			Future<int> f = Future.StartNew<int>();
+			bool result = false;
+			
+			Task<int> f = InitTestTask ();
+			Task<int> cont = f.ContinueWith ((future) => { result = true; return future.Value * 2; });
+			f.Wait ();
+			cont.Wait ();
+			
+			Assert.IsNotNull (cont, "#1");
+			Assert.IsTrue (result, "#2");
+			Assert.AreEqual (10, cont.Value);
+		}
+		
+		/* Not pertinent anymore
+		 * [Test]
+		public void EmptyTaskTestCase()
+		{
+			Task<int> f = Task.Factory.StartNew<int>(delegate {});
 			f.Value = 3;
 			
 			Assert.AreEqual(3, f.Value, "#1");
 		}
 			
-		[Test, ExpectedExceptionAttribute()]
+		/*[Test, ExpectedExceptionAttribute()]
 		public void ManualSetWhenFunctionProvidedTestCase()
 		{
-			Future<int> f = InitTestFuture();
+			Task<int> f = InitTestTask();
 			f.Value = 2;
 		}
 		
-		[Test, ExpectedExceptionAttribute()]
+		/*[Test, ExpectedExceptionAttribute()]
 		public void ManualSetTwoTimesTestCase()
 		{
-			Future<int> f = Future.StartNew<int>();
+			Task<int> f = Task.Factory.StartNew<int>();
 			f.Value = 2;
 			f.Value = 3;
-		}
-		
-		[Test]
-		public void FutureContinueWithTestCase()
-		{
-			bool result = false;
-			
-			Future<int> f = InitTestFuture();
-			Future<int> cont = f.ContinueWith((future) => { result = true; return future.Value * 2; });
-			f.Wait();
-			cont.Wait();
-			
-			Assert.IsNotNull(cont, "#1");
-			Assert.IsTrue(result, "#2");
-			Assert.AreEqual(10, cont.Value);
-		}
+		}*/
 	}
 }
-#endif
+//#endif

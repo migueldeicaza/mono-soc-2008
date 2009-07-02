@@ -69,7 +69,11 @@ namespace System.Threading.Tasks
 		
 		protected override void InnerInvoke ()
 		{
-			value = function (state);
+			if (function != null)
+				value = function (state);
+			
+			function = null;
+			state = null;
 		}
 		
 		public Task ContinueWith (Action<Task<T>> a)
@@ -95,55 +99,28 @@ namespace System.Threading.Tasks
 			return t;
 		}
 		
-		/*public Task ContinueWith (Action<Task<T>> a)
-		{
-			return ContinueWith (a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
-		}
-		
-		public Task ContinueWith (Action<Task<T>> a, TaskContinuationKind kind)
-		{
-			return ContinueWith (a, kind, TaskCreationOptions.None);
-		}
-		
-		public Task ContinueWith (Action<Task<T>> a, TaskContinuationKind kind, TaskCreationOptions option)
-		{
-			return ContinueWith (a, kind, option, false);
-		}
-		
-		public Task ContinueWith (Action<Task<T>> a, TaskContinuationKind kind, TaskCreationOptions option, bool exSync)
-		{
-			Task continuation = new Task (TaskManager.Current, delegate {
-				a (this);
-			}, null, option);
-			ContinueWithCore (continuation, kind, exSync);
-			
-			return continuation;
-		}
-		
 		public Task<U> ContinueWith<U> (Func<Task<T>, U> a)
 		{
-			return ContinueWith (a, TaskContinuationKind.OnAny, TaskCreationOptions.None);
+			return ContinueWith<U> (a, TaskContinuationOptions.None);
 		}
 		
-		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskContinuationKind kind)
+		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskContinuationOptions options)
 		{
-			return ContinueWith (a, kind, TaskCreationOptions.None);
+			return ContinueWith<U> (a, TaskScheduler.Current, options);
 		}
 		
-		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskContinuationKind kind, TaskCreationOptions option)
+		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskScheduler scheduler)
 		{
-			return ContinueWith<U> (a, kind, option, false);
+			return ContinueWith<U> (a, scheduler, TaskContinuationOptions.None);
 		}
 		
-		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskContinuationKind kind, TaskCreationOptions option, bool exSync)
+		public Task<U> ContinueWith<U> (Func<Task<T>, U> a, TaskScheduler scheduler, TaskContinuationOptions options)
 		{
-			Task<U> continuation = new Task<U> (TaskManager.Current, delegate { 
-				return a (this);
-			}, option, false);
-			ContinueWithCore (continuation, kind, exSync);
+			Task<U> t = new Task<U> ((o) => a ((Task<T>)o), this, TaskCreationOptions.None);
+			ContinueWithCore (t, options, scheduler);
 			
-			return continuation;
-		}*/
+			return t;
+		}
 	}
 }
 //#endif

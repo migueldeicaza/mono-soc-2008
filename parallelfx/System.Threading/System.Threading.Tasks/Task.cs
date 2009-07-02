@@ -118,11 +118,11 @@ namespace System.Threading.Tasks
 			Start (TaskScheduler.Current);
 		}
 		
-		public void Start (TaskScheduler scheduler)
+		public void Start (TaskScheduler tscheduler)
 		{
-			this.taskScheduler = scheduler;
-			IScheduler sched = scheduler as IScheduler;
-			Start (sched ?? new SchedulerProxy (scheduler));
+			this.taskScheduler = tscheduler;
+			IScheduler sched = tscheduler as IScheduler;
+			Start (sched != null ? sched : new SchedulerProxy (tscheduler));
 		}
 		
 		void Start (IScheduler scheduler)
@@ -131,9 +131,20 @@ namespace System.Threading.Tasks
 			status = TaskStatus.WaitingForActivation;
 			Schedule ();
 		}
+		
+		public void RunSynchronously ()
+		{
+			RunSynchronously (TaskScheduler.Current);
+		}
+		
+		public void RunSynchronously (TaskScheduler tscheduler) 
+		{
+			// Adopt this scheme for the moment
+			ThreadStart ();
+		}
 		#endregion
 		
-		#region Create and ContinueWith
+		#region ContinueWith
 		public Task ContinueWith (Action<Task> a)
 		{
 			return ContinueWith (a, TaskContinuationOptions.None);
@@ -160,6 +171,29 @@ namespace System.Threading.Tasks
 			Task continuation = new Task ((o) => a ((Task)o), this, options);
 			ContinueWithCore (continuation, kind, scheduler);
 			return continuation;
+		}
+		
+		public Task<U> ContinueWith<U> (Func<Task, U> a)
+		{
+			return ContinueWith<U> (a, TaskContinuationOptions.None);
+		}
+		
+		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskContinuationOptions options)
+		{
+			return ContinueWith<U> (a, TaskScheduler.Current, options);
+		}
+		
+		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskScheduler scheduler)
+		{
+			return ContinueWith<U> (a, scheduler, TaskContinuationOptions.None);
+		}
+		
+		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskScheduler scheduler, TaskContinuationOptions options)
+		{
+			Task<U> t = new Task<U> ((o) => a ((Task)o), this, TaskCreationOptions.None);
+			ContinueWithCore (t, options, scheduler);
+			
+			return t;
 		}
 		
 		protected void ContinueWithCore (Task continuation, TaskContinuationOptions kind, TaskScheduler scheduler)
@@ -231,7 +265,7 @@ namespace System.Threading.Tasks
 		#endregion
 		
 		#region Internal and protected thingies
-		internal protected void Schedule ()
+		protected void Schedule ()
 		{			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null || parent == null) {

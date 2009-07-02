@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // TaskTest.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -32,7 +32,7 @@ using NUnit.Framework;
 namespace ParallelFxTests
 {
 	[TestFixture()]
-	public class TaskTest
+	public class TaskTests
 	{
 		Task[]      tasks;
 		static readonly int max = 3 * Environment.ProcessorCount;
@@ -43,10 +43,10 @@ namespace ParallelFxTests
 			tasks = new Task[max];			
 		}
 		
-		void InitWithDelegate(Action<object> action)
+		void InitWithDelegate(Action action)
 		{
 			for (int i = 0; i < max; i++) {
-				tasks[i] = Task.StartNew(action);
+				tasks[i] = Task.Factory.StartNew(action);
 			}
 		}
 		
@@ -89,12 +89,12 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
-				Task t = new Task(TaskManager.Current, delegate {
+				Task t = new Task (delegate {
 					result = true;
-				}, null, TaskCreationOptions.None);
+				});
 				t.Cancel();
 				Assert.IsTrue (t.IsCancellationRequested, "#-1");
-				t.Schedule();
+				t.Start ();
 				t.Wait ();
 				
 				Assert.IsInstanceOfType(typeof(TaskCanceledException), t.Exception, "#1 : " + count ++);
@@ -110,8 +110,8 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
-				Task t = Task.StartNew(delegate { });
-				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAny);
+				Task t = Task.Factory.StartNew(delegate { });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationOptions.None);
 				t.Wait();
 				cont.Wait();
 				
@@ -127,8 +127,8 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
-				Task t = Task.StartNew(delegate { });
-				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnCompletedSuccessfully);
+				Task t = Task.Factory.StartNew(delegate { });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationOptions.OnlyOnRanToCompletion);
 				t.Wait();
 				cont.Wait();
 				
@@ -144,11 +144,11 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
-				Task t = new Task(TaskManager.Current, delegate { }, null, TaskCreationOptions.None);
+				Task t = new Task(delegate { });
 				t.Cancel();
-				t.Schedule();
+				t.Start();
 				
-				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnAborted);
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationOptions.OnlyOnCanceled);
 				t.Wait();
 				cont.Wait();
 				
@@ -164,8 +164,8 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool result = false;
 				
-				Task t = Task.StartNew(delegate {throw new Exception("foo"); });
-				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationKind.OnFailed);
+				Task t = Task.Factory.StartNew(delegate {throw new Exception("foo"); });
+				Task cont = t.ContinueWith(delegate { result = true; }, TaskContinuationOptions.OnlyOnFaulted);
 				t.Wait();
 				cont.Wait();
 				
@@ -181,13 +181,13 @@ namespace ParallelFxTests
 			ParallelTestHelper.Repeat (delegate {
 				bool r1 = false, r2 = false, r3 = false;
 				
-				Task t1 = Task.StartNew(delegate {
+				Task t1 = Task.Factory.StartNew(delegate {
 					r1 = true;
 				});
-				Task t2 = Task.StartNew(delegate {
+				Task t2 = Task.Factory.StartNew(delegate {
 					r2 = true;
 				});
-				Task t3 = Task.StartNew(delegate {
+				Task t3 = Task.Factory.StartNew(delegate {
 					r3 = true;
 				});
 				
@@ -205,32 +205,43 @@ namespace ParallelFxTests
 		public void WaitChildTestCase()
 		{
 			ParallelTestHelper.Repeat (delegate {
-				bool r1 = false, r2 = false, r3 = false;
+				bool r1 = false, r2 = false, r3 = false, start = false;
 				
-				Task t = Task.StartNew(delegate {
-					Task.StartNew(delegate {
+				Task t = Task.Factory.StartNew(delegate {
+					Task.Factory.StartNew(delegate {
 						Thread.Sleep(50);
 						r1 = true;
 						Console.WriteLine("finishing 1");
 					});
-					Task.StartNew(delegate {
+					Task.Factory.StartNew(delegate {
 						Thread.Sleep(300);
 						r2 = true;
 						Console.WriteLine("finishing 2");
 					});
-					Task.StartNew(delegate {
+					Task.Factory.StartNew(delegate {
 						Thread.Sleep(150);
+						SpinWait sw = new SpinWait ();
+						while (!start) sw.SpinOnce ();
+						
 						r3 = true;
 						Console.WriteLine("finishing 3");
 					});
 				});
 				
+				// Wait a bit for the main task to get scheduled
+				while (t.Status == TaskStatus.WaitingForActivation)
+					Thread.Sleep(50);
+				
+				Assert.AreEqual (TaskStatus.WaitingForChildrenToComplete, t.Status, "#0");
+				start = true;
+				
 				t.Wait();
 				Assert.IsTrue(r2, "#1");
 				Assert.IsTrue(r3, "#2");
 				Assert.IsTrue(r1, "#3");
+				Assert.AreEqual (TaskStatus.RanToCompletion, t.Status, "#4");
 			}, 10);
 		}
 	}
 }
-#endif
+//#endif
