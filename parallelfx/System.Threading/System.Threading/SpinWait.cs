@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // SpinWait.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -76,4 +76,4 @@ namespace System.Threading
 		}
 	}
 }
-#endif
+//#endif
