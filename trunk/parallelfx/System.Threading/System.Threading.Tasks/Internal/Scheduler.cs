@@ -36,7 +36,7 @@ namespace System.Threading.Tasks
 		bool                  isPulsable = true;
 
 		public Scheduler ()
-			: this (Environment.ProcessorCount, -1, ThreadPriority.Normal)
+			: this (Environment.ProcessorCount, 0, ThreadPriority.Normal)
 		{
 			
 		}
@@ -126,7 +126,7 @@ namespace System.Threading.Tasks
 			if (!parent.IsCompleted)
 				return false;
 			
-			return parent.Status == TaskStatus.WaitingForChildrenToComplete;
+			return parent.Status == TaskStatus.RanToCompletion;
 		}
 
 		#region Scheduler dummy stubs

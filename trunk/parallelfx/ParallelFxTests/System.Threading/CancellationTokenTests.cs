@@ -1,5 +1,5 @@
 // 
-// TaskScheduler.cs
+// CancellationTokenTests.cs
 //  
 // Author:
 //       Jérémie "Garuma" Laval <jeremie.laval@gmail.com>
@@ -26,59 +26,17 @@
 
 using System;
 using System.Threading;
-using System.Collections.Generic;
 
-namespace System.Threading.Tasks
+using NUnit.Framework;
+
+namespace ParallelFxTests
 {
-	public abstract class TaskScheduler
+	[TestFixtureAttribute]
+	public class CancellationTokenTests
 	{
-		static TaskScheduler defaultScheduler = new Scheduler ();
-		
-		[ThreadStatic]
-		static TaskScheduler currentScheduler;
-		
-		int id;
-		static int lastId = int.MinValue;
-		
-		protected TaskScheduler ()
+
+		public CancellationTokenTests ()
 		{
-			this.id = Interlocked.Increment (ref lastId);
 		}
-		
-		public static TaskScheduler Default  {
-			get {
-				return defaultScheduler;
-			}
-		}
-		
-		public static TaskScheduler Current  {
-			get {
-				if (Task.Current != null && currentScheduler != null)
-					return currentScheduler;
-				
-				return defaultScheduler;
-			}
-			internal set {
-				currentScheduler = value;
-			}
-		}
-		
-		public int Id {
-			get {
-				return id;
-			}
-		}
-		
-		public virtual int MaximumConcurrencyLevel {
-			get {
-				return Environment.ProcessorCount;
-			}
-		}
-		
-		protected abstract IEnumerable<Task> GetScheduledTasks ();
-		protected internal abstract void QueueTask (Task task);
-		protected internal abstract bool TryDequeue (Task task);
-		protected abstract bool TryExecuteTask (Task task);
-		protected abstract bool TryExecuteTaskInline (Task task, bool taskWasPreviouslyQueued);
 	}
 }

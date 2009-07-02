@@ -2,7 +2,7 @@
   <Configurations active="Debug">
     <Configuration name="Debug" ctype="CombineConfiguration">
       <Entry build="True" name="System.Threading" configuration="Debug" />
-      <Entry build="False" name="ParallelFxTests" configuration="Debug" />
+      <Entry build="True" name="ParallelFxTests" configuration="Debug" />
       <Entry build="False" name="Mono.Threading.Extensions" configuration="Debug" />
       <Entries>
         <Entry filename="System.Threading/System.mdp" />
