@@ -32,20 +32,10 @@ namespace System.Threading
 {
 	public struct CancellationToken
 	{
-		bool canceled;
-		int currId;
-		
-		// TODO: move these out to CancellationTokenSource and redirect the Register calls there
-		// (id management for registration token should move too)
-		Dictionary<CancellationTokenRegistration, Action> callbacks;
-		Dictionary<CancellationTokenRegistration, ICancelableOperation> cancelables;
-		
 		public CancellationToken (bool canceled)
 		{
-			this.canceled = canceled;
-			this.callbacks = new Dictionary<CancellationTokenRegistration, Action> ();
-			this.cancelables = new Dictionary<CancellationTokenRegistration, ICancelableOperation> ();
-			this.currId = int.MinValue;
+			// dummy, this is actually set by CancellationTokenSource when the token is created
+			Source = null;
 		}
 		
 		public CancellationTokenRegistration Register (Action callback)
@@ -60,12 +50,7 @@ namespace System.Threading
 		
 		public CancellationTokenRegistration Register (Action callback, bool useSynchronizationContext)
 		{
-			CancellationTokenRegistration reg = GetTokenReg ();
-			
-			/*if (canceled)
-				callback ();*/
-			
-			return reg;
+			return Source.Register (callback, useSynchronizationContext);
 		}
 		
 		public CancellationTokenRegistration Register (Action<object> callback, object state)
@@ -75,17 +60,37 @@ namespace System.Threading
 		
 		public CancellationTokenRegistration Register (ICancelableOperation cancelable, bool useSynchronizationContext)
 		{
-			CancellationTokenRegistration reg = GetTokenReg ();
-			
-			/*if (canceled)
-				callback ();*/
-			
-			return reg;
+			return Register (() => cancelable.Cancel (), useSynchronizationContext);
 		}
 		
 		public CancellationTokenRegistration Register (Action<object> callback, object state, bool useSynchronizationContext)
 		{
 			return Register (() => callback (state), useSynchronizationContext);
+		}
+
+		public bool Equals (CancellationToken other)
+		{
+			return this.Source == other.Source;
+		}
+		
+		public override bool Equals (object obj)
+		{
+			return (obj is CancellationToken) ? Equals ((CancellationToken)obj) : false;
+		}
+		
+		public override int GetHashCode ()
+		{
+			return Source.GetHashCode ();
+		}
+		
+		public static bool operator == (CancellationToken lhs, CancellationToken rhs)
+		{
+			return lhs.Equals (rhs);
+		}
+		
+		public static bool operator != (CancellationToken lhs, CancellationToken rhs)
+		{
+			return !lhs.Equals (rhs);
 		}
 		
 		public bool CanBeCanceled {
@@ -94,19 +99,21 @@ namespace System.Threading
 			}
 		}
 		
-		public bool IsCancellationRequest {
+		public bool IsCancellationRequested {
 			get {
-				
-				return false;
+				return Source.IsCancellationRequested;
 			}
 		}
 		
-		CancellationTokenRegistration GetTokenReg ()
-		{
-			CancellationTokenRegistration registration = new CancellationTokenRegistration ();
-			registration.Id = currId++;
-			
-			return registration;
+		public WaitHandle WaitHandle {
+			get {
+				return Source.WaitHandle;
+			}
+		}
+		
+		internal CancellationTokenSource Source {
+			get;
+			set;
 		}
 	}
 }

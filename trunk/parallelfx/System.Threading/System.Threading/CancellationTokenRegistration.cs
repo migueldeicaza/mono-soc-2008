@@ -31,15 +31,20 @@ namespace System.Threading
 {
 	public struct CancellationTokenRegistration: IDisposable, IEquatable<CancellationTokenRegistration>
 	{
-		internal int Id {
-			get;
-			set;
+		int id;
+		CancellationTokenSource source;
+		
+		internal CancellationTokenRegistration (int id, CancellationTokenSource source)
+		{
+			this.id = id;
+			this.source = source;
 		}
 		
 		#region IDisposable implementation
 		public void Dispose ()
 		{
-			
+			// Remove the corresponding callback from source
+			source.RemoveCallback (this);
 		}
 
 		#endregion
@@ -47,9 +52,19 @@ namespace System.Threading
 		#region IEquatable<CancellationTokenRegistration> implementation
 		public bool Equals (CancellationTokenRegistration other)
 		{
-			return this.Id == other.Id;
+			return this.id == other.id && this.source == other.source;
 		}
 		#endregion
 		
+		public override int GetHashCode ()
+		{
+			return id.GetHashCode () ^ source.GetHashCode ();
+		}
+
+		public override bool Equals (object obj)
+		{
+			return (obj is CancellationTokenRegistration) ? Equals ((CancellationTokenRegistration)obj) : false;
+		}
+
 	}
 }

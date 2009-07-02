@@ -46,9 +46,7 @@ namespace System.Threading.Tasks
 		Task parent  = current;
 		
 		int                 taskId;
-		AtomicBoolean       isCanceled = new AtomicBoolean ();
 		bool                respectParentCancellation;
-		AtomicBoolean       isCompleted;
 		TaskCreationOptions taskCreationOptions;
 		
 		IScheduler          scheduler;
@@ -61,6 +59,8 @@ namespace System.Threading.Tasks
 		Action<object> action;
 		object         state;
 		EventHandler   completed;
+		
+		CancellationTokenSource src = new CancellationTokenSource ();
 			
 		
 		public Task (Action action) : this (action, TaskCreationOptions.None)
@@ -247,7 +247,7 @@ namespace System.Threading.Tasks
 		
 		void ThreadStart ()
 		{			
-			if (!isCanceled.Value
+			if (!src.IsCancellationRequested
 			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
 				TaskScheduler.Current = taskScheduler;
 				current = this;
@@ -265,8 +265,6 @@ namespace System.Threading.Tasks
 				exception = new TaskCanceledException (this);
 				status = TaskStatus.Canceled;
 			}
-			
-			isCompleted.Value = true;
 			
 			// Call the event in the correct style
 			EventHandler tempCompleted = completed;
@@ -309,6 +307,11 @@ namespace System.Threading.Tasks
 			// If there wasn't any child created in the task we set the CountdownEvent
 			childTasks.Decrement ();
 			
+			if (childTasks.IsSet)
+				status = TaskStatus.RanToCompletion;
+			else
+				status = TaskStatus.WaitingForChildrenToComplete;
+			
 			// Tell parent that we are finished
 			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.DetachedFromParent) && parent != null){
 				parent.ChildCompleted ();
@@ -331,8 +334,7 @@ namespace System.Threading.Tasks
 		
 		public void Cancel ()
 		{
-			// Mark the Task as canceled so that the worker function will return immediately
-			isCanceled.Value = true;
+			src.Cancel ();
 		}
 		
 		public void CancelAndWait ()
@@ -518,6 +520,12 @@ namespace System.Threading.Tasks
 			}
 		}
 		
+		public CancellationToken Token {
+			get {
+				return src.Token;
+			}
+		}
+		
 		public Exception Exception {
 			get {
 				exceptionObserved = true;
@@ -534,7 +542,7 @@ namespace System.Threading.Tasks
 
 		public bool IsCancellationRequested {
 			get {
-				return isCanceled.Value;
+				return src.IsCancellationRequested;
 			}
 		}
 

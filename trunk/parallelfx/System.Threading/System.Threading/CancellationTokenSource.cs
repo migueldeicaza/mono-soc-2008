@@ -25,12 +25,138 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 
 namespace System.Threading
 {
 	
 	public class CancellationTokenSource
 	{
+		volatile bool canceled;
+		volatile bool processed;
 		
+		int currId = int.MinValue;
+		
+		Dictionary<CancellationTokenRegistration, Action> callbacks
+			= new Dictionary<CancellationTokenRegistration, Action> ();
+		
+		ManualResetEvent handle = new ManualResetEvent (false);
+		
+//#if USE_MONITOR
+		object syncRoot = new object ();
+//#endif
+		
+		public void Cancel ()
+		{
+			Cancel (false);
+		}
+		
+		// If parameter is true we throw exception as soon as they appear otherwise we aggregate them
+		public void Cancel (bool throwOnFirst)
+		{
+			canceled = true;
+			handle.Set ();
+			
+			List<Exception> exceptions = null;
+			if (!throwOnFirst)
+				exceptions = new List<Exception> ();
+			
+			lock (callbacks) {
+				foreach (KeyValuePair<CancellationTokenRegistration, Action> item in callbacks) {
+					if (throwOnFirst) {
+						item.Value ();
+					} else {
+						try {
+							item.Value ();
+						} catch (Exception e) {
+							exceptions.Add (e);
+						}
+					}
+				}
+			}
+			
+			if (exceptions != null && exceptions.Count > 0)
+				throw new AggregateException (exceptions);
+		}
+		
+		public static CancellationTokenSource CreateLinkedTokenSource (CancellationToken token1, CancellationToken token2)
+		{
+			return CreateLinkedTokenSource (new CancellationToken[] { token1, token2 });
+		}
+		
+		public static CancellationTokenSource CreateLinkedTokenSource (params CancellationToken[] tokens)
+		{
+			CancellationTokenSource src = new CancellationTokenSource ();
+			Action action = src.Cancel;
+			
+			foreach (CancellationToken token in tokens)
+				token.Register (action);
+			
+			return src;
+		}
+		
+		public CancellationToken Token {
+			get {
+				CancellationToken token = new CancellationToken (canceled);
+				token.Source = this;
+				
+				return token;
+			}
+		}
+		
+		public bool IsCancellationRequested {
+			get {
+				return canceled;
+			}
+		}
+		
+		internal WaitHandle WaitHandle {
+			get {
+				return handle;
+			}
+		}
+		
+		internal CancellationTokenRegistration Register (Action callback, bool useSynchronizationContext)
+		{
+			CancellationTokenRegistration tokenReg = GetTokenReg ();
+			if (canceled) {
+				callback ();
+			} else {
+				bool temp = false;
+				lock (syncRoot) {
+					if (!(temp = canceled))
+						callbacks.Add (tokenReg, callback);
+				}
+				if (temp)
+					callback ();
+			}
+			
+			return tokenReg;
+		}
+		
+		internal void RemoveCallback (CancellationTokenRegistration tokenReg)
+		{
+			if (!canceled) {
+				lock (syncRoot) {
+					if (!canceled) {
+						callbacks.Remove (tokenReg);
+						return;
+					}
+				}
+			}
+			
+			SpinWait sw = new SpinWait ();
+			while (!processed)
+				sw.SpinOnce ();
+			
+		}
+		
+		CancellationTokenRegistration GetTokenReg ()
+		{
+			CancellationTokenRegistration registration
+				= new CancellationTokenRegistration (Interlocked.Increment (ref currId), this);
+			
+			return registration;
+		}
 	}
 }
