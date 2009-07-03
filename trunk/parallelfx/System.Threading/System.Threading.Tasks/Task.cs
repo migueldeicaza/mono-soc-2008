@@ -43,7 +43,7 @@ namespace System.Threading.Tasks
 		
 		CountdownEvent childTasks = new CountdownEvent (1);
 		
-		Task parent  = current;
+		Task parent = current;
 		
 		int                 taskId;
 		bool                respectParentCancellation;
@@ -121,8 +121,7 @@ namespace System.Threading.Tasks
 		public void Start (TaskScheduler tscheduler)
 		{
 			this.taskScheduler = tscheduler;
-			IScheduler sched = tscheduler as IScheduler;
-			Start (sched != null ? sched : new SchedulerProxy (tscheduler));
+			Start (ProxifyScheduler (tscheduler));
 		}
 		
 		void Start (IScheduler scheduler)
@@ -130,6 +129,12 @@ namespace System.Threading.Tasks
 			this.scheduler = scheduler;
 			status = TaskStatus.WaitingForActivation;
 			Schedule ();
+		}
+		
+		IScheduler ProxifyScheduler (TaskScheduler tscheduler)
+		{
+			IScheduler sched = tscheduler as IScheduler;
+			return sched != null ? sched : new SchedulerProxy (tscheduler);
 		}
 		
 		public void RunSynchronously ()
@@ -162,13 +167,7 @@ namespace System.Threading.Tasks
 		
 		public Task ContinueWith (Action<Task> a, TaskContinuationOptions kind, TaskScheduler scheduler)
 		{
-			TaskCreationOptions options = TaskCreationOptions.None;
-			if ((kind & TaskContinuationOptions.DetachedFromParent) > 0)
-				options &= TaskCreationOptions.DetachedFromParent;
-			if ((kind & TaskContinuationOptions.RespectParentCancellation) > 0)
-				options &= TaskCreationOptions.RespectParentCancellation;
-			
-			Task continuation = new Task ((o) => a ((Task)o), this, options);
+			Task continuation = new Task ((o) => a ((Task)o), this, GetCreationOptions (kind));
 			ContinueWithCore (continuation, kind, scheduler);
 			return continuation;
 		}
@@ -180,29 +179,39 @@ namespace System.Threading.Tasks
 		
 		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskContinuationOptions options)
 		{
-			return ContinueWith<U> (a, TaskScheduler.Current, options);
+			return ContinueWith<U> (a, options, TaskScheduler.Current);
 		}
 		
 		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskScheduler scheduler)
 		{
-			return ContinueWith<U> (a, scheduler, TaskContinuationOptions.None);
+			return ContinueWith<U> (a, TaskContinuationOptions.None, scheduler);
 		}
 		
-		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskScheduler scheduler, TaskContinuationOptions options)
+		public Task<U> ContinueWith<U> (Func<Task, U> a, TaskContinuationOptions kind, TaskScheduler scheduler)
 		{
-			Task<U> t = new Task<U> ((o) => a ((Task)o), this, TaskCreationOptions.None);
-			ContinueWithCore (t, options, scheduler);
+			Task<U> t = new Task<U> ((o) => a ((Task)o), this, GetCreationOptions (kind));
+			
+			ContinueWithCore (t, kind, scheduler);
 			
 			return t;
 		}
 		
 		protected void ContinueWithCore (Task continuation, TaskContinuationOptions kind, TaskScheduler scheduler)
 		{
+			// Already set the scheduler so that user can call Wait and that sort of stuff
+			continuation.taskScheduler = scheduler;
+			continuation.scheduler = ProxifyScheduler (scheduler);
+			
 			AtomicBoolean launched = new AtomicBoolean ();
 			EventHandler action = delegate {
 				if (!launched.Value && !launched.Exchange (true)) {
-					if (!ContinuationStatusCheck (kind))
+					if (!ContinuationStatusCheck (kind)) {
+						continuation.Cancel ();
+						continuation.CancelReal ();
+						continuation.Dispose ();
+						
 						return;
+					}
 					
 					CheckAndSchedule (continuation, kind, scheduler);
 				}
@@ -222,6 +231,9 @@ namespace System.Threading.Tasks
 		
 		bool ContinuationStatusCheck (TaskContinuationOptions kind)
 		{
+			if (kind == TaskContinuationOptions.None)
+				return true;
+			
 			int kindCode = (int)kind;
 			
 			if (kindCode >= ((int)TaskContinuationOptions.NotOnRanToCompletion)) {
@@ -232,16 +244,14 @@ namespace System.Threading.Tasks
 						return false;
 					if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
 						return false;
-				}
-				if (status == TaskStatus.Faulted) {
+				} else if (status == TaskStatus.Faulted) {
 					if (kind == TaskContinuationOptions.NotOnFaulted)
 						return false;
 					if (kind == TaskContinuationOptions.OnlyOnCanceled)
 						return false;
 					if (kind == TaskContinuationOptions.OnlyOnRanToCompletion)
 						return false;
-				}
-				if (status == TaskStatus.RanToCompletion) {
+				} else if (status == TaskStatus.RanToCompletion) {
 					if (kind == TaskContinuationOptions.NotOnRanToCompletion)
 						return false;
 					if (kind == TaskContinuationOptions.OnlyOnFaulted)
@@ -256,17 +266,30 @@ namespace System.Threading.Tasks
 		
 		void CheckAndSchedule (Task continuation, TaskContinuationOptions options, TaskScheduler scheduler)
 		{
-			if ((options & TaskContinuationOptions.ExecuteSynchronously) > 0) {
+			if (options == TaskContinuationOptions.None || (options & TaskContinuationOptions.ExecuteSynchronously) > 0) {
 				continuation.ThreadStart ();
 			} else {
 				continuation.Start (scheduler);
 			}
 		}
+		
+		static TaskCreationOptions GetCreationOptions (TaskContinuationOptions kind)
+		{
+			TaskCreationOptions options = TaskCreationOptions.None;
+			if ((kind & TaskContinuationOptions.DetachedFromParent) > 0)
+				options |= TaskCreationOptions.DetachedFromParent;
+			if ((kind & TaskContinuationOptions.RespectParentCancellation) > 0)
+				options |= TaskCreationOptions.RespectParentCancellation;
+			
+			return options;
+		}
 		#endregion
 		
 		#region Internal and protected thingies
 		protected void Schedule ()
-		{			
+		{	
+			status = TaskStatus.WaitingToRun;
+			
 			// If worker is null it means it is a local one, revert to the old behavior
 			if (current == null || childWorkAdder == null || parent == null) {
 				scheduler.AddWork (this);
@@ -281,23 +304,22 @@ namespace System.Threading.Tasks
 		
 		void ThreadStart ()
 		{			
+			current = this;
+			TaskScheduler.Current = taskScheduler;
+			
 			if (!src.IsCancellationRequested
 			    && (!respectParentCancellation || (respectParentCancellation && parent != null && !parent.IsCanceled))) {
-				TaskScheduler.Current = taskScheduler;
-				current = this;
+				
+				status = TaskStatus.Running;
 				
 				try {
 					InnerInvoke ();
-					status = TaskStatus.WaitingForChildrenToComplete;
 				} catch (Exception e) {
 					exception = e;
 					status = TaskStatus.Faulted;
-				} finally {
-					current = null;
 				}
 			} else {
-				exception = new TaskCanceledException (this);
-				status = TaskStatus.Canceled;
+				AcknowledgeCancellation ();
 			}
 			
 			// Call the event in the correct style
@@ -322,7 +344,7 @@ namespace System.Threading.Tasks
 		internal void ChildCompleted ()
 		{
 			childTasks.Decrement ();
-			if (childTasks.IsSet)
+			if (childTasks.IsSet && status == TaskStatus.WaitingForChildrenToComplete)
 				status = TaskStatus.RanToCompletion;
 		}
 
@@ -341,10 +363,17 @@ namespace System.Threading.Tasks
 			// If there wasn't any child created in the task we set the CountdownEvent
 			childTasks.Decrement ();
 			
-			if (childTasks.IsSet)
-				status = TaskStatus.RanToCompletion;
-			else
-				status = TaskStatus.WaitingForChildrenToComplete;
+			// Don't override Canceled or Faulted
+			if (status == TaskStatus.Running) {
+				if (childTasks.IsSet )
+					status = TaskStatus.RanToCompletion;
+				else
+					status = TaskStatus.WaitingForChildrenToComplete;
+			}
+			
+			// Reset the current thingies
+			current = null;
+			TaskScheduler.Current = null;
 			
 			// Tell parent that we are finished
 			if (!CheckTaskOptions (taskCreationOptions, TaskCreationOptions.DetachedFromParent) && parent != null){
@@ -363,6 +392,12 @@ namespace System.Threading.Tasks
 				                                     + "task or the current task hasn't been "
 				                                     + "marked for cancellation.");
 			
+			CancelReal ();
+		}
+		
+		void CancelReal ()
+		{
+			exception = new TaskCanceledException (this);
 			status = TaskStatus.Canceled;
 		}
 		
@@ -391,6 +426,9 @@ namespace System.Threading.Tasks
 		
 		public void Wait ()
 		{
+			if (scheduler == null)
+				throw new InvalidOperationException ("The Task hasn't been Started and thus can't be waited on");
+			
 			scheduler.ParticipateUntil (this);
 			if (exception != null && !(exception is TaskCanceledException))
 				throw exception;
@@ -403,6 +441,9 @@ namespace System.Threading.Tasks
 		
 		public bool Wait (int millisecondsTimeout)
 		{
+			if (scheduler == null)
+				throw new InvalidOperationException ("The Task hasn't been Started and thus can't be waited on");
+			
 			System.Diagnostics.Stopwatch sw = System.Diagnostics.Stopwatch.StartNew ();
 			bool result = scheduler.ParticipateUntil (this, delegate { 
 				return sw.ElapsedMilliseconds >= millisecondsTimeout;

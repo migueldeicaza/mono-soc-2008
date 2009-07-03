@@ -75,6 +75,8 @@ namespace System.Threading
 				}
 			}
 			
+			processed = true;
+			
 			if (exceptions != null && exceptions.Count > 0)
 				throw new AggregateException (exceptions);
 		}

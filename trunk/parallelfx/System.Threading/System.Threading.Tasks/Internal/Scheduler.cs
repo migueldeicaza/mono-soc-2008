@@ -123,10 +123,7 @@ namespace System.Threading.Tasks
 		
 		bool AreTasksFinished (Task parent)
 		{
-			if (!parent.IsCompleted)
-				return false;
-			
-			return parent.Status == TaskStatus.RanToCompletion;
+			return parent.IsCompleted;
 		}
 
 		#region Scheduler dummy stubs
