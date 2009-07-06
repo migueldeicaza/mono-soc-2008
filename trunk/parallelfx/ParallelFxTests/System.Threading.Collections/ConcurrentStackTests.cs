@@ -26,7 +26,7 @@
 using System;
 using System.Threading;
 using System.Linq;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 using NUnit.Framework;
 
 namespace ParallelFxTests

@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // IConcurrentCollection.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -27,13 +27,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
-	public interface IConcurrentCollection<T> : IEnumerable<T>, ICollection, IEnumerable
+	public interface IProducerConsumerCollection<T> : IEnumerable<T>, ICollection, IEnumerable
 	{
-		bool Add (T item);
-		bool Remove (out T item);
+		bool TryAdd (T item);
+		bool TryTake (out T item);
 		T[] ToArray ();
 	}
 }
-#endif
+//#endif

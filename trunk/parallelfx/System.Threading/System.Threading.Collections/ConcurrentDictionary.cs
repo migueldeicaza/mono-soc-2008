@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentSkipList.cs
 //
 // Copyright (c) 2009 Jérémie "Garuma" Laval
@@ -28,9 +28,12 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
 	public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+		, ICollection<KeyValuePair<TKey, TValue>>, ICollection, IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable
+			, IProducerConsumerCollection<KeyValuePair<TKey, TValue>>
+		
 	{
 		class Pair
 		{
@@ -71,6 +74,14 @@ namespace System.Threading.Collections
 		
 		public void Add (TKey key, TValue value)
 		{
+			while (!TryAdd (key, value));
+		}
+		
+		public bool TryAdd (TKey key, TValue value)
+		{
+			Interlocked.Increment (ref count);
+			Interlocked.Increment (ref stamp);
+			
 			Basket basket;
 			// Add a value to an existing basket
 			if (TryGetBasket (key, out basket)) {
@@ -86,10 +97,10 @@ namespace System.Threading.Collections
 				// Add a new basket
 				basket = new Basket ();
 				basket.Add (new Pair (key, value));
-				container.Add (basket);
+				return container.TryAdd (basket);
 			}
-			Interlocked.Increment (ref count);
-			Interlocked.Increment (ref stamp);
+			
+			return true;
 		}
 		
 		void ICollection<KeyValuePair<TKey,TValue>>.Add (KeyValuePair<TKey, TValue> pair)
@@ -102,7 +113,7 @@ namespace System.Threading.Collections
 			TValue temp;
 			if (!TryGetValue (key, out temp))
 				// TODO: find a correct Exception
-				throw new ArgumentOutOfRangeException ("key");
+				throw new ArgumentException ("Not a valid key for this dictionary", "key");
 			return temp;
 		}
 		
@@ -152,7 +163,11 @@ namespace System.Threading.Collections
 			
 			lock (b) {
 				// Should always be == 1 but who know
-				return b.RemoveAll ((p) => p.Key.Equals (key)) >= 1;
+				bool result = b.RemoveAll ((p) => p.Key.Equals (key)) >= 1;
+				if (result)
+					Interlocked.Decrement (ref count);
+				
+				return result;
 			}
 		}
 		
@@ -169,6 +184,24 @@ namespace System.Threading.Collections
 		bool ICollection<KeyValuePair<TKey,TValue>>.Contains (KeyValuePair<TKey, TValue> pair)
 		{
 			return ContainsKey (pair.Key);
+		}
+		
+		public bool TryAdd (KeyValuePair<TKey, TValue> item)
+		{
+			Add (item.Key, item.Value);
+			
+			return true;
+		}
+		
+		public bool TryTake (out KeyValuePair<TKey, TValue> item)
+		{
+			item = default (KeyValuePair<TKey, TValue>);
+			return false;
+		}
+		
+		public KeyValuePair<TKey,TValue>[] ToArray ()
+		{
+			return null;
 		}
 	
 		public void Clear()
@@ -201,6 +234,33 @@ namespace System.Threading.Collections
 			}
 		}
 		
+		void ICollection.CopyTo (Array array, int startIndex)
+		{
+			KeyValuePair<TKey, TValue>[] arr = array as KeyValuePair<TKey, TValue>[];
+			if (arr == null)
+				return;
+			
+			CopyTo (arr, startIndex);
+		}
+		
+		public void CopyTo (KeyValuePair<TKey, TValue>[] array, int startIndex)
+		{
+			// TODO: This is quite unsafe as the count value will likely change during
+			// the copying. Watchout for IndexOutOfRange thingies
+			if (array.Length <= count)
+				throw new InvalidOperationException ("The array isn't big enough");
+			
+			int i = startIndex;
+			
+			foreach (Basket b in container) {
+				lock (b) {
+					foreach (Pair p in b) {
+						array[i++] = new KeyValuePair<TKey, TValue> (p.Key, p.Value);
+					}
+				}
+			}
+		}
+		
 		public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator ()
 		{
 			return GetEnumeratorInternal ();
@@ -221,9 +281,22 @@ namespace System.Threading.Collections
 			}
 		}
 		
-		public void CopyTo (KeyValuePair<TKey,TValue>[] array, int startIndex)
-		{
-			throw new NotImplementedException ();
+		object ICollection.SyncRoot {
+			get {
+				return this;
+			}
+		}
+
+		bool ICollection.IsSynchronized {
+			get {
+				return true;
+			}
+		}
+		
+		public bool IsFixedSize {
+			get {
+				return false;
+			}
 		}
 		
 		bool TryGetBasket (TKey key, out Basket basket)
@@ -236,4 +309,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
-#endif
+//#endif

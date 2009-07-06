@@ -26,7 +26,7 @@ using System;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 namespace System.Linq
 {	
@@ -34,7 +34,7 @@ namespace System.Linq
 	internal abstract class BlockingCollectionEnumeratorBase<T>: IParallelEnumerator<T>
 	{
 		protected T current;
-			
+		
 		T IEnumerator<T>.Current {
 			get {
 				return current;

@@ -25,7 +25,7 @@
 
 using System;
 using System.Threading;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 namespace System.Threading.Tasks
 {
@@ -37,7 +37,7 @@ namespace System.Threading.Tasks
 		
 		readonly          ThreadWorker[]        others;
 		internal readonly IDequeOperations<Task>    dDeque;
-		readonly          IConcurrentCollection<Task> sharedWorkQueue;
+		readonly          IProducerConsumerCollection<Task> sharedWorkQueue;
 		readonly          Action<Task>          childWorkAdder;
 		
 		// Flag to tell if workerThread is running
@@ -55,13 +55,13 @@ namespace System.Threading.Tasks
 		
 		Action threadInitializer;
 		
-		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IConcurrentCollection<Task> sharedWorkQueue,
+		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IProducerConsumerCollection<Task> sharedWorkQueue,
 		                     int maxStackSize, ThreadPriority priority)
 			: this (sched, others, sharedWorkQueue, true, maxStackSize, priority)
 		{
 		}
 		
-		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IConcurrentCollection<Task> sharedWorkQueue,
+		public ThreadWorker (IScheduler sched, ThreadWorker[] others, IProducerConsumerCollection<Task> sharedWorkQueue,
 		                     bool createThread, int maxStackSize, ThreadPriority priority)
 		{
 			this.others          = others;
@@ -175,7 +175,7 @@ namespace System.Threading.Tasks
 				
 				// We fill up our work deque concurrently with other ThreadWorker
 				while (sharedWorkQueue.Count > 0) {
-					while (sharedWorkQueue.Remove (out value)) {
+					while (sharedWorkQueue.TryTake (out value)) {
 						dDeque.PushBottom (value);
 					}
 					
@@ -217,14 +217,14 @@ namespace System.Threading.Tasks
 		// Almost same as above but with an added predicate and treating one item at a time. 
 		// It's used by Scheduler Participate(...) method for special waiting case like
 		// Task.WaitAll(someTasks) or Task.WaitAny(someTasks)
-		public static void WorkerMethod (Func<bool> predicate, IConcurrentCollection<Task> sharedWorkQueue,
+		public static void WorkerMethod (Func<bool> predicate, IProducerConsumerCollection<Task> sharedWorkQueue,
 		                                 ThreadWorker[] others)
 		{
 			while (!predicate ()) {
 				Task value;
 				
 				// Dequeue only one item as we have restriction
-				if (sharedWorkQueue.Remove (out value)) {
+				if (sharedWorkQueue.TryTake (out value)) {
 					if (value != null) {
 						value.Execute (null);
 					}

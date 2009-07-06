@@ -25,7 +25,7 @@
 
 using System;
 using System.Threading;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 using NUnit;
 using NUnit.Framework;
@@ -45,16 +45,16 @@ namespace ParallelFxTests
 
 		void AddStuff()
 		{
-			skiplist.Add(1);
-			skiplist.Add(2);
-			skiplist.Add(3);
-			skiplist.Add(4);
+			skiplist.TryAdd(1);
+			skiplist.TryAdd(2);
+			skiplist.TryAdd(3);
+			skiplist.TryAdd(4);
 		}
 
 		[TestAttribute]
 		public void AddTestCase()
 		{
-			Assert.IsTrue(skiplist.Add(1), "#1");
+			Assert.IsTrue(skiplist.TryAdd(1), "#1");
 			Assert.AreEqual(1, skiplist.Count, "#2");
 		}
 
