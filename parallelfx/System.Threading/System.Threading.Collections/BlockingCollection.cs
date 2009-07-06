@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // BlockingCollection.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -30,19 +30,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
 	public class BlockingCollection<T> : IEnumerable<T>, ICollection, IEnumerable, IDisposable
 	{
-		readonly IConcurrentCollection<T> underlyingColl;
+		readonly IProducerConsumerCollection<T> underlyingColl;
 		readonly int upperBound;
 		readonly Func<bool> isFull;
 		
 		readonly SpinWait sw = new SpinWait ();
 		
 		AtomicBoolean isComplete;
-		//bool isComplete;
-		//readonly SpinLock addLock = new SpinLock (false);
 		
 		#region ctors
 		public BlockingCollection ()
@@ -55,12 +53,12 @@ namespace System.Threading.Collections
 		{
 		}
 		
-		public BlockingCollection (IConcurrentCollection<T> underlyingColl)
+		public BlockingCollection (IProducerConsumerCollection<T> underlyingColl)
 			: this (underlyingColl, -1)
 		{
 		}
 		
-		public BlockingCollection (IConcurrentCollection<T> underlyingColl, int upperBound)
+		public BlockingCollection (IProducerConsumerCollection<T> underlyingColl, int upperBound)
 		{
 			this.underlyingColl = underlyingColl;
 			this.upperBound     = upperBound;
@@ -71,11 +69,6 @@ namespace System.Threading.Collections
 			else
 				isFull = CountBasedIsFull;
 		}
-		
-		/*~BlockingCollection()
-		{
-			Dispose(false);
-		}*/
 		
 		static bool FalseIsFull ()
 		{
@@ -106,21 +99,20 @@ namespace System.Threading.Collections
 				if (isFull ())
 					continue;
 				
-				if (underlyingColl.Add (item))
+				if (underlyingColl.TryAdd (item))
 					break;
 			}
 		}
 		
 		public T Remove ()
 		{
-			while (underlyingColl.Count == 0) {
+			T item;
+			
+			while (underlyingColl.Count == 0 || !underlyingColl.TryTake (out item)) {
 				if (isComplete.Value)
 					throw new OperationCanceledException ("The BlockingCollection<T> is empty and has been marked as complete with regards to additions.");
 				Block ();
 			}
-			
-			T item;
-			underlyingColl.Remove (out item);
 			
 			return item;
 		}
@@ -131,7 +123,7 @@ namespace System.Threading.Collections
 					return false;
 			}
 			
-			return underlyingColl.Add (item);
+			return underlyingColl.TryAdd (item);
 		}
 		
 		public bool TryAdd (T item, TimeSpan ts)
@@ -154,7 +146,7 @@ namespace System.Threading.Collections
 		
 		public bool TryRemove (out T item)
 		{
-			return underlyingColl.Remove (out item);
+			return underlyingColl.TryTake (out item);
 		}
 		
 		public bool TryRemove (out T item, TimeSpan ts)
@@ -320,7 +312,7 @@ namespace System.Threading.Collections
 		public IEnumerable<T> GetConsumingEnumerable ()
 		{
 			T item;
-			while (underlyingColl.Remove (out item)) {
+			while (underlyingColl.TryTake (out item)) {
 				yield return item;
 			}
 		}
@@ -342,13 +334,7 @@ namespace System.Threading.Collections
 		
 		public void Dispose ()
 		{
-			//Dispose (true);
 		}
-		
-		/*protected virtual void Dispose (bool managedRes)
-		{
-			
-		}*/
 		
 		public T[] ToArray ()
 		{
@@ -398,4 +384,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
-#endif
+//#endif

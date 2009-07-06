@@ -27,7 +27,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Collections.Generic;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 using NUnit.Framework;
 

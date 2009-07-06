@@ -25,13 +25,13 @@
 
 using System;
 using System.Linq;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 namespace System.Threading.Tasks
 {
 	internal class Scheduler: TaskScheduler, IScheduler
 	{
-		IConcurrentCollection<Task> workQueue;
+		IProducerConsumerCollection<Task> workQueue;
 		ThreadWorker[]        workers;
 		bool                  isPulsable = true;
 
@@ -54,7 +54,7 @@ namespace System.Threading.Tasks
 		public void AddWork (Task t)
 		{
 			// Add to the shared work pool
-			workQueue.Add (t);
+			workQueue.TryAdd (t);
 			// Wake up some worker if they were asleep
 			PulseAll ();
 		}

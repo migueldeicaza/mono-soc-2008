@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentStack.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -24,15 +24,16 @@
 //
 
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
 	
 	
-	public class ConcurrentStack<T> : IConcurrentCollection<T>, IEnumerable<T>,
+	public class ConcurrentStack<T> : IProducerConsumerCollection<T>, IEnumerable<T>,
 	                                  ICollection, IEnumerable, ISerializable, IDeserializationCallback
 	{
 		class Node
@@ -55,7 +56,7 @@ namespace System.Threading.Collections
 				Push (item);
 		}
 		
-		bool IConcurrentCollection<T>.Add (T elem)
+		bool IProducerConsumerCollection<T>.TryAdd (T elem)
 		{
 			Push (elem);
 			return true;
@@ -176,7 +177,7 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 
-		bool IConcurrentCollection<T>.Remove (out T item)
+		bool IProducerConsumerCollection<T>.TryTake (out T item)
 		{
 			return TryPop (out item);
 		}
@@ -206,4 +207,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
-#endif
+//#endif

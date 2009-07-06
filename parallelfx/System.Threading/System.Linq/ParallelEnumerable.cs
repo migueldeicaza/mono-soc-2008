@@ -26,7 +26,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 using PEHelper = System.Linq.ParallelEnumerableHelper;
 

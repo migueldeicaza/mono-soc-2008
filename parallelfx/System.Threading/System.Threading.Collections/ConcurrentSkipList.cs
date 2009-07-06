@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentSkipList.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -28,10 +28,10 @@ using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
 	
-	internal class ConcurrentSkipList<T> : IConcurrentCollection<T>
+	internal class ConcurrentSkipList<T> : IProducerConsumerCollection<T>
 	{
 		// Used for randomSeed
 		static readonly Random r = new Random ();
@@ -105,15 +105,15 @@ namespace System.Threading.Collections
 			// The or ensures that randomSeed != 0
 			randomSeed = ((uint)Math.Abs (r.Next())) | 0x0100;
 		}
-
-		public bool Add (T value)
+		
+		public bool TryAdd (T value)
 		{
 			if (value == null)
 				throw new ArgumentNullException ("value");
 			
 			CleanArrays ();
 			int topLayer = GetRandomLevel ();
-			Console.WriteLine (topLayer);
+
 			int v = GetKey (value);
 
 			while (true) {
@@ -151,7 +151,7 @@ namespace System.Threading.Collections
 			}
 		}
 
-		bool IConcurrentCollection<T>.Remove (out T value)
+		bool IProducerConsumerCollection<T>.TryTake (out T value)
 		{
 			throw new NotSupportedException ();
 		}
@@ -393,6 +393,11 @@ namespace System.Threading.Collections
 		
 		void CleanArrays ()
 		{
+			if (succs == null)
+				succs = new Node [MaxHeight];
+			if (preds == null)
+				preds = new Node [MaxHeight];
+			
 			// Hopefully these are more optimized than a bare for loop
 			// (I suppose it uses memset internally)
 			Array.Clear (preds, 0, preds.Length);
@@ -400,4 +405,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
-#endif
+//#endif

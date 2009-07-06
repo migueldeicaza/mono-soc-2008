@@ -24,7 +24,7 @@
 
 using System;
 using System.Threading;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 namespace ParallelFxTests
 {
@@ -39,8 +39,10 @@ namespace ParallelFxTests
 		
 		public static void Repeat (Action action, int numRun)
 		{
-			for (int i = 0; i < numRun; i++)
+			for (int i = 0; i < numRun; i++) {
+				Console.WriteLine ("Run " + i.ToString ());
 				action ();
+			}
 		}
 		
 		public static void ParallelStressTest<TSource>(TSource obj, Action<TSource> action)
@@ -61,25 +63,25 @@ namespace ParallelFxTests
 				threads[i].Join();
 		}
 		
-		public static void ParallelAdder(IConcurrentCollection<int> collection, int numThread)
+		public static void ParallelAdder(IProducerConsumerCollection<int> collection, int numThread)
 		{
 			int startIndex = -10;
-			ParallelTestHelper.ParallelStressTest(collection, delegate (IConcurrentCollection<int> c) {
+			ParallelTestHelper.ParallelStressTest(collection, delegate (IProducerConsumerCollection<int> c) {
 				int start = Interlocked.Add(ref startIndex, 10);
 				for (int i = start; i < start + 10; i++) {
-					c.Add(i);
+					c.TryAdd(i);
 				}
 			}, numThread);
 		}
 		
-		public static void ParallelRemover(IConcurrentCollection<int> collection, int numThread, int times)
+		public static void ParallelRemover(IProducerConsumerCollection<int> collection, int numThread, int times)
 		{
 			int t = -1;
-			ParallelTestHelper.ParallelStressTest(collection, delegate (IConcurrentCollection<int> c) {
+			ParallelTestHelper.ParallelStressTest(collection, delegate (IProducerConsumerCollection<int> c) {
 				int num = Interlocked.Increment(ref t);
 				int value;
 				if (num < times)
-					c.Remove(out value);
+					c.TryTake (out value);
 			}, numThread);
 		}
 	}

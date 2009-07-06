@@ -25,7 +25,7 @@
 
 using System;
 using System.Threading;
-using System.Threading.Collections;
+using System.Collections.Concurrent;
 
 namespace System.Threading.Tasks
 {
@@ -109,7 +109,6 @@ namespace System.Threading.Tasks
 
 		static void EmptyFunc (object o)
 		{
-			
 		}
 		
 		#region Start

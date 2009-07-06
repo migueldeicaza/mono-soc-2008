@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentQueue.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -24,15 +24,15 @@
 //
 
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
-namespace System.Threading.Collections
+namespace System.Collections.Concurrent
 {
 	
-	
-	public class ConcurrentQueue<T> : IConcurrentCollection<T>, IEnumerable<T>, ICollection,
+	public class ConcurrentQueue<T> : IProducerConsumerCollection<T>, IEnumerable<T>, ICollection,
 	                                  IEnumerable, ISerializable, IDeserializationCallback
 	{
 		class Node
@@ -60,6 +60,8 @@ namespace System.Threading.Collections
 		
 		public void Enqueue (T item)
 		{
+			Interlocked.Increment (ref count);
+			
 			Node node  = new Node ();
 			node.Value = item;
 			
@@ -84,11 +86,9 @@ namespace System.Threading.Collections
 			}
 			// At this point we added correctly our node, now we have to update tail. If it fails then it will be done by another thread
 			Interlocked.CompareExchange (ref tail, node, oldTail);
-			
-			Interlocked.Increment (ref count);
 		}
 		
-		bool IConcurrentCollection<T>.Add (T item)
+		bool IProducerConsumerCollection<T>.TryAdd (T item)
 		{
 			Enqueue (item);
 			return true;
@@ -209,7 +209,7 @@ namespace System.Threading.Collections
 			throw new NotImplementedException ();
 		}
 
-		bool IConcurrentCollection<T>.Remove (out T item)
+		bool IProducerConsumerCollection<T>.TryTake (out T item)
 		{
 			return TryDequeue (out item);
 		}
@@ -232,4 +232,4 @@ namespace System.Threading.Collections
 		}
 	}
 }
-#endif
+//#endif
