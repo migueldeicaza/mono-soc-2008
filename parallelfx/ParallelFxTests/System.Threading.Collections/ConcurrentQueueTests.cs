@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentQueueTest.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -52,7 +52,7 @@ namespace ParallelFxTests
 		[Test]
 		public void StressEnqueueTestCase ()
 		{
-			ParallelTestHelper.Repeat (delegate {
+			/*ParallelTestHelper.Repeat (delegate {
 				queue = new ConcurrentQueue<int> ();
 				int amount = -1;
 				const int count = 10;
@@ -73,13 +73,15 @@ namespace ParallelFxTests
 				
 				for (int i = 0; i < threads; i++)
 					Assert.AreEqual (count, values[i], "#" + i);
-			});
+			});*/
+			
+			CollectionStressTestHelper.AddStressTest (new ConcurrentQueue<int> ());
 		}
 		
 		[Test]
 		public void StressDequeueTestCase ()
 		{
-			ParallelTestHelper.Repeat (delegate {
+			/*ParallelTestHelper.Repeat (delegate {
 				queue = new ConcurrentQueue<int> ();
 				const int count = 10;
 				const int threads = 5;
@@ -108,7 +110,9 @@ namespace ParallelFxTests
 					.Aggregate (string.Empty, (acc, v) => acc + v);
 				
 				Assert.AreEqual (expected, actual, "#3");
-			});
+			});*/
+			
+			CollectionStressTestHelper.RemoveStressTest (new ConcurrentQueue<int> (), CheckOrderingType.InOrder);
 		}
 		
 		[Test]
@@ -192,4 +196,4 @@ namespace ParallelFxTests
 		}
 	}
 }
-#endif
+//#endif

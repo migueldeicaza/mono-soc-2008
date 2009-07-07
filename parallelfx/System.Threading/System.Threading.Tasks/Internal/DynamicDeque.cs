@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentVector.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -260,4 +260,4 @@ namespace System.Threading.Tasks
 		}
 	}
 }
-#endif
+//#endif

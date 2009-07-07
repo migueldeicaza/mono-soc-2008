@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ConcurrentStackRe.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -48,7 +48,7 @@ namespace ParallelFxTests
 		[Test]
 		public void StressPushTestCase ()
 		{
-			ParallelTestHelper.Repeat (delegate {
+			/*ParallelTestHelper.Repeat (delegate {
 				stack = new ConcurrentStack<int> ();
 				int amount = -1;
 				const int count = 10;
@@ -69,13 +69,14 @@ namespace ParallelFxTests
 				
 				for (int i = 0; i < threads; i++)
 					Assert.AreEqual (count, values[i], "#" + i);
-			});
+			});*/
+			CollectionStressTestHelper.AddStressTest (new ConcurrentStack<int> ());
 		}
 		
 		[Test]
 		public void StressPopTestCase ()
 		{
-			ParallelTestHelper.Repeat (delegate {
+			/*ParallelTestHelper.Repeat (delegate {
 				stack = new ConcurrentStack<int> ();
 				const int count = 10;
 				const int threads = 5;
@@ -104,7 +105,9 @@ namespace ParallelFxTests
 					.Aggregate (string.Empty, (acc, v) => acc + v);
 				
 				Assert.AreEqual (expected, actual, "#3");
-			});
+			});*/
+			
+			CollectionStressTestHelper.RemoveStressTest (new ConcurrentStack<int> (), CheckOrderingType.Reversed);
 		}
 		
 		[Test]
@@ -188,4 +191,4 @@ namespace ParallelFxTests
 		}
 	}
 }
-#endif
+//#endif

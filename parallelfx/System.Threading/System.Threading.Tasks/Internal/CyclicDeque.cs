@@ -29,7 +29,7 @@ using System.Threading;
 
 namespace System.Threading.Tasks
 {
-	internal interface IDequeOperations<T> where T : class
+	internal interface IDequeOperations<T>
 	{
 		void PushBottom (T obj);
 		PopResult PopBottom (out T obj);
@@ -41,7 +41,7 @@ namespace System.Threading.Tasks
 		long Read (ref long value);
 	}
 	
-	internal class CyclicDeque<T> : IDequeOperations<T> where T : class
+	internal class CyclicDeque<T> : IDequeOperations<T>
 	{
 		readonly IValueReader reader;
 		const int BaseSize = 11;
@@ -139,7 +139,7 @@ namespace System.Threading.Tasks
 		}
 	}
 	
-	internal class CircularArray<T> where T : class
+	internal class CircularArray<T>
 	{
 		readonly int baseSize;
 		readonly int size;
