@@ -39,12 +39,23 @@ namespace ParallelFxTests
 		[SetUpAttribute]
 		public void Setup ()
 		{
-			snzi = new Snzi (0);
+			snzi = new Snzi ();
 		}
 		
 		[Test]
 		public void InitialTest ()
 		{
+			Assert.IsTrue (snzi.IsSet, "#1");
+			
+		}
+		
+		[Test]
+		public void SimpleOperationTest ()
+		{
+			snzi.Increment ();
+
+			snzi.Decrement ();
+			
 			Assert.IsTrue (snzi.IsSet, "#1");
 			
 		}

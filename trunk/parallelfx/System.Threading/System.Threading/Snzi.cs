@@ -39,24 +39,17 @@ namespace System.Threading
 	
 	public class Snzi
 	{
+		readonly ISnziNode root;
 		readonly ISnziNode[] nodes;
 		
-		readonly int count = Environment.ProcessorCount + 1;
-		
-		public Snzi () : this (0)
-		{
-		
-		}
+		readonly int count = Environment.ProcessorCount;
 			
-		public Snzi (int num)
+		public Snzi ()
 		{
 			nodes = new ISnziNode[count];
-			nodes[0] = new RootNode ();
-			for (int i = 1; i < count; i++)
-				nodes[i] = new LeafNode (nodes[0]);
-			
-			for (int i = 0; i < num; i++)
-				nodes[0].Arrive ();
+			root = new RootNode ();
+			for (int i = 0; i < count; i++)
+				nodes[i] = new LeafNode (root);
 		}
 		
 		public void Increment ()
@@ -79,14 +72,53 @@ namespace System.Threading
 		
 		public bool IsSet {
 			get {
-				return nodes[0].Query;
+				return !root.Query;
 			}
 		}
 		
 		int GetRandomIndex ()
 		{
 			return (Thread.CurrentThread.ManagedThreadId) % count;
-			//return 0;
+		}
+		
+		class UnsafeLeafNode : ISnziNode
+		{
+			ISnziNode parent;
+			int var;
+			
+			public UnsafeLeafNode (ISnziNode parent)
+			{
+				this.parent = parent;
+			}
+
+			#region ISnziNode implementation
+			public void Arrive ()
+			{
+				int c = var++;
+				
+				if (c == 0)
+					parent.Arrive ();
+			}
+			
+			public void Depart ()
+			{
+				int c = var--;
+				if (c == 1)
+					parent.Depart ();
+			}
+			
+			public bool Reset ()
+			{
+				throw new System.NotImplementedException();
+			}
+			
+			public bool Query {
+				get {
+					return parent.Query;
+				}
+			}
+			#endregion
+
 		}
 		
 		class LeafNode : ISnziNode
@@ -97,6 +129,7 @@ namespace System.Threading
 			public LeafNode (ISnziNode parent)
 			{
 				this.parent = parent;
+				this.var = 0;
 			}
 
 			#region ISnziNode implementation
@@ -139,6 +172,7 @@ namespace System.Threading
 					int x = var;
 					short c, v;
 					Decode (x, out c, out v);
+					
 					if (Interlocked.CompareExchange (ref var, Encode ((short)(c - 1), v), x) == x) {
 						if (c == 1)
 							parent.Depart ();
@@ -200,7 +234,7 @@ namespace System.Threading
 				} while (Interlocked.CompareExchange (ref var, temp, x) != x);
 				
 				Decode (temp, out c, out a, out v);
-				Console.WriteLine (a);
+
 				if (a) {
 					while (true) {
 						int i = state;
@@ -245,7 +279,7 @@ namespace System.Threading
 			
 			public bool Query {
 				get {
-					return (state & 0x80000000) == 0;
+					return (state & 0x80000000) > 0;
 				}
 			}
 			#endregion

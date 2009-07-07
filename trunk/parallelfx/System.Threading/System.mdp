@@ -43,7 +43,7 @@
     <File name="System.Threading.Tasks/TaskContinuationOptions.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/IScheduler.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading.Tasks/Internal/OptimizedStack.cs" subtype="Code" buildaction="Compile" />
-    <File name="System.Threading/WriteOnce.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading/WriteOnce.cs" subtype="Code" buildaction="Nothing" />
     <File name="System.Threading.Collections/BlockingCollection.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Linq/IParallelEnumerable.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Linq/IParallelOrderedEnumerable.cs" subtype="Code" buildaction="Compile" />
@@ -79,6 +79,7 @@
     <File name="System.Threading/CancellationToken.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/CancellationTokenRegistration.cs" subtype="Code" buildaction="Compile" />
     <File name="System.Threading/CancellationTokenSource.cs" subtype="Code" buildaction="Compile" />
+    <File name="System.Threading.Collections/ConcurrentBag.cs" subtype="Code" buildaction="Compile" />
   </Contents>
   <References>
     <ProjectReference type="Gac" localcopy="True" refto="System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
