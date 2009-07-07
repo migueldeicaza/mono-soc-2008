@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace System.Threading.Tasks
@@ -137,6 +138,12 @@ namespace System.Threading.Tasks
 			
 			return PopResult.Succeed;
 		}
+		
+		public IEnumerable<T> GetEnumerable ()
+		{
+			var a = array;
+			return a.GetEnumerable ();
+		}
 	}
 	
 	internal class CircularArray<T>
@@ -176,6 +183,11 @@ namespace System.Threading.Tasks
 			}
 			
 			return grow;
+		}
+		
+		public IEnumerable<T> GetEnumerable ()
+		{
+			return ((IEnumerable<T>)segment);
 		}
 	}
 }

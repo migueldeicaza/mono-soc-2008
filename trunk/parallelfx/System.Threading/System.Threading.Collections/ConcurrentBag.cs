@@ -118,22 +118,59 @@ namespace System.Collections.Concurrent
 		
 		IEnumerator IEnumerable.GetEnumerator ()
 		{
-			return null;
+			return GetEnumeratorInternal ();
 		}
 		
 		IEnumerator<T> IEnumerable<T>.GetEnumerator ()
 		{
-			return null;
+			return GetEnumeratorInternal ();
+		}
+		
+		IEnumerator<T> GetEnumeratorInternal ()
+		{
+			for (int i = 0; i < size; i++) {
+				CyclicDeque<T> bag = container[i];
+				foreach (T item in bag.GetEnumerable ()) {
+					yield return item;
+				}
+			}
 		}
 		
 		public void CopyTo (Array array, int index)
 		{
+			// Temporary, though I don't think would like to use an index
+			// with that collection
+			if (index != 0)
+				throw new NotSupportedException ("index must be 0");
 			
+			T[] a = array as T[];
+			if (a == null)
+				return;
+			
+			int c = count - index;
+			if (a.Length < c)
+				throw new InvalidOperationException ("Array is not big enough");
+			
+			CopyTo (a, index, c);
+		}
+		
+		void CopyTo (T[] array, int index, int num)
+		{
+			int i = index;
+			
+			foreach (T item in this) {
+				array[i++] = item;
+			}
 		}
 		
 		public T[] ToArray ()
 		{
-			return null;
+			int c = count;
+			T[] temp = new T[c];
+			
+			CopyTo (temp, 0, c);
+			
+			return temp;
 		}
 			
 		int GetIndex ()
