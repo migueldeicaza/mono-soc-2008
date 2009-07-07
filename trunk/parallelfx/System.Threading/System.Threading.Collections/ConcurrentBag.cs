@@ -53,7 +53,8 @@ namespace System.Collections.Concurrent
 		
 		public ConcurrentBag (IEnumerable<T> enumerable) : this ()
 		{
-			
+			foreach (T item in enumerable)
+				Add (item);
 		}
 		
 		public bool TryAdd (T item)
@@ -138,17 +139,12 @@ namespace System.Collections.Concurrent
 		
 		public void CopyTo (Array array, int index)
 		{
-			// Temporary, though I don't think would like to use an index
-			// with that collection
-			if (index != 0)
-				throw new NotSupportedException ("index must be 0");
-			
 			T[] a = array as T[];
 			if (a == null)
 				return;
 			
-			int c = count - index;
-			if (a.Length < c)
+			int c = count;
+			if (a.Length < c + index)
 				throw new InvalidOperationException ("Array is not big enough");
 			
 			CopyTo (a, index, c);
@@ -159,6 +155,9 @@ namespace System.Collections.Concurrent
 			int i = index;
 			
 			foreach (T item in this) {
+				if (i >= num)
+					break;
+				
 				array[i++] = item;
 			}
 		}

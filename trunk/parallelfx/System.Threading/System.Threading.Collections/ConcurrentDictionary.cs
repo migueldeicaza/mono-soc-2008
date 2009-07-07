@@ -201,7 +201,10 @@ namespace System.Collections.Concurrent
 		
 		public KeyValuePair<TKey,TValue>[] ToArray ()
 		{
-			return null;
+			// This is most certainly not optimum but there is
+			// not a lot of possibilities
+			
+			return new List<KeyValuePair<TKey,TValue>> (this).ToArray ();
 		}
 	
 		public void Clear()
@@ -224,14 +227,24 @@ namespace System.Collections.Concurrent
 		
 		public ICollection<TKey> Keys {
 			get {
-				return null;
+				return GetPart<TKey> ((kvp) => kvp.Key);
 			}
 		}
 		
 		public ICollection<TValue> Values {
 			get {
-				return null;
+				return GetPart<TValue> ((kvp) => kvp.Value);
 			}
+		}
+		
+		ICollection<T> GetPart<T> (Func<KeyValuePair<TKey, TValue>, T> extractor)
+		{
+			List<T> temp = new List<T> ();
+			
+			foreach (KeyValuePair<TKey, TValue> kvp in this)
+				temp.Add (extractor (kvp));
+			
+			return temp.AsReadOnly ();
 		}
 		
 		void ICollection.CopyTo (Array array, int startIndex)
@@ -240,14 +253,19 @@ namespace System.Collections.Concurrent
 			if (arr == null)
 				return;
 			
-			CopyTo (arr, startIndex);
+			CopyTo (arr, startIndex, count);
 		}
 		
 		public void CopyTo (KeyValuePair<TKey, TValue>[] array, int startIndex)
 		{
+			CopyTo (array, startIndex, count);
+		}
+		
+		void CopyTo (KeyValuePair<TKey, TValue>[] array, int startIndex, int num)
+		{
 			// TODO: This is quite unsafe as the count value will likely change during
 			// the copying. Watchout for IndexOutOfRange thingies
-			if (array.Length <= count)
+			if (array.Length <= count + startIndex)
 				throw new InvalidOperationException ("The array isn't big enough");
 			
 			int i = startIndex;
@@ -255,6 +273,8 @@ namespace System.Collections.Concurrent
 			foreach (Basket b in container) {
 				lock (b) {
 					foreach (Pair p in b) {
+						if (i >= num)
+							break;
 						array[i++] = new KeyValuePair<TKey, TValue> (p.Key, p.Value);
 					}
 				}
