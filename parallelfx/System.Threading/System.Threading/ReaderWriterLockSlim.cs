@@ -37,9 +37,15 @@ namespace System.Threading
 		// corresponding to the lock they are touching via Enter or Exit. Actually 
 		// that way we can check stuff like if the thread had taken the lock pretty easily
 		[ThreadStatic]
-		static Dictionary<ReaderWriterLockSlim1, Local> locales = new Dictionary<ReaderWriterLockSlim1, Local> ();
+		static Dictionary<ReaderWriterLockSlim1, Local> locales;
 		
 		Local upgradeableLocal = null;
+		
+		enum LockType {
+			Reader,
+			Writer,
+			Upgradeable
+		}
 		
 		sealed class RwlockNode
 		{
@@ -59,17 +65,29 @@ namespace System.Threading
 			}
 			
 			public RwlockNode ReadNext;
+			
+			public RwlockNode (bool isReader)
+			{
+				this.IsReader = isReader;
+			}
 		}
 		
 		sealed class Local 
 		{
 			// Default read node
-			public readonly RwlockNode rNode;
+			public readonly RwlockNode rNode = new RwlockNode (true);
 			// Write node
-			public readonly RwlockNode wNode;
+			public readonly RwlockNode wNode = new RwlockNode (false);
 			
 			public RwlockNode DepartFrom;
 			public ICSnziNode Ticket;
+			
+			public readonly LockType Type;
+			
+			public Local (LockType type)
+			{
+				this.Type = type;
+			}
 		}
 		
 		[ThreadStatic]
@@ -83,15 +101,56 @@ namespace System.Threading
 			
 		}
 		
-		public bool TryEnterReadMode (int timeout)
+		#region ReadMode
+		public void EnterReadMode ()
 		{
-			return true;
+			TryEnterReadMode (-1);
+		}
+		
+		public bool TryEnterReadMode (int timeout)
+		{		
+			return ReaderLock (InitFor (LockType.Reader), timeout == -1 ? null : GetSecondaryForTime (timeout));
 		}
 		
 		public bool TryEnterReadMode (TimeSpan ts)
 		{
 			return TryEnterReadMode ((int)ts.TotalMilliseconds);
 		}
+		
+		public void ExitReadLock ()
+		{
+			ReaderUnlock (CheckFor (LockType.Reader));
+		}
+		#endregion
+		
+		#region WriterMode
+		public void EnterWriteMode ()
+		{
+			TryEnterReadMode (-1);
+		}
+		
+		public bool TryEnterWriteMode (int timeout)
+		{			
+			return WriterLock (InitFor (LockType.Writer), timeout == -1 ? null : GetSecondaryForTime (timeout));
+		}
+		
+		public bool TryEnterWriteMode (TimeSpan ts)
+		{
+			return TryEnterWriteMode ((int)ts.TotalMilliseconds);
+		}
+		
+		public void ExitWriteLock ()
+		{			
+			WriterUnlock (CheckFor (LockType.Writer));
+		}
+		#endregion
+		
+		#region Upgradeable mode
+		public void EnterUpgradeableReadLock ()
+		{
+			
+		}
+		#endregion
 		
 		#region Internal behavior
 		RwlockNode AllocReaderNode (Local local)
@@ -110,11 +169,6 @@ namespace System.Threading
 		{
 			// Simply write the thing up
 			node.UseState = 0;
-		}
-		
-		void WriterLock (Local local)
-		{
-			WriterLock (local, null);
 		}
 		
 		bool WriterLock (Local local, Func<bool> secondary)
@@ -154,11 +208,6 @@ namespace System.Threading
 				local.wNode.Next.Spin = false;
 				local.wNode.Next = null;
 			}
-		}
-		
-		void ReaderLock (Local local)
-		{
-			ReaderLock (local, null);
 		}
 		
 		bool ReaderLock (Local local, Func<bool> secondary)
@@ -276,6 +325,43 @@ namespace System.Threading
 				
 				return result;
 			}			
+		}
+		
+		static void InitLocales ()
+		{
+			if (locales != null)
+				return;
+			
+			locales = new Dictionary<ReaderWriterLockSlim1, Local> ();
+		}
+		
+		Func<bool> GetSecondaryForTime (int millisecondTimeout)
+		{
+			System.Diagnostics.Stopwatch stopWatch = System.Diagnostics.Stopwatch.StartNew ();
+			return () => stopWatch.ElapsedMilliseconds > millisecondTimeout;
+		}
+		
+		Local InitFor (LockType type)
+		{
+			InitLocales ();
+			Local local;
+			if (locales.TryGetValue (this, out local))
+				throw new LockRecursionException ("Lock is already acquired");
+			
+			local = new Local (type);
+			locales.Add (this, local);
+			
+			return local;
+		}
+		
+		Local CheckFor (LockType type)
+		{
+			Local local;
+			if (locales == null || !locales.TryGetValue (this, out local)
+			    || local.Type != type)
+				throw new SynchronizationLockException ();
+			
+			return local;
 		}
 		#endregion
 	}
