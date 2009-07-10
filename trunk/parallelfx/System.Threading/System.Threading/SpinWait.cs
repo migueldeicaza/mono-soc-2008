@@ -51,6 +51,12 @@ namespace System.Threading
 			}
 		}
 		
+		public void SpinUntil (Func<bool> predicate)
+		{
+			while (!predicate ())
+				SpinOnce ();
+		}
+		
 		void Yield ()
 		{
 			// Replace sched_yield by Thread.Sleep(0) which does almost the same thing

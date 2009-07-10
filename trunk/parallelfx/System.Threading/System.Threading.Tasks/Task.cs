@@ -290,8 +290,11 @@ namespace System.Threading.Tasks
 			status = TaskStatus.WaitingToRun;
 			
 			// If worker is null it means it is a local one, revert to the old behavior
-			if (current == null || childWorkAdder == null || parent == null) {
+			if (current == null || childWorkAdder == null || parent == null
+			    || CheckTaskOptions (taskCreationOptions, TaskCreationOptions.PreferFairness)) {
+				
 				scheduler.AddWork (this);
+				
 			} else {
 				/* Like the semantic of the ABP paper describe it, we add ourselves to the bottom 
 				 * of our Parent Task's ThreadWorker deque. It's ok to do that since we are in
