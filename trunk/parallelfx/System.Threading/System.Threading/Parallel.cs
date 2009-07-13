@@ -71,6 +71,11 @@ namespace System.Threading
 			InitTasks (tasks, count, () => Task.Factory.StartNew (action, TaskCreationOptions.DetachedFromParent));
 		}
 		
+		static void InitTasks (Task[] tasks, Action action, int count, TaskScheduler scheduler)
+		{
+			InitTasks (tasks, count, () => Task.Factory.StartNew (action, TaskCreationOptions.DetachedFromParent, scheduler));
+		}
+		
 		static void InitTasks (Task[] tasks, int count, Func<Task> taskCreator)
 		{
 			for (int i = 0; i < count; i++) {
@@ -116,18 +121,31 @@ namespace System.Threading
 			return For (from, to, options, (index, state) => action (index));
 		}
 		
+		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
+		{
+			return For<object> (from, to, options, null, (i, s, l) => action (i, s), null);
+		}
+		
 		/*public static void For (long from, long to, ParallelOptions options, Action<long> action)
 		{
 			For (from, to, (i, state) => action (i));
 		}*/
 		
-		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
+		public static ParallelLoopResult For<TLocal> (int from, int to, Func<TLocal> init,
+		                                              Action<int, ParallelLoopState, TLocal> action, Action<TLocal> destruct)
 		{
+			return For<TLocal> (from, to, null, init, action, destruct);
+		}
+		
+		public static ParallelLoopResult For<TLocal> (int from, int to, ParallelOptions options, 
+		                                              Func<TLocal> init, Action<int, ParallelLoopState, TLocal> action,
+		                                              Action<TLocal> destruct)
+		{			
 			if (action == null)
 				throw new ArgumentNullException ("action");
 			
 			// Number of task to be launched (normally == Env.ProcessorCount)
-			int num = GetBestWorkerNumber ();
+			int num = Math.Min (GetBestWorkerNumber (), (options != null) ? options.MaxDegreeOfParallelism : int.MaxValue);
 			// Integer range that each task process
 			int step = Math.Min (5, (to - from) / num);
 
@@ -141,38 +159,66 @@ namespace System.Threading
 		
 			Action workerMethod = delegate {
 				int index, actual;
+				TLocal local = (init == null) ? default (TLocal) : init ();
 				
 				ParallelLoopState state = new ParallelLoopState (tasks, infos);
 				
-				while ((index = Interlocked.Add (ref currentIndex, step) - step) < to) {
-					if (infos.IsStopped.Value)
-						return;
-					
-					for (int i = index; i < to && i < index + step; i++)
-						bag.Add (i);
-					
-					while (bag.TryTake (out actual)) {
-						if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
+				try {
+					while ((index = Interlocked.Add (ref currentIndex, step) - step) < to) {
+						if (infos.IsStopped.Value)
 							return;
 						
-						state.CurrentIteration = actual;
-						action (actual, state);
+						if (options != null && options.CancellationToken.IsCancellationRequested) {
+							state.Stop ();
+							return;
+						}
+						
+						for (int i = index; i < to && i < index + step; i++)
+							bag.Add (i);
+						
+						while (bag.TryTake (out actual)) {
+							if (infos.IsStopped.Value)
+								return;
+							
+							if (options != null && options.CancellationToken.IsCancellationRequested) {
+								state.Stop ();
+								return;
+							}
+							
+							if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
+								return;
+							
+							state.CurrentIteration = actual;
+							action (actual, state, local);
+						}
 					}
-				}
-				
-				while (bag.TryTake (out actual)) {
-					if (infos.IsStopped.Value)
-						return;
 					
-					if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
-						continue;
-					
-					state.CurrentIteration = actual;
-					action (actual, state);
+					while (bag.TryTake (out actual)) {
+						if (infos.IsStopped.Value)
+							return;
+						
+						if (options != null && options.CancellationToken.IsCancellationRequested) {
+							state.Stop ();
+							return;
+						}
+						
+						if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
+							continue;
+						
+						state.CurrentIteration = actual;
+						action (actual, state, local);
+					}
+				} finally {
+					if (destruct != null)
+						destruct (local);
 				}
 			};
 		
-			InitTasks (tasks, workerMethod, num);
+			if (options != null && options.TaskScheduler != null)
+				InitTasks (tasks, workerMethod, num, options.TaskScheduler);
+			else
+				InitTasks (tasks, workerMethod, num);
+			
 			Task.WaitAll (tasks);
 			HandleExceptions (tasks);
 			
