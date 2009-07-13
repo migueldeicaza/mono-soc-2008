@@ -1,5 +1,5 @@
 // 
-// Partitioner.cs
+// ListPartitioner.cs
 //  
 // Author:
 //       Jérémie "Garuma" Laval <jeremie.laval@gmail.com>
@@ -25,46 +25,55 @@
 // THE SOFTWARE.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace System.Collections.Concurrent
 {
-	public static class Partitioner
+	public class ListPartitioner<T> : OrderablePartitioner<T>
 	{
-		public static OrderablePartitioner<T> Create<T> (IEnumerable<T> source)
+		IList<T> source;
+		
+		public ListPartitioner (IList<T> source) : base (true, true, true)
 		{
-			IList<T> tempIList = source as IList<T>;
-			if (tempIList != null)
-				return Create (tempIList);
+			this.source = source;
+		}
+		
+		public override IEnumerable<T> GetDynamicPartitions ()
+		{
+			throw new NotSupportedException ();
+		}
+		
+		public override IList<IEnumerator<T>> GetPartitions (int partitionCount)
+		{
+			if (partitionCount <= 0)
+				throw new ArgumentOutOfRangeException ("partitionCount");
 			
-			return new EnumerablePartitioner<T> (source);
-		}
-		
-		public static OrderablePartitioner<T> Create<T> (T[] source)
-		{
-			return Create ((IList<T>)source);
-		}
-		
-		public static OrderablePartitioner<T> Create<T> (IList<T> source)
-		{
-			return new ListPartitioner<T> (source);
-		}
-	}
-	
-	public abstract class Partitioner<T>
-	{
-		protected Partitioner ()
-		{
+			IEnumerator<T>[] enumerators = new IEnumerator<T>[partitionCount];
+			int count = (source.Count >= partitionCount) ? source.Count / partitionCount : 1;
 			
+			for (int i = 0; i < enumerators.Length; i++) {
+				if (i != enumerators.Length - 1)
+					enumerators[i] = GetEnumeratorForRange (i * count, i * count + count);
+				else
+					enumerators[i] = GetEnumeratorForRange (i * count, source.Count - i * count);
+			}
+			
+			return enumerators;
 		}
 		
-		public abstract IEnumerable<T> GetDynamicPartitions ();
+		IEnumerator<T> GetEnumeratorForRange (int startIndex, int count)
+		{
+			if (startIndex >= source.Count)
+				return Enumerable.Empty<T> ().GetEnumerator ();
+			
+			return GetEnumeratorForRangeInternal (startIndex, count);
+		}
 		
-		public abstract IList<IEnumerator<T>> GetPartitions (int partitionCount);
-		
-		public virtual bool SupportsDynamicPartitions {
-			get {
-				return false;
+		IEnumerator<T> GetEnumeratorForRangeInternal (int startIndex, int count)
+		{	
+			for (int i = startIndex; i < count; i++) {
+				yield return source[i];
 			}
 		}
 	}

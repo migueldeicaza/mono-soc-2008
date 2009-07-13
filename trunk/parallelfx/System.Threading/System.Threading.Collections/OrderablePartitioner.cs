@@ -44,9 +44,9 @@ namespace System.Collections.Concurrent
 			this.keysNormalized = keysNormalized;
 		}
 		
-		public abstract IEnumerable<T> GetDynamicPartitions ();
+		public abstract override IEnumerable<T> GetDynamicPartitions ();
 		
-		public abstract IList<IEnumerator<T>> GetPartitions (int partitionCount);		
+		public abstract override IList<IEnumerator<T>> GetPartitions (int partitionCount);		
 		
 		public bool KeysOrderedInEachPartition {
 			get {
