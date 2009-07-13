@@ -36,8 +36,8 @@ namespace System.Collections.Concurrent
 
 	public class ConcurrentBag<T> : IProducerConsumerCollection<T>, IEnumerable<T>, IEnumerable
 	{
-		int size = 2;
-		int baseSize = 1;
+		int size = Environment.ProcessorCount + 1;
+		int multiplier = 2;
 		int count;
 		
 		CyclicDeque<T>[] container;
@@ -79,7 +79,7 @@ namespace System.Collections.Concurrent
 			CyclicDeque<T> bag = GetBag ();
 			
 			if (bag == null || bag.PopBottom (out item) != PopResult.Succeed) {
-				for (int i = 0; i < size; i++) {
+				for (int i = 0; i < container.Length; i++) {
 					if (container[i].PopTop (out item) == PopResult.Succeed) {
 						Interlocked.Decrement (ref count);
 						return true;
@@ -201,7 +201,7 @@ namespace System.Collections.Concurrent
 				if (referenceSize != size)
 					return;
 				
-				CyclicDeque<T>[] slice = new CyclicDeque<T>[1 << (++baseSize)];
+				CyclicDeque<T>[] slice = new CyclicDeque<T>[size * multiplier];
 				int i = 0;
 				for (i = 0; i < container.Length; i++)
 					slice[i] = container[i];
