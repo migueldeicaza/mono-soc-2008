@@ -1,5 +1,5 @@
 // 
-// ParallelOptions.cs
+// ParallelLoopResult.cs
 //  
 // Author:
 //       Jérémie "Garuma" Laval <jeremie.laval@gmail.com>
@@ -25,31 +25,25 @@
 // THE SOFTWARE.
 
 using System;
-using System.Threading.Tasks;
 
 namespace System.Threading
 {
-	
-	public class ParallelOptions
+	public struct ParallelLoopResult
 	{
-		
-		public ParallelOptions()
+		internal ParallelLoopResult (long? lowest, bool isCompleted)
 		{
+			LowestBreakIteration = lowest;
+			IsCompleted = isCompleted;
 		}
 		
-		public CancellationToken CancellationToken {
+		public long? LowestBreakIteration {
 			get;
-			set;
+			private set;
 		}
 		
-		public int MaxDegreeOfParallelism {
+		public bool IsCompleted {
 			get;
-			set;
-		}
-		
-		public TaskScheduler TaskScheduler {
-			get;
-			set;
+			private set;
 		}
 	}
 }

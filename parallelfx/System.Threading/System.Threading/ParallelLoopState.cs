@@ -30,47 +30,63 @@ namespace System.Threading
 {
 	public class ParallelLoopState
 	{
-		int isStopped = 0;
-		Task[] tasks;
+		internal class ExternalInfos
+		{
+			public AtomicBoolean IsStopped;
+			public AtomicBoolean IsBroken;
+			public volatile bool IsExceptional;
+			public long? LowestBreakIteration;
+		}
 		
-		internal ParallelLoopState (Task[] tasks)
+		Task[] tasks;
+		ExternalInfos extInfos;
+		
+		internal ParallelLoopState (Task[] tasks, ExternalInfos extInfos)
 		{
 			this.tasks = tasks;
+			this.extInfos = extInfos;
 		}
 		
 		public bool IsStopped {
 			get {
-				return isStopped == 1;
+				return extInfos.IsStopped.Value;
 			}
 		}
 		
 		public bool IsExceptional {
 			get {
-				return false;
+				return extInfos.IsExceptional;
 			}
 		}
 		
 		public long? LowestBreakIteration {
 			get {
-				return null;
+				return extInfos.LowestBreakIteration;
 			}
+		}
+		
+		internal int CurrentIteration {
+			get;
+			set;
 		}
 		
 		public bool ShouldExitCurrentIteration {
 			get {
-				return false;
+				return IsExceptional || IsStopped;
 			}
 		}
 		
 		public void Break ()
 		{
-			
+			bool result = extInfos.IsBroken.Exchange (true);
+			if (!result)
+				extInfos.LowestBreakIteration = CurrentIteration;
 		}
 		
 		public void Stop ()
 		{
-			int result = Interlocked.Exchange (ref isStopped, 1);
-			if (result == 0) {
+			bool result = extInfos.IsStopped.Exchange (true);
+			if (!result) {
 				foreach (var t in tasks) {
 					if (t == null)
 						continue;

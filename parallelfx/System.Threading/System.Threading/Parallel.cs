@@ -91,42 +91,37 @@ namespace System.Threading
 		
 		static readonly int MaxForCount;
 		
-		public static void For (long from, long to, Action<long> action)
+		public static ParallelLoopResult For (int from, int to, Action<int> action)
+		{
+			return For (from, to, null, action);
+		}
+		
+		/*public static void For (long from, long to, Action<long> action)
 		{
 			For (from, to, (i, state) => action (i));
+		}*/
+		
+		public static ParallelLoopResult For (int from, int to, Action<int, ParallelLoopState> action)
+		{
+			return For (from, to, null, action);
 		}
 		
-		public static void For (int from, int to, Action<int, ParallelLoopState> action)
+		/*public static void For (long from, long to, Action<long, ParallelLoopState> action)
 		{
 			For (from, to, action);
-		}
+		}*/
 		
-		public static void For (long from, long to, Action<long, ParallelLoopState> action)
+		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int> action)
 		{
-			For (from, to, action);
+			return For (from, to, options, (index, state) => action (index));
 		}
 		
-		public static void For (int from, int to, ParallelOptions options, Action<int> action)
-		{
-			For (from, to, action);
-		}
-		
-		public static void For (long from, long to, ParallelOptions options, Action<long> action)
+		/*public static void For (long from, long to, ParallelOptions options, Action<long> action)
 		{
 			For (from, to, (i, state) => action (i));
-		}
+		}*/
 		
-		public static void For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
-		{
-			For (from, to, action);
-		}
-		
-		public static void For (long from, long to, ParallelOptions options, Action<long, ParallelLoopState> action)
-		{
-			For (from, to, action);
-		}
-		
-		public static void For (int from, int to, Action<int> action)
+		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
 		{
 			if (action == null)
 				throw new ArgumentNullException ("action");
@@ -140,27 +135,54 @@ namespace System.Threading
 			// so that other worker may steal if they starve.
 			ConcurrentBag<int> bag = new ConcurrentBag<int> ();
 			Task[] tasks = new Task [num];
+			ParallelLoopState.ExternalInfos infos = new ParallelLoopState.ExternalInfos ();
 			
 			int currentIndex = from;
-			
+		
 			Action workerMethod = delegate {
 				int index, actual;
 				
+				ParallelLoopState state = new ParallelLoopState (tasks, infos);
+				
 				while ((index = Interlocked.Add (ref currentIndex, step) - step) < to) {
+					if (infos.IsStopped.Value)
+						return;
+					
 					for (int i = index; i < to && i < index + step; i++)
 						bag.Add (i);
-
-					while (bag.TryTake (out actual))
-						action (actual);
+					
+					while (bag.TryTake (out actual)) {
+						if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
+							return;
+						
+						state.CurrentIteration = actual;
+						action (actual, state);
+					}
 				}
 				
-				while (bag.TryTake (out actual)) action (actual);
+				while (bag.TryTake (out actual)) {
+					if (infos.IsStopped.Value)
+						return;
+					
+					if (infos.LowestBreakIteration != null && infos.LowestBreakIteration > actual)
+						continue;
+					
+					state.CurrentIteration = actual;
+					action (actual, state);
+				}
 			};
-			
+		
 			InitTasks (tasks, workerMethod, num);
 			Task.WaitAll (tasks);
 			HandleExceptions (tasks);
+			
+			return new ParallelLoopResult (infos.LowestBreakIteration, !(infos.IsStopped.Value || infos.IsExceptional));
 		}
+		
+		/*public static void For (long from, long to, ParallelOptions options, Action<long, ParallelLoopState> action)
+		{
+			For (from, to, action);
+		}*/
 		#endregion
 		
 		#region Foreach
