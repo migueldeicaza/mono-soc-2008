@@ -176,7 +176,7 @@ namespace System.Threading
 						for (int i = index; i < to && i < index + step; i++)
 							bag.Add (i);
 						
-						while (bag.TryTake (out actual)) {
+						for (int i = index; i < to && i < index + step && bag.TryTake (out actual); i++) {
 							if (infos.IsStopped.Value)
 								return;
 							
@@ -233,16 +233,62 @@ namespace System.Threading
 		
 		#region Foreach
 		
-		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
-		{
-			ForEach (enumerable, (e, index) => action (e));
+		public static void ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
+		                                             Func<TLocal> init, Action<TSource, ParallelLoopState, TLocal> action,
+		                                             Action<TLocal> destruct)
+		{		
+			int num = Math.Min (GetBestWorkerNumber (), (options != null) ? options.MaxDegreeOfParallelism : int.MaxValue);
+			
+			Task[] tasks = new Task[num];
+			ParallelLoopState.ExternalInfos infos = new ParallelLoopState.ExternalInfos ();
+			
+			ConcurrentBag<TSource> bag = new ConcurrentBag<TSource> ();
+			const int bagCount = 5;
+			
+			IList<IEnumerator<TSource>> slices = enumerable.GetPartitions (num);
+			int sliceIndex = 0;
+
+			Action workerMethod = delegate {
+				IEnumerator<TSource> slice = slices[Interlocked.Increment (ref sliceIndex) - 1];
+				
+				TLocal local = (init != null) ? init () : default (TLocal);
+				ParallelLoopState state = new ParallelLoopState (tasks, infos);
+				
+				try {
+					bool cont = true;
+					TSource element;
+					
+					while (cont) {
+						for (int i = 0; i < bagCount && (cont = slice.MoveNext ()); i++) {
+							bag.Add (slice.Current);
+						}
+						
+						for (int i = 0; i < bagCount && bag.TryTake (out element); i++) {
+							action (element, state, local);
+						}
+					}
+					
+					while (bag.TryTake (out element)) {
+						action (element, state, local);
+					}
+				} finally {
+					if (destruct != null)
+						destruct (local);
+				}
+			};
+			
+			if (options != null && options.TaskScheduler != null)
+				InitTasks (tasks, workerMethod, num, options.TaskScheduler);
+			else
+				InitTasks (tasks, workerMethod, num);
+			Task.WaitAll (tasks);
+			HandleExceptions (tasks);
 		}
 		
-		/*public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource,
-		                                     ParallelState> action)
+		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			ForEach (enumerable, (e, index, state) => action (e, state));
-		}*/
+			//ForEach (enumerable, (e, index, state) => action (e, state));
+		}
 		
 		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, int> action)
 		{
