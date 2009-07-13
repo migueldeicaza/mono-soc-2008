@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // AtomicBoolean.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -90,4 +90,4 @@ namespace System.Threading
 		}
 	}
 }
-#endif
+//#endif
