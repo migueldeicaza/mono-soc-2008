@@ -26,6 +26,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
 namespace System.Threading
@@ -65,7 +66,7 @@ namespace System.Threading
 			}
 		}
 		
-		static void InitTasks (Task[] tasks, Action<object> action, int count)
+		static void InitTasks (Task[] tasks, Action action, int count)
 		{
 			InitTasks (tasks, count, () => Task.Factory.StartNew (action, TaskCreationOptions.DetachedFromParent));
 		}
@@ -130,24 +131,30 @@ namespace System.Threading
 			if (action == null)
 				throw new ArgumentNullException ("action");
 			
-			int step = 1;
+			// Number of task to be launched (normally == Env.ProcessorCount)
 			int num = GetBestWorkerNumber ();
+			// Integer range that each task process
+			int step = Math.Min (5, (to - from) / num);
 
+			// Each worker put the indexes it's responsible for here
+			// so that other worker may steal if they starve.
+			ConcurrentBag<int> bag = new ConcurrentBag<int> ();
 			Task[] tasks = new Task [num];
 			
 			int currentIndex = from;
 			
-			Action<object> workerMethod = delegate {
-				int index;
-				/*while ((index = Interlocked.Add (ref currentIndex, step) - step) < to && !state.IsStopped) {
-					action (index, state);
-				}*/
-				int count = MaxForCount * step;
-				while ((index = Interlocked.Add (ref currentIndex, count) - (count)) < to) {
-					for (int i = index; i < to && i < index + (count); i += step) {
-						action (i);
-					}
+			Action workerMethod = delegate {
+				int index, actual;
+				
+				while ((index = Interlocked.Add (ref currentIndex, step) - step) < to) {
+					for (int i = index; i < to && i < index + step; i++)
+						bag.Add (i);
+
+					while (bag.TryTake (out actual))
+						action (actual);
 				}
+				
+				while (bag.TryTake (out actual)) action (actual);
 			};
 			
 			InitTasks (tasks, workerMethod, num);
@@ -325,7 +332,7 @@ namespace System.Threading
 			Task[] tasks = new Task [num];
 			//ParallelState state = new ParallelState (tasks);
 			
-			Action<object> action = delegate {
+			Action action = delegate {
 				//while (!state.IsStopped && predicate ())
 				body ();
 			};
