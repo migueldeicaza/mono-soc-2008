@@ -55,6 +55,11 @@ namespace System.Threading
 		
 		static void HandleExceptions (IEnumerable<Task> tasks)
 		{
+			HandleExceptions (tasks, null);
+		}
+		
+		static void HandleExceptions (IEnumerable<Task> tasks, ParallelLoopState.ExternalInfos infos)
+		{
 			List<Exception> exs = new List<Exception> ();
 			foreach (Task t in tasks) {
 				if (t.Exception != null && !(t.Exception is TaskCanceledException))
@@ -62,6 +67,9 @@ namespace System.Threading
 			}
 			
 			if (exs.Count > 0) {
+				if (infos != null)
+					infos.IsExceptional = true;
+				
 				throw new AggregateException (exs);
 			}
 		}
@@ -220,7 +228,7 @@ namespace System.Threading
 				InitTasks (tasks, workerMethod, num);
 			
 			Task.WaitAll (tasks);
-			HandleExceptions (tasks);
+			HandleExceptions (tasks, infos);
 			
 			return new ParallelLoopResult (infos.LowestBreakIteration, !(infos.IsStopped.Value || infos.IsExceptional));
 		}
@@ -233,9 +241,9 @@ namespace System.Threading
 		
 		#region Foreach
 		
-		public static void ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
-		                                             Func<TLocal> init, Action<TSource, ParallelLoopState, TLocal> action,
-		                                             Action<TLocal> destruct)
+		public static ParallelLoopResult ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
+		                                                           Func<TLocal> init, Action<TSource, ParallelLoopState, TLocal> action,
+		                                                           Action<TLocal> destruct)
 		{		
 			int num = Math.Min (GetBestWorkerNumber (), (options != null) ? options.MaxDegreeOfParallelism : int.MaxValue);
 			
@@ -282,12 +290,14 @@ namespace System.Threading
 			else
 				InitTasks (tasks, workerMethod, num);
 			Task.WaitAll (tasks);
-			HandleExceptions (tasks);
+			HandleExceptions (tasks, infos);
+			
+			return new ParallelLoopResult (infos.LowestBreakIteration, !(infos.IsStopped.Value || infos.IsExceptional));
 		}
 		
-		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			//ForEach (enumerable, (e, index, state) => action (e, state));
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e), null);
 		}
 		
 		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, int> action)
