@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // ParallelTests.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -105,4 +105,4 @@ namespace ParallelFxTests
 		}
 	}
 }
-#endif
+//#endif

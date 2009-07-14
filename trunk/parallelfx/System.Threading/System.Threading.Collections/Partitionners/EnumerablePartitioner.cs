@@ -56,8 +56,10 @@ namespace System.Collections.Concurrent
 			
 			IEnumerator<T>[] enumerators = new IEnumerator<T>[partitionCount];
 			
+			IEnumerator<T> src = source.GetEnumerator ();
+			
 			for (int i = 0; i < enumerators.Length; i++) {
-				enumerators[i] = GetPartitionEnumerator (source.GetEnumerator ());
+				enumerators[i] = GetPartitionEnumerator (src);
 			}
 			
 			return enumerators;
@@ -74,8 +76,12 @@ namespace System.Collections.Concurrent
 				
 				lock (syncLock) {
 					for (int i = 0; i < count; i++) {
-						if (!src.MoveNext ())
-							yield break;
+						if (!src.MoveNext ()) {
+							if (list.Count == 0)
+								yield break;
+							else
+								break;
+						}
 						
 						list.Add (src.Current);
 					}					
