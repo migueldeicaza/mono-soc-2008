@@ -45,8 +45,8 @@ namespace ParallelFxTests
 		public void InitialTestCase()
 		{
 			Assert.AreEqual(5, evt.InitialCount, "#1");
-			evt.Increment();
-			evt.Decrement(3);
+			evt.AddCount();
+			evt.Signal(3);
 			Assert.AreEqual(5, evt.InitialCount, "#2");
 		}
 		
@@ -55,13 +55,13 @@ namespace ParallelFxTests
 		{
 			Assert.AreEqual(5, evt.CurrentCount, "#1");
 			
-			evt.Increment();
+			evt.AddCount();
 			Assert.AreEqual(6, evt.CurrentCount, "#2");
 			
-			evt.TryIncrement(2);
+			evt.TryAddCount(2);
 			Assert.AreEqual(8, evt.CurrentCount, "#3");
 			
-			evt.Decrement(4);
+			evt.Signal(4);
 			Assert.AreEqual(4, evt.CurrentCount, "#4");
 			
 			evt.Reset();
@@ -73,7 +73,7 @@ namespace ParallelFxTests
 		{
 			Assert.IsFalse(evt.IsSet, "#1");
 			
-			evt.Decrement(5);
+			evt.Signal(5);
 			Assert.IsTrue(evt.IsSet, "#2");
 			
 			evt.Reset();
@@ -81,11 +81,11 @@ namespace ParallelFxTests
 		}
 		
 		[Test]
-		public void TryIncrementTestCase()
+		public void TryAddCountTestCase()
 		{
-			Assert.IsTrue(evt.TryIncrement(2), "#1");
-			evt.Decrement(7);
-			Assert.IsFalse(evt.TryIncrement(), "#2");
+			Assert.IsTrue(evt.TryAddCount(2), "#1");
+			evt.Signal(7);
+			Assert.IsFalse(evt.TryAddCount(), "#2");
 		}
 		
 		[Test]
@@ -98,7 +98,7 @@ namespace ParallelFxTests
 				if (Interlocked.Increment(ref count) % 2 == 0) {
 					Thread.Sleep(100);
 					while(!e.IsSet)
-						e.Decrement();
+						e.Signal();
 				} else {
 					e.Wait();
 					s = true;
@@ -110,15 +110,15 @@ namespace ParallelFxTests
 		}
 		
 		[Test]
-		public void IncrementDecrementStressTestCase()
+		public void AddCountSignalStressTestCase()
 		{
 			int count = 0;
 			ParallelTestHelper.ParallelStressTest(evt, delegate (CountdownEvent e) {
 				int num = Interlocked.Increment(ref count);
 				if (num % 2 == 0)
-					e.Increment();
+					e.AddCount();
 				else
-					e.Decrement();
+					e.Signal();
 			}, 7);
 			
 			Assert.AreEqual(4, evt.CurrentCount, "#1");

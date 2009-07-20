@@ -1,4 +1,4 @@
-//#if NET_4_0
+#if NET_4_0
 // Task.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -340,12 +340,12 @@ namespace System.Threading.Tasks
 		
 		internal void AddChild ()
 		{
-			childTasks.Increment ();
+			childTasks.AddCount ();
 		}
 
 		internal void ChildCompleted ()
 		{
-			childTasks.Decrement ();
+			childTasks.Signal ();
 			if (childTasks.IsSet && status == TaskStatus.WaitingForChildrenToComplete)
 				status = TaskStatus.RanToCompletion;
 		}
@@ -363,7 +363,7 @@ namespace System.Threading.Tasks
 		protected void Finish ()
 		{
 			// If there wasn't any child created in the task we set the CountdownEvent
-			childTasks.Decrement ();
+			childTasks.Signal ();
 			
 			// Don't override Canceled or Faulted
 			if (status == TaskStatus.Running) {
@@ -679,4 +679,4 @@ namespace System.Threading.Tasks
 		#endregion
 	}
 }
-//#endif
+#endif

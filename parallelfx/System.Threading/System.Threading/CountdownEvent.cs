@@ -1,4 +1,4 @@
-#if NET_4_0
+//#if NET_4_0
 // CountdownEvent.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -28,11 +28,12 @@ using System.Diagnostics;
 
 namespace System.Threading
 {	
-	public class CountdownEvent : ISupportsCancellation, IDisposable
+	public class CountdownEvent : IDisposable
 	{
 		int count;
 		readonly int initial;
 		bool isCanceled;
+		ManualResetEvent evt = new ManualResetEvent (false);
 		
 		public CountdownEvent (int count)
 		{
@@ -41,17 +42,12 @@ namespace System.Threading
 			this.initial = this.count = count;
 		}
 		
-		/*~CountdownEvent()
+		public bool Signal ()
 		{
-			Dispose(false);
-		}*/
-		
-		public void Decrement ()
-		{
-			Decrement(1);
+			return Signal (1);
 		}
 		
-		public void Decrement (int num)
+		public bool Signal (int num)
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
@@ -63,30 +59,38 @@ namespace System.Threading
 				throw new OperationCanceledException ();
 			};
 			
-			if (!ApplyOperation (-num, check))
+			int newValue;
+			if (!ApplyOperation (-num, check, out newValue))
 				throw new InvalidOperationException ("The event is already set");
+			
+			if (newValue <= 0) {
+				evt.Set ();
+				return true;
+			}
+			
+			return false;
 		}
 		
-		public void Increment ()
+		public void AddCount ()
 		{
-			Increment (1);
+			AddCount (1);
 		}
 		
-		public void Increment (int num)
+		public void AddCount (int num)
 		{
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
 			
-			if (!TryIncrement (num))
+			if (!TryAddCount (num))
 				throw new InvalidOperationException ("The event is already set");
 		}
 		
-		public bool TryIncrement ()
+		public bool TryAddCount ()
 		{
-			return TryIncrement (1);
+			return TryAddCount (1);
 		}
 		
-		public bool TryIncrement (int num)
+		public bool TryAddCount (int num)
 		{	
 			if (num < 0)
 				throw new ArgumentOutOfRangeException ("num");
@@ -98,11 +102,17 @@ namespace System.Threading
 			
 			return ApplyOperation (num, check);
 		}
-			
+		
 		bool ApplyOperation (int num, Action<int> doCheck)
 		{
+			int temp;
+			return ApplyOperation (num, doCheck, out temp);
+		}
+			
+		bool ApplyOperation (int num, Action<int> doCheck, out int newValue)
+		{
 			int oldCount;
-			int newValue;
+			newValue = 0;
 			
 			do {
 				if (IsSet)
@@ -133,22 +143,52 @@ namespace System.Threading
 				return true;
 			}
 			
-			SpinWait wait = new SpinWait ();
 			Stopwatch sw = Stopwatch.StartNew ();
+			long timeout = (long)timeoutMilli;
 			
-			while (!IsSet) {
-				if (sw.ElapsedMilliseconds > (long)timeoutMilli) {
-					sw.Stop ();
-					return false;
-				}
-				wait.SpinOnce ();
-			}
-			return true;
+			bool result = Wait (() => sw.ElapsedMilliseconds > timeout);
+			sw.Stop ();
+			
+			return result;
 		}
 		
 		public bool Wait(TimeSpan span)
 		{
 			return Wait ((int)span.TotalMilliseconds);
+		}
+		
+		public bool Wait (int timeoutMilli, CancellationToken token)
+		{
+			if (timeoutMilli == -1) {
+				Wait ();
+				return true;
+			}
+			
+			Stopwatch sw = Stopwatch.StartNew ();
+			long timeout = (long)timeoutMilli;
+			
+			bool result = Wait (() => sw.ElapsedMilliseconds > timeout || token.IsCancellationRequested);
+			sw.Stop ();
+			
+			return result;
+		}
+		
+		public bool Wait(TimeSpan span, CancellationToken token)
+		{
+			return Wait ((int)span.TotalMilliseconds, token);
+		}
+		
+		bool Wait (Func<bool> waitPredicate)
+		{
+			SpinWait wait = new SpinWait ();
+			
+			while (!IsSet) {
+				if (waitPredicate ())
+					return false;
+				wait.SpinOnce ();
+			}
+			
+			return true;
 		}
 		
 		public void Reset ()
@@ -158,6 +198,7 @@ namespace System.Threading
 		
 		public void Reset (int value)
 		{
+			evt.Reset ();
 			Interlocked.Exchange (ref count, value);
 		}
 		
@@ -181,7 +222,7 @@ namespace System.Threading
 		
 		public WaitHandle WaitHandle {
 			get {
-				return null;
+				return evt;
 			}
 		}
 
@@ -189,13 +230,8 @@ namespace System.Threading
 		
 		public void Dispose ()
 		{
-			//Dispose(true);
-		}
-		
-		/*protected virtual void Dispose(bool managedRes)
-		{
 			
-		}*/
+		}
 		#endregion 
 		
 		
@@ -217,4 +253,4 @@ namespace System.Threading
 		
 	}
 }
-#endif
+//#endif

@@ -25,6 +25,7 @@
 // THE SOFTWARE.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace System.Collections.Concurrent
@@ -44,9 +45,38 @@ namespace System.Collections.Concurrent
 			this.keysNormalized = keysNormalized;
 		}
 		
-		public abstract override IEnumerable<T> GetDynamicPartitions ();
+		public override IEnumerable<T> GetDynamicPartitions ()
+		{
+			return GetOrderableDynamicPartitions ().Select ((e) => e.Value);
+		}
 		
-		public abstract override IList<IEnumerator<T>> GetPartitions (int partitionCount);		
+		public override IList<IEnumerator<T>> GetPartitions (int partitionCount)
+		{
+			IEnumerator<T>[] temp = new IEnumerator<T>[partitionCount];
+			IList<IEnumerator<KeyValuePair<long, T>>> enumerators = GetOrderablePartitions (partitionCount);
+			
+			for (int i = 0; i < enumerators.Count; i++)
+				temp[i] = GetProxyEnumerator (enumerators[i]);
+			
+			return temp;
+		}
+		
+		IEnumerator<T> GetProxyEnumerator (IEnumerator<KeyValuePair<long, T>> enumerator)
+		{
+			while (!enumerator.MoveNext ())
+				yield return enumerator.Current.Value;
+		}
+		
+		public abstract IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions(int partitionCount);
+		
+		public virtual IEnumerable<KeyValuePair<long, T>> GetOrderableDynamicPartitions()
+		{
+			if (!SupportsDynamicPartitions)
+				throw new NotSupportedException ();
+			
+			return null;
+		}
+
 		
 		public bool KeysOrderedInEachPartition {
 			get {

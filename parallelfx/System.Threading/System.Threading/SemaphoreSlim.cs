@@ -28,7 +28,7 @@ using System.Diagnostics;
 
 namespace System.Threading
 {
-	public class SemaphoreSlim : IDisposable, ISupportsCancellation
+	public class SemaphoreSlim : IDisposable
 	{
 		readonly int max;
 		

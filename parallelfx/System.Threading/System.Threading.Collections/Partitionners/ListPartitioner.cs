@@ -39,17 +39,14 @@ namespace System.Collections.Concurrent
 			this.source = source;
 		}
 		
-		public override IEnumerable<T> GetDynamicPartitions ()
-		{
-			throw new NotSupportedException ();
-		}
-		
-		public override IList<IEnumerator<T>> GetPartitions (int partitionCount)
+		public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions (int partitionCount)
 		{
 			if (partitionCount <= 0)
 				throw new ArgumentOutOfRangeException ("partitionCount");
 			
-			IEnumerator<T>[] enumerators = new IEnumerator<T>[partitionCount];
+			IEnumerator<KeyValuePair<long, T>>[] enumerators
+				= new IEnumerator<KeyValuePair<long, T>>[partitionCount];
+			
 			int count = (source.Count >= partitionCount) ? source.Count / partitionCount : 1;
 			
 			for (int i = 0; i < enumerators.Length; i++) {
@@ -62,18 +59,18 @@ namespace System.Collections.Concurrent
 			return enumerators;
 		}
 		
-		IEnumerator<T> GetEnumeratorForRange (int startIndex, int count)
+		IEnumerator<KeyValuePair<long, T>> GetEnumeratorForRange (int startIndex, int count)
 		{
 			if (startIndex >= source.Count)
-				return Enumerable.Empty<T> ().GetEnumerator ();
+				return Enumerable.Empty<KeyValuePair<long, T>> ().GetEnumerator ();
 			
 			return GetEnumeratorForRangeInternal (startIndex, count);
 		}
 		
-		IEnumerator<T> GetEnumeratorForRangeInternal (int startIndex, int count)
+		IEnumerator<KeyValuePair<long, T>> GetEnumeratorForRangeInternal (int startIndex, int count)
 		{	
 			for (int i = startIndex; i < count; i++) {
-				yield return source[i];
+				yield return new KeyValuePair<long, T> (i, source[i]);
 			}
 		}
 	}
