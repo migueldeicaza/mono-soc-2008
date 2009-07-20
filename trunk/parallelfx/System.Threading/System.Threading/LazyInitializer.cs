@@ -1,5 +1,5 @@
 // 
-// Partitioner.cs
+// LazyInitializer.cs
 //  
 // Author:
 //       Jérémie "Garuma" Laval <jeremie.laval@gmail.com>
@@ -25,52 +25,44 @@
 // THE SOFTWARE.
 
 using System;
-using System.Collections.Generic;
 
-namespace System.Collections.Concurrent
+namespace System.Threading
 {
-	public static class Partitioner
+	public static class LazyInitializer
 	{
-		public static OrderablePartitioner<T> Create<T> (IEnumerable<T> source)
+		public static T EnsureInitialized<T> (ref T target) where T : class
 		{
-			IList<T> tempIList = source as IList<T>;
-			if (tempIList != null)
-				return Create (tempIList);
+			Interlocked.CompareExchange (ref target, default (T), null);
 			
-			return new EnumerablePartitioner<T> (source);
+			return target;
 		}
 		
-		public static OrderablePartitioner<T> Create<T> (T[] source)
+		public static T EnsureInitialized<T> (ref T target, Func<T> initFunc) where T : class
 		{
-			return Create ((IList<T>)source);
-		}
-		
-		public static OrderablePartitioner<T> Create<T> (IList<T> source)
-		{
-			return new ListPartitioner<T> (source);
-		}
-	}
-	
-	public abstract class Partitioner<T>
-	{
-		protected Partitioner ()
-		{
+			Interlocked.CompareExchange (ref target, initFunc (), null);
 			
+			return target;
 		}
 		
-		public virtual IEnumerable<T> GetDynamicPartitions ()
+		public static T EnsureInitialized<T> (ref T target, ref bool initialized, ref object syncRoot)
 		{
-			if (!SupportsDynamicPartitions)
-				throw new NotSupportedException ();
-			
-			return null;
+			lock (syncRoot) {
+				if (initialized)
+					return target;
+				
+				initialized = true;
+				return target = default (T);
+			}
 		}
 		
-		public abstract IList<IEnumerator<T>> GetPartitions (int partitionCount);
-		
-		public virtual bool SupportsDynamicPartitions {
-			get {
-				return false;
+		public static T EnsureInitialized<T> (ref T target, ref bool initialized, ref object syncRoot, Func<T> initFunc)
+		{
+			lock (syncRoot) {
+				if (initialized)
+					return target;
+				
+				initialized = true;
+				return target = initFunc ();
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-//#if NET_4_0
+#if NET_4_0
 // Parallel.cs
 //
 // Copyright (c) 2008 Jérémie "Garuma" Laval
@@ -241,6 +241,13 @@ namespace System.Threading
 		
 		#region Foreach
 		
+		/*public static ParallelLoopResult ForEach<TSource, TLocal> (OrderablePartitioner<TSource> enumerable, ParallelOptions options,
+		                                                           Func<TLocal> init, Action<TSource, ParallelLoopState, long, TLocal> action,
+		                                                           Action<TLocal> destruct)
+		{
+					
+		}*/
+		
 		public static ParallelLoopResult ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
 		                                                           Func<TLocal> init, Action<TSource, ParallelLoopState, TLocal> action,
 		                                                           Action<TLocal> destruct)
@@ -267,16 +274,40 @@ namespace System.Threading
 					TSource element;
 					
 					while (cont) {
+						if (infos.IsStopped.Value)
+							return;
+						
+						if (options != null && options.CancellationToken.IsCancellationRequested) {
+							state.Stop ();
+							return;
+						}
+						
 						for (int i = 0; i < bagCount && (cont = slice.MoveNext ()); i++) {
 							bag.Add (slice.Current);
 						}
 						
 						for (int i = 0; i < bagCount && bag.TryTake (out element); i++) {
+							if (infos.IsStopped.Value)
+								return;
+							
+							if (options != null && options.CancellationToken.IsCancellationRequested) {
+								state.Stop ();
+								return;
+							}
+							
 							action (element, state, local);
 						}
 					}
 					
 					while (bag.TryTake (out element)) {
+						if (infos.IsStopped.Value)
+							return;
+						
+						if (options != null && options.CancellationToken.IsCancellationRequested) {
+							state.Stop ();
+							return;
+						}
+						
 						action (element, state, local);
 					}
 				} finally {
@@ -300,9 +331,15 @@ namespace System.Threading
 			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e), null);
 		}
 		
-		public static void ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, int> action)
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, ParallelLoopState> action)
 		{
-			//ForEach (enumerable, (e, index, state) => action (e, index));
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e, s), null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable,
+		                                                   Action<TSource, ParallelLoopState, long> action)
+		{
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e, s, -1), null);
 		}
 		
 		/*public static void ForEach<TSource> (IEnumerable<TSource> enumerable,
@@ -518,7 +555,7 @@ namespace System.Threading
 			for (int i = 0; i < num; i++) {
 				tasks [i] = Task.Factory.StartNew (() => { 
 					action ();
-					evt.Decrement ();
+					evt.Signal ();
 					if (callback != null && evt.IsSet)
 						callback ();
 				});
@@ -534,4 +571,4 @@ namespace System.Threading
 		#endregion
 	}
 }
-//#endif
+#endif

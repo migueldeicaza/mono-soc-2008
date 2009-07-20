@@ -33,28 +33,26 @@ namespace System.Collections.Concurrent
 	public class EnumerablePartitioner<T> : OrderablePartitioner<T>
 	{
 		IEnumerable<T> source;
-//#if USE_MONITOR_LOCK
+#if USE_MONITOR
 		object syncLock = new object ();
-//#endif
+#endif
 		const int InitialPartitionSize = 1;
 		const int PartitionMultiplier = 2;
 		
-		public EnumerablePartitioner (IEnumerable<T> source) : base (true, false, false)
+		int index = 0;
+		
+		public EnumerablePartitioner (IEnumerable<T> source) : base (true, false, true)
 		{
 			this.source = source;
 		}
 		
-		public override IEnumerable<T> GetDynamicPartitions ()
-		{
-			throw new NotSupportedException ();
-		}
-		
-		public override IList<IEnumerator<T>> GetPartitions (int partitionCount)
+		public override IList<IEnumerator<KeyValuePair<long, T>>> GetOrderablePartitions (int partitionCount)
 		{
 			if (partitionCount <= 0)
 				throw new ArgumentOutOfRangeException ("partitionCount");
 			
-			IEnumerator<T>[] enumerators = new IEnumerator<T>[partitionCount];
+			IEnumerator<KeyValuePair<long, T>>[] enumerators
+				= new IEnumerator<KeyValuePair<long, T>>[partitionCount];
 			
 			IEnumerator<T> src = source.GetEnumerator ();
 			
@@ -65,16 +63,18 @@ namespace System.Collections.Concurrent
 			return enumerators;
 		}
 		
-		IEnumerator<T> GetPartitionEnumerator (IEnumerator<T> src)
+		IEnumerator<KeyValuePair<long, T>> GetPartitionEnumerator (IEnumerator<T> src)
 		{
-//#if USE_MONITOR_LOCK
 			int count = InitialPartitionSize;
 			List<T> list = new List<T> ();
 			
 			while (true) {
 				list.Clear ();
+				int ind = -1;
 				
 				lock (syncLock) {
+					ind = index;
+					
 					for (int i = 0; i < count; i++) {
 						if (!src.MoveNext ()) {
 							if (list.Count == 0)
@@ -84,11 +84,12 @@ namespace System.Collections.Concurrent
 						}
 						
 						list.Add (src.Current);
+						index++;
 					}					
 				}
 				
-				foreach (T element in list)
-					yield return element;
+				for (int i = 0; i < list.Count; i++)
+					yield return new KeyValuePair<long, T> ();
 				
 				count *= PartitionMultiplier;
 			}

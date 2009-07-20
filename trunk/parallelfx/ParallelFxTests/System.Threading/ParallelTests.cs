@@ -30,6 +30,7 @@ using System.Threading;
 using System.IO;
 using System.Xml.Serialization;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 using ParallelFxTests.RayTracer;
 
@@ -74,12 +75,14 @@ namespace ParallelFxTests
 		public void ParallelForEachTestCase()
 		{
 			ParallelTestHelper.Repeat (() => {
-				IEnumerable<int> e = Enumerable.Repeat(1, 100);
+				IEnumerable<int> e = Enumerable.Repeat(1, 500);
+				ConcurrentQueue<int> queue = new ConcurrentQueue<int> ();
 				int count = 0;
 				
-				Parallel.ForEach(e, (element) => Interlocked.Increment(ref count));
+				Parallel.ForEach(e, (element) => { Interlocked.Increment(ref count); queue.Enqueue (element); });
 				
-				Assert.AreEqual(100, count);
+				Assert.AreEqual(500, count, "#1");
+				CollectionAssert.AreEquivalent (e, queue, "#2");
 			});
 		}
 		
