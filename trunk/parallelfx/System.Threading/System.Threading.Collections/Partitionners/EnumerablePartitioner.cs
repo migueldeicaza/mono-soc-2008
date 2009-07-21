@@ -89,7 +89,7 @@ namespace System.Collections.Concurrent
 				}
 				
 				for (int i = 0; i < list.Count; i++)
-					yield return new KeyValuePair<long, T> ();
+					yield return new KeyValuePair<long, T> (ind + i, list[i]);
 				
 				count *= PartitionMultiplier;
 			}

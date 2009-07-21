@@ -33,16 +33,6 @@ namespace System.Threading
 {
 	public static class Parallel
 	{
-		static Parallel ()
-		{
-			string str = Environment.GetEnvironmentVariable ("MAX_FOR_COUNT");
-			int count;
-			if (!string.IsNullOrEmpty (str) && int.TryParse (str, out count))
-				MaxForCount = count;
-			else
-				MaxForCount = 1;
-		}
-		
 		public static int GetBestWorkerNumber ()
 		{
 			return GetBestWorkerNumber (TaskScheduler.Current);
@@ -90,39 +80,18 @@ namespace System.Threading
 				tasks [i] = taskCreator ();
 			}
 		}
-		
-		/*static void InitCleanerCallback<TLocal> (Task[] tasks, ParallelState<TLocal> state, Action<TLocal> cleanFunc)
-		{
-			Action<Task> cleanCallback = delegate (Task t) {
-				cleanFunc (state.ThreadLocalState);
-			};
-			foreach (Task t in tasks)
-				t.ContinueWith (cleanCallback, TaskContinuationKind.OnAny, TaskCreationOptions.None, true);
-		}*/
-		
 		#region For
-		
-		static readonly int MaxForCount;
 		
 		public static ParallelLoopResult For (int from, int to, Action<int> action)
 		{
 			return For (from, to, null, action);
 		}
-		
-		/*public static void For (long from, long to, Action<long> action)
-		{
-			For (from, to, (i, state) => action (i));
-		}*/
+
 		
 		public static ParallelLoopResult For (int from, int to, Action<int, ParallelLoopState> action)
 		{
 			return For (from, to, null, action);
 		}
-		
-		/*public static void For (long from, long to, Action<long, ParallelLoopState> action)
-		{
-			For (from, to, action);
-		}*/
 		
 		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int> action)
 		{
@@ -131,22 +100,18 @@ namespace System.Threading
 		
 		public static ParallelLoopResult For (int from, int to, ParallelOptions options, Action<int, ParallelLoopState> action)
 		{
-			return For<object> (from, to, options, null, (i, s, l) => action (i, s), null);
+			return For<object> (from, to, options, null, (i, s, l) => { action (i, s); return null; }, null);
 		}
 		
-		/*public static void For (long from, long to, ParallelOptions options, Action<long> action)
-		{
-			For (from, to, (i, state) => action (i));
-		}*/
-		
 		public static ParallelLoopResult For<TLocal> (int from, int to, Func<TLocal> init,
-		                                              Action<int, ParallelLoopState, TLocal> action, Action<TLocal> destruct)
+		                                              Func<int, ParallelLoopState, TLocal, TLocal> action, Action<TLocal> destruct)
 		{
 			return For<TLocal> (from, to, null, init, action, destruct);
 		}
 		
 		public static ParallelLoopResult For<TLocal> (int from, int to, ParallelOptions options, 
-		                                              Func<TLocal> init, Action<int, ParallelLoopState, TLocal> action,
+		                                              Func<TLocal> init, 
+		                                              Func<int, ParallelLoopState, TLocal, TLocal> action,
 		                                              Action<TLocal> destruct)
 		{			
 			if (action == null)
@@ -197,7 +162,7 @@ namespace System.Threading
 								return;
 							
 							state.CurrentIteration = actual;
-							action (actual, state, local);
+							local = action (actual, state, local);
 						}
 					}
 					
@@ -232,25 +197,14 @@ namespace System.Threading
 			
 			return new ParallelLoopResult (infos.LowestBreakIteration, !(infos.IsStopped.Value || infos.IsExceptional));
 		}
-		
-		/*public static void For (long from, long to, ParallelOptions options, Action<long, ParallelLoopState> action)
-		{
-			For (from, to, action);
-		}*/
+
 		#endregion
 		
 		#region Foreach
 		
-		/*public static ParallelLoopResult ForEach<TSource, TLocal> (OrderablePartitioner<TSource> enumerable, ParallelOptions options,
-		                                                           Func<TLocal> init, Action<TSource, ParallelLoopState, long, TLocal> action,
-		                                                           Action<TLocal> destruct)
-		{
-					
-		}*/
-		
-		public static ParallelLoopResult ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
-		                                                           Func<TLocal> init, Action<TSource, ParallelLoopState, TLocal> action,
-		                                                           Action<TLocal> destruct)
+		static ParallelLoopResult ForEach<TSource, TLocal> (Func<int, IList<IEnumerator<TSource>>> enumerable, ParallelOptions options,
+		                                                    Func<TLocal> init, Func<TSource, ParallelLoopState, TLocal, TLocal> action,
+		                                                    Action<TLocal> destruct)
 		{		
 			int num = Math.Min (GetBestWorkerNumber (), (options != null) ? options.MaxDegreeOfParallelism : int.MaxValue);
 			
@@ -260,7 +214,7 @@ namespace System.Threading
 			ConcurrentBag<TSource> bag = new ConcurrentBag<TSource> ();
 			const int bagCount = 5;
 			
-			IList<IEnumerator<TSource>> slices = enumerable.GetPartitions (num);
+			IList<IEnumerator<TSource>> slices = enumerable (num);
 			int sliceIndex = 0;
 
 			Action workerMethod = delegate {
@@ -295,7 +249,7 @@ namespace System.Threading
 								return;
 							}
 							
-							action (element, state, local);
+							local = action (element, state, local);
 						}
 					}
 					
@@ -328,173 +282,154 @@ namespace System.Threading
 		
 		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource> action)
 		{
-			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e), null);
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, 
+			                                 (e, s, l) => { action (e); return null; }, null);
 		}
 		
 		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable, Action<TSource, ParallelLoopState> action)
 		{
-			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e, s), null);
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null,
+			                                 (e, s, l) => { action (e, s); return null; }, null);
 		}
 		
 		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> enumerable,
 		                                                   Action<TSource, ParallelLoopState, long> action)
 		{
-			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null, (e, s, l) => action (e, s, -1), null);
+			return ForEach<TSource, object> (Partitioner.Create (enumerable), null, null,
+			                                 (e, s, l) => { action (e, s, -1); return null; }, null);
 		}
 		
-		/*public static void ForEach<TSource> (IEnumerable<TSource> enumerable,
-		                                     Action<TSource, int, ParallelState> action)
+		public static ParallelLoopResult ForEach<TSource> (Partitioner<TSource> source,
+		                                                   Action<TSource, ParallelLoopState> body)
 		{
-			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
-			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
-			// most collection.
-#if USE_MONITOR
-			object syncRoot = new object ();
-#else
-			SpinLockWrapper sl = new SpinLockWrapper ();
-#endif
-			
-			int num = GetBestWorkerNumber();
-			
-			Task[] tasks = new Task[num];
-			ParallelState state = new ParallelState(tasks);
-			
-			IEnumerator<TSource> enumerator = enumerable.GetEnumerator();
-			int currentIndex = 0;
-			bool isFinished = false;
-			
-			Action<object> workerMethod = delegate {
-				int index = -1;
-				TSource element = default(TSource);
-				
-				while (!isFinished && !state.IsStopped) {
-#if USE_MONITOR
-					lock (syncRoot) {
-#else
-					try {
-						sl.Lock.Enter ();
-#endif
-						// From here it's thread-safe
-						index      = currentIndex++;
-						isFinished = !enumerator.MoveNext();
-						if (isFinished)
-							return;
-						element = enumerator.Current;
-						// End of thread-safety
-#if USE_MONITOR
-					}
-#else
-					} finally {
-						sl.Lock.Exit ();
-					}
-#endif
-					
-					action (element, index, state);
-				}
-			};
-			
-			InitTasks (tasks, workerMethod, num);	
-			
-			Task.WaitAll (tasks);
-			HandleExceptions (tasks);
+			return ForEach<TSource, object> (source, null, null, (e, s, l) => { body (e, s); return null; }, null);
 		}
 		
-		public static void ForEach<TSource, TLocal> (IEnumerable<TSource> enumerable, Func<TLocal> threadLocalSelector,
-		                                             Action<TSource, int, ParallelState<TLocal>> body)
-		{
-			ForEach<TSource, TLocal> (enumerable, threadLocalSelector, body, null);
-		}
-		
-		public static void ForEach<TSource, TLocal> (IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
-		                                             Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup)
-		{
-			ForEach<TSource, TLocal> (source, threadLocalSelector, body, threadLocalCleanup, (a, count, act) => InitTasks (a, act, count));
-		}
-		
-		public static void ForEach<TSource, TLocal> (IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
-		                                             Action<TSource, int, ParallelState<TLocal>> body, Action<TLocal> threadLocalCleanup,
-		                                             TaskManager manager, TaskCreationOptions options)
-		{
-			ForEach<TSource, TLocal> (source, threadLocalSelector, body, threadLocalCleanup,
-			                          (a, count, act) => InitTasks (a, count, () => Task.StartNew (act, manager, options)));
-		}
+		public static ParallelLoopResult ForEach<TSource> (OrderablePartitioner<TSource> source, 
+		                                                   Action<TSource, ParallelLoopState, long> body)
 
-		public static void ForEach<TSource, TLocal> (IEnumerable<TSource> source, Func<TLocal> threadLocalSelector, 
-		                                             Action<TSource, int, ParallelState<TLocal>> body,
-		                                             Action<TLocal> threadLocalCleanup, Action<Task[], int, Action<object>> tasksCreator) 
 		{
-			// Unfortunately the enumerable manipulation isn't guaranteed to be thread-safe so we use
-			// a light weight lock for the 3 or so operations to retrieve an element which should be fast for
-			// most collection.
-#if USE_MONITOR
-			object syncRoot = new object ();
-#else
-			SpinLockWrapper sl = new SpinLockWrapper ();
-#endif
-			
-			int num = GetBestWorkerNumber ();
-			
-			Task[] tasks = new Task [num];
-			ParallelState<TLocal> state = new ParallelState<TLocal> (tasks, threadLocalSelector);
-			
-			IEnumerator<TSource> enumerator = source.GetEnumerator ();
-			int currentIndex = 0;
-			bool isFinished = false;
-			
-			Action<object> workerMethod = delegate {
-				int index = -1;
-				TSource element = default (TSource);
-				
-				while (!isFinished && !state.IsStopped) {
-#if USE_MONITOR
-					lock (syncRoot) {
-#else
-					try {
-						sl.Lock.Enter ();
-#endif
-						// From here it's thread-safe
-						index      = currentIndex++;
-						isFinished = !enumerator.MoveNext ();
-						if (isFinished)
-							return;
-						element = enumerator.Current;
-						// End of thread-safety
-#if USE_MONITOR
-					}
-#else
-					} finally {
-						sl.Lock.Exit ();
-					}
-#endif
-					
-					body (element, index, state);
-				}
-			};
-			
-			tasksCreator (tasks, num, workerMethod);
-			if (threadLocalCleanup != null)
-				InitCleanerCallback (tasks, state, threadLocalCleanup);
-			Task.WaitAll (tasks);
-			HandleExceptions (tasks);
-		}*/
+			return ForEach<TSource, object> (source, null, null, (e, s, i, l) => { body (e, s, i); return null; }, null);
+		}
 		
+		public static ParallelLoopResult ForEach<TSource> (Partitioner<TSource> source,
+		                                                   Action<TSource> body)
+
+		{
+			return ForEach<TSource, object> (source, null, null, (e, s, l) => { body (e); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> source, ParallelOptions parallelOptions,
+		                                                   Action<TSource> body)
+		{
+			return ForEach<TSource, object> (Partitioner.Create (source), parallelOptions, null,
+			                                 (e, s, l) => { body (e); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> source, ParallelOptions parallelOptions,
+		                                                   Action<TSource, ParallelLoopState> body)
+		{
+			return ForEach<TSource, object> (Partitioner.Create (source), parallelOptions, null, 
+			                                 (e, s, l) => { body (e, s); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (IEnumerable<TSource> source, ParallelOptions parallelOptions,
+		                                                   Action<TSource, ParallelLoopState, long> body)
+		{
+			return ForEach<TSource, object> (Partitioner.Create (source), parallelOptions,
+			                                 null, (e, s, i, l) => { body (e, s, i); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (OrderablePartitioner<TSource> source, ParallelOptions parallelOptions,
+		                                                   Action<TSource, ParallelLoopState, long> body)
+
+		{
+			return ForEach<TSource, object> (source, parallelOptions, null, (e, s, i, l) => { body (e, s, i); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (Partitioner<TSource> source, ParallelOptions parallelOptions,
+		                                                   Action<TSource> body)
+		{
+			return ForEach<TSource, object> (source, parallelOptions, null, (e, s, l) => {body (e); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource> (Partitioner<TSource> source, ParallelOptions parallelOptions, 
+		                                                   Action<TSource, ParallelLoopState> body)
+		{
+			return ForEach<TSource, object> (source, parallelOptions, null, (e, s, l) => { body (e, s); return null; }, null);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (IEnumerable<TSource> source, Func<TLocal> localInit,
+		                                                           Func<TSource, ParallelLoopState, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> ((Partitioner<TSource>)Partitioner.Create (source), null, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (IEnumerable<TSource> source, Func<TLocal> localInit,
+		                                                           Func<TSource, ParallelLoopState, long, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> (Partitioner.Create (source), null, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (OrderablePartitioner<TSource> source, Func<TLocal> localInit,
+		                                                           Func<TSource, ParallelLoopState, long, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> (source, null, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (Partitioner<TSource> source, Func<TLocal> localInit,
+		                                                           Func<TSource, ParallelLoopState, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> (source, null, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (IEnumerable<TSource> source, ParallelOptions parallelOptions,
+		                                                           Func<TLocal> localInit,
+		                                                           Func<TSource, ParallelLoopState, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> (Partitioner.Create (source), parallelOptions, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (IEnumerable<TSource> source, ParallelOptions parallelOptions,
+		                                                           Func<TLocal> localInit, 
+		                                                           Func<TSource, ParallelLoopState, long, TLocal, TLocal> body,
+		                                                           Action<TLocal> localFinally)
+		{
+			return ForEach<TSource, TLocal> (Partitioner.Create (source), parallelOptions, localInit, body, localFinally);
+		}
+		
+		public static ParallelLoopResult ForEach<TSource, TLocal> (Partitioner<TSource> enumerable, ParallelOptions options,
+		                                                           Func<TLocal> init,
+		                                                           Func<TSource, ParallelLoopState, TLocal, TLocal> action,
+		                                                           Action<TLocal> destruct)
+		{
+			return ForEach<TSource, TLocal> (enumerable.GetPartitions, options, init, action, destruct);
+		}
+			
+		public static ParallelLoopResult ForEach<TSource, TLocal> (OrderablePartitioner<TSource> enumerable, ParallelOptions options,
+		                                                           Func<TLocal> init,
+		                                                           Func<TSource, ParallelLoopState, long, TLocal, TLocal> action,
+		                                                           Action<TLocal> destruct)
+		{
+			return ForEach<KeyValuePair<long, TSource>, TLocal> (enumerable.GetOrderablePartitions, options,
+			                                                    init, (e, s, l) => action (e.Value, s, e.Key, l), destruct);
+		}
 		#endregion
 		
-		#region While
-		/*public static void While (Func<bool> predicate, Action body)
-		{
-			While (predicate, (state) => body ());
-		}*/
-		
+		#region While		
 		public static void While (Func<bool> predicate, Action body)
 		{
 			int num = GetBestWorkerNumber ();
 			
 			Task[] tasks = new Task [num];
-			//ParallelState state = new ParallelState (tasks);
 			
 			Action action = delegate {
-				//while (!state.IsStopped && predicate ())
+				while (predicate ())
 				body ();
 			};
 			

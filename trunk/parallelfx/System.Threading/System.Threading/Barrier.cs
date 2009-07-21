@@ -65,11 +65,10 @@ namespace System.Threading
 			// to add ourselves for the next phase
 			do {
 				if (cntd.TryAddCount (participantCount)) {
+					Interlocked.Add (ref participants, participantCount);
 					return phase;
 				}
 			} while (true);
-			
-			Interlocked.Add (ref participants, participantCount);
 		}
 		
 		public void RemoveParticipant ()
@@ -116,6 +115,7 @@ namespace System.Threading
 				result = associate ();
 			} else {
 				result = true;
+				postPhaseAction (this);
 				phase++;
 			}
 			
